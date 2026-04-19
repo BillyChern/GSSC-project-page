@@ -53,12 +53,21 @@ function boot() {
   camera.position.set(140, 100, 140);
   camera.lookAt(0, 0, 0);
 
-  // Ambient glow + a warm key light for voxel depth cues
-  const amb = new THREE.AmbientLight(0xFFFFFF, 0.85);
-  scene.add(amb);
-  const key = new THREE.DirectionalLight(0xFFE2BE, 0.35);
+  // 3-light rig that mimics the Blender "dramatic" preset used in
+  // the paper renders so Lambert-shaded InstancedMesh cubes read with
+  // proper depth. Warm key from above-right, cool fill opposite,
+  // warm rim from behind; ambient floor set low enough that normal
+  // variation is visible but the unlit back faces don't go black.
+  scene.add(new THREE.AmbientLight(0xFFFFFF, 0.55));
+  const key = new THREE.DirectionalLight(0xFFE2BE, 1.1);
   key.position.set(60, 120, 40);
   scene.add(key);
+  const fill = new THREE.DirectionalLight(0x9DB7D8, 0.45);
+  fill.position.set(-80, 50, -60);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xFFAE60, 0.35);
+  rim.position.set(-20, 20, -90);
+  scene.add(rim);
 
   // Controls
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -103,41 +112,63 @@ function boot() {
       geometry = makeSyntheticCloud(sceneId, viewId);
     }
 
-    // PLY from our exporter uses "color" attribute RGB [0..1]
-    if (!geometry.getAttribute('color') && geometry.getAttribute('red')) {
-      const n = geometry.attributes.position.count;
-      const colors = new Float32Array(n * 3);
+    // Normalize colour: our exporter writes red/green/blue uchar; we
+    // want a single per-vertex "color" float attribute in [0, 1] that
+    // we can read back when building InstancedMesh colours below.
+    const n = geometry.attributes.position.count;
+    let cols;
+    if (geometry.getAttribute('color')) {
+      cols = geometry.getAttribute('color').array;
+    } else if (geometry.getAttribute('red')) {
+      cols = new Float32Array(n * 3);
       const r = geometry.attributes.red.array;
       const g = geometry.attributes.green.array;
       const b = geometry.attributes.blue.array;
       for (let i = 0; i < n; i++) {
-        colors[3*i  ] = r[i] / 255;
-        colors[3*i+1] = g[i] / 255;
-        colors[3*i+2] = b[i] / 255;
+        cols[3*i  ] = r[i] / 255;
+        cols[3*i+1] = g[i] / 255;
+        cols[3*i+2] = b[i] / 255;
       }
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    } else {
+      cols = new Float32Array(n * 3).fill(0.75);
     }
 
     // Center the cloud around origin for consistent camera framing.
     geometry.computeBoundingBox();
     const center = new THREE.Vector3();
     geometry.boundingBox.getCenter(center);
-    geometry.translate(-center.x, -center.y, -center.z);
+    const pos = geometry.attributes.position.array;
 
-    const material = new THREE.PointsMaterial({
-      size: 0.9,
-      vertexColors: true,
-      sizeAttenuation: true,
-      transparent: true,
-      opacity: 0.95,
-    });
+    // Instanced solid cubes at 0.2 m each — matches the voxel size used
+    // by tools/export_ply.py and by the headless Blender paper pipeline,
+    // giving the website the same chunky-voxel look as the figures in
+    // the paper rather than a soft point-cloud.
+    const VOXEL_SIZE = 0.2;
+    const boxGeo = new THREE.BoxGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
+    const material = new THREE.MeshLambertMaterial({ vertexColors: false });
+    const inst = new THREE.InstancedMesh(boxGeo, material, n);
+    inst.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+    inst.frustumCulled = false;
 
-    const next = new THREE.Points(geometry, material);
-    next.rotateX(-Math.PI / 2); // align voxel Z-up to scene Y-up
+    const tmp = new THREE.Object3D();
+    const tmpColor = new THREE.Color();
+    for (let i = 0; i < n; i++) {
+      const x = pos[3 * i    ] - center.x;
+      const y = pos[3 * i + 1] - center.y;
+      const z = pos[3 * i + 2] - center.z;
+      tmp.position.set(x, y, z);
+      tmp.updateMatrix();
+      inst.setMatrixAt(i, tmp.matrix);
+      tmpColor.setRGB(cols[3 * i], cols[3 * i + 1], cols[3 * i + 2]);
+      inst.setColorAt(i, tmpColor);
+    }
+    inst.instanceMatrix.needsUpdate = true;
+    if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+    inst.rotateX(-Math.PI / 2); // voxel Z-up -> scene Y-up
 
     if (currentCloud) scene.remove(currentCloud);
-    currentCloud = next;
-    scene.add(next);
+    currentCloud = inst;
+    scene.add(inst);
 
     // Update stats panel
     updateStats(sceneId);
