@@ -116,9 +116,7 @@
 
 .hero {
   min-height: 100vh;
-  /* Extra bottom padding reserves a clear gutter for the absolutely-positioned
-     .hero__scroll indicator, preventing it from overlapping the bottom-row metrics. */
-  padding: var(--s-8) var(--s-6) calc(var(--s-7) + 72px);
+  padding: var(--s-8) var(--s-6) var(--s-7);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -337,32 +335,6 @@ body[data-anon="true"] [data-anon-section] { display: none !important; }
   text-transform: uppercase;
   color: var(--c-ink-dim);
   text-align: center;
-}
-
-.hero__scroll {
-  position: absolute;
-  left: 50%;
-  bottom: var(--s-4);
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--s-2);
-  color: var(--c-ink-dim);
-  font-family: var(--ff-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-.hero__scroll-line {
-  width: 1px;
-  height: 42px;
-  background: linear-gradient(to bottom, var(--c-accent), transparent);
-  animation: scroll-bleed 2.4s var(--ease-in-out) infinite;
-}
-@keyframes scroll-bleed {
-  0%, 100% { opacity: 0.3; transform: scaleY(0.6); transform-origin: top; }
-  50%      { opacity: 1;   transform: scaleY(1); }
 }
 
 /* =============================================================

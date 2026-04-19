@@ -48,25 +48,16 @@
 
 .btn--lg { padding: 14px 22px; font-size: var(--fs-base); }
 
-/* Pending / disabled CTA buttons (used under double-blind review while
-   Paper / arXiv / Code URLs are still blinded). Reads as a placeholder
-   chip, does not hover-lift, does not receive pointer events. */
-.btn--pending {
-  color: var(--c-ink-dim);
-  border-style: dashed;
-  background: transparent;
-  cursor: not-allowed;
-  pointer-events: none;       /* kills the hover/active state entirely */
-  opacity: 0.75;
+/* Placeholder CTAs (Paper / arXiv / Code): look like normal buttons so the
+   hero stays visually balanced; clicks are swallowed by main.js so we don't
+   jump to top. Hover stays disabled to signal the link isn't live yet. */
+.btn[aria-disabled="true"] {
+  cursor: default;
 }
-.btn--pending svg,
-.btn--pending .btn__mono { opacity: 0.8; }
-.btn__suffix {
-  font-family: var(--ff-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.12em;
-  color: var(--c-ink-dim);
-  margin-left: 2px;
+.btn[aria-disabled="true"]:hover {
+  background: var(--c-bg);
+  border-color: var(--c-line);
+  transform: none;
 }
 
 .btn-ghost {
