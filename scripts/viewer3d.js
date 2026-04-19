@@ -8,6 +8,40 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
+// SemanticKITTI palette — must stay in lockstep with tools/export_ply.py
+// CLASS_RGB. Key = class_id, value = RGB triplet in [0, 255].
+const CLASS_RGB_LUT = {
+   1: [100, 150, 245],   2: [100, 230, 245],   3: [255,   0, 255],
+   4: [ 80,  30, 180],   5: [  0,   0, 255],   6: [255,  30,  30],
+   7: [255,  40, 200],   8: [150,  30,  90],   9: [255,   0, 255],
+  10: [255, 150, 255],  11: [ 75,   0,  75],  12: [175,   0,  75],
+  13: [255, 200,   0],  14: [255, 120,  50],  15: [  0, 175,   0],
+  16: [135,  60,   0],  17: [150, 240,  80],  18: [255, 240, 150],
+  19: [255,   0,   0],
+};
+// Reverse lookup: "R,G,B" (0..255) -> class_id. Rebuilt once.
+const RGB_TO_CLASS = Object.fromEntries(
+  Object.entries(CLASS_RGB_LUT).map(([k, v]) => [v.join(','), Number(k)])
+);
+// Same rare-class set as tools/export_ply.py RARE_CLASS_BOOST:
+// bicycle, motorcycle, other-vehicle, person, bicyclist, motorcyclist,
+// pole, traffic-sign. Eight classes.
+const RARE_CLASSES = new Set([2, 3, 5, 6, 7, 8, 18, 19]);
+
+// Walk a float32 [n*3] colour buffer and produce a Uint8Array flag per
+// instance: 1 if the voxel's colour maps to a rare class, else 0.
+function computeRareMask(colors, n) {
+  const mask = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const r = Math.round(colors[3 * i    ] * 255);
+    const g = Math.round(colors[3 * i + 1] * 255);
+    const b = Math.round(colors[3 * i + 2] * 255);
+    const cls = RGB_TO_CLASS[r + ',' + g + ',' + b];
+    mask[i] = cls !== undefined && RARE_CLASSES.has(cls) ? 1 : 0;
+  }
+  return mask;
+}
+
 // Asset map: each scene has four views. Files live under assets/ply/.
 // If a PLY is missing we fall back to a procedurally-generated cube
 // of colored voxels so the viewer never looks broken.
@@ -133,6 +167,11 @@ function boot() {
       cols = new Float32Array(n * 3).fill(0.75);
     }
 
+    // Per-instance rare/common mask, derived by reverse-looking each PLY
+    // voxel colour back to its SemanticKITTI class ID. Palette matches
+    // CLASS_RGB in tools/export_ply.py and RARE_CLASS_BOOST below.
+    const isRare = computeRareMask(cols, n);
+
     // Center the cloud around origin for consistent camera framing.
     geometry.computeBoundingBox();
     const center = new THREE.Vector3();
@@ -166,9 +205,15 @@ function boot() {
     if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
     inst.rotateX(-Math.PI / 2); // voxel Z-up -> scene Y-up
 
+    // Stash base colors + rare mask so the "Highlight rare classes"
+    // checkbox can dim common classes without re-parsing the PLY.
+    inst.userData.baseColors = cols;
+    inst.userData.isRare = isRare;
+
     if (currentCloud) scene.remove(currentCloud);
     currentCloud = inst;
     scene.add(inst);
+    applyHighlight(currentCloud, isHighlightOn());
 
     // Update stats panel
     updateStats(sceneId);
@@ -297,8 +342,34 @@ function boot() {
   const hlChk = document.getElementById('viewer3d-highlight');
   if (hlChk) hlChk.addEventListener('change', () => {
     if (!currentCloud) return;
-    currentCloud.material.opacity = hlChk.checked ? 0.95 : 0.6;
+    applyHighlight(currentCloud, hlChk.checked);
   });
+
+  // Helper used both on load and on toggle. When highlight is ON, repaint
+  // every common-class instance at 25% brightness so rare classes pop
+  // visually; when OFF, restore the original PLY colour. We repaint the
+  // instanceColor attribute in place rather than rebuilding the mesh.
+  function applyHighlight(mesh, on) {
+    const base = mesh.userData && mesh.userData.baseColors;
+    const rare = mesh.userData && mesh.userData.isRare;
+    if (!base || !rare) return;
+    const COMMON_DIM = 0.22;
+    const c = new THREE.Color();
+    const count = rare.length;
+    for (let i = 0; i < count; i++) {
+      const br = base[3 * i], bg = base[3 * i + 1], bb = base[3 * i + 2];
+      if (on && !rare[i]) {
+        c.setRGB(br * COMMON_DIM, bg * COMMON_DIM, bb * COMMON_DIM);
+      } else {
+        c.setRGB(br, bg, bb);
+      }
+      mesh.setColorAt(i, c);
+    }
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }
+  function isHighlightOn() {
+    return !!(hlChk && hlChk.checked);
+  }
 
   // Double-click to re-frame
   stage.addEventListener('dblclick', () => {
