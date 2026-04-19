@@ -1,0 +1,15 @@
+# Editor
+.DS_Store
+.vscode/
+.idea/
+
+# Server logs
+*.log
+/tmp/*
+
+# Python artifacts from the PLY exporter
+__pycache__/
+*.pyc
+
+# SVG + PLY intermediates we keep regenerating
+*.swp

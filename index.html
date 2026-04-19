@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="S²D²: Structured Source Discrete Diffusion for LiDAR semantic scene completion. Refine any base SSC predictor in a single forward pass." />
+<meta name="theme-color" content="#0B0E14" />
+<meta property="og:title" content="S²D² — Structured Source Discrete Diffusion" />
+<meta property="og:description" content="Single-step diffusion refinement of LiDAR semantic scene completion. 38.54% mIoU on SemanticKITTI, +2.37 over SCPNet, no distillation needed." />
+<meta property="og:type" content="article" />
+<title>S²D² — Structured Source Discrete Diffusion</title>
+
+<!-- Fonts: Instrument Serif display · IBM Plex Sans body · JetBrains Mono code -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="styles/base.css" />
+<link rel="stylesheet" href="styles/components.css" />
+<link rel="stylesheet" href="styles/layout.css" />
+
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body data-anon="true">
+
+<!-- ============================================================
+     TOP NAV
+============================================================ -->
+<nav class="topnav" aria-label="Primary">
+  <a class="logo" href="#top">S<sup>2</sup>D<sup>2</sup></a>
+  <ul class="topnav__links">
+    <li><a href="#abstract">Abstract</a></li>
+    <li><a href="#method">Method</a></li>
+    <li><a href="#viewer">3D Viewer</a></li>
+    <li><a href="#speed">Speed</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#bibtex">BibTeX</a></li>
+  </ul>
+  <div class="topnav__meta">
+    <button class="btn-ghost" id="anon-toggle" aria-pressed="true" title="Toggle anonymous mode for double-blind review">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      <span id="anon-label">Anonymous</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     HERO
+============================================================ -->
+<header class="hero" id="top">
+  <div class="hero__grid">
+    <div class="hero__lede">
+      <p class="hero__eyebrow">TPAMI 2026 · Under Review</p>
+      <h1 class="hero__title">
+        <span class="hero__title-line">Structured Source</span>
+        <span class="hero__title-line hero__title-line--accent">Discrete Diffusion</span>
+      </h1>
+      <p class="hero__subtitle">
+        Refine any base semantic scene completion predictor toward ground truth through a closed-form diffusion on the probability simplex.
+        A single forward pass. No distillation. <em>38.54%</em> mIoU on SemanticKITTI.
+      </p>
+
+      <div class="hero__authors" data-anon-section>
+        <span class="hero__author"><span class="author-name">Shi Chen</span><sup>1,*</sup></span>
+        <span class="hero__author"><span class="author-name">Weifeng Ge</span><sup>1,†</sup></span>
+      </div>
+      <div class="hero__affiliations" data-anon-section>
+        <span><sup>1</sup>School of Computer Science, Fudan University</span>
+        <span class="affil-note"><sup>*</sup>First author · <sup>†</sup>Corresponding author</span>
+      </div>
+      <div class="hero__anon-placeholder" data-anon-placeholder>
+        <span>Authors anonymized for double-blind review.</span>
+      </div>
+
+      <div class="hero__cta">
+        <a class="btn" href="#" data-link="paper"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/></svg>Paper</a>
+        <a class="btn" href="#" data-link="arxiv"><span class="btn__mono">arXiv</span></a>
+        <a class="btn" href="#" data-link="code"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code</a>
+        <a class="btn btn--primary" href="#viewer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Interactive 3D Viewer</a>
+      </div>
+
+      <div class="hero__metrics">
+        <div class="metric">
+          <span class="metric__value">38.54<small>%</small></span>
+          <span class="metric__label">SemanticKITTI val mIoU</span>
+        </div>
+        <div class="metric">
+          <span class="metric__value">+2.37<small>%</small></span>
+          <span class="metric__label">over SCPNet base</span>
+        </div>
+        <div class="metric">
+          <span class="metric__value">107<small>ms</small></span>
+          <span class="metric__label">added per frame · H100</span>
+        </div>
+        <div class="metric">
+          <span class="metric__value">1<small>&nbsp;step</small></span>
+          <span class="metric__label">no distillation</span>
+        </div>
+      </div>
+    </div>
+
+    <aside class="hero__art" aria-hidden="true">
+      <!-- Decorative canvas: a floating point-cloud silhouette of a real scene -->
+      <div class="hero-canvas" id="hero-canvas"></div>
+      <figcaption class="hero__art-caption">
+        Live preview · 100 step reverse trajectory collapses to one forward pass
+      </figcaption>
+    </aside>
+  </div>
+
+  <!-- scroll hint -->
+  <div class="hero__scroll">
+    <span>Scroll</span>
+    <div class="hero__scroll-line"></div>
+  </div>
+</header>
+
+<!-- ============================================================
+     ABSTRACT
+============================================================ -->
+<section id="abstract" class="section section--narrow">
+  <h2 class="section__eyebrow">Abstract</h2>
+  <div class="abstract-grid">
+    <p class="abstract-lede">
+      We propose <em>Structured Source Discrete Diffusion</em> (S<sup>2</sup>D<sup>2</sup>),
+      a framework that learns to refine the output of a base model toward the ground-truth distribution on the discrete probability simplex.
+    </p>
+    <div class="abstract-body">
+      <p>
+        Semantic Scene Completion (SSC) predicts dense 3D geometry and semantics from sparse LiDAR observations. Existing methods treat SSC as a discriminative regression problem, and their predictions degrade sharply under extreme sparsity (~1% voxel occupancy) and class imbalance (over 7,000× between the most and least common classes on SemanticKITTI).
+      </p>
+      <p>
+        Standard diffusion generates from noise. S<sup>2</sup>D<sup>2</sup> starts from the structured prediction of a supervised base model and applies correction-based sampling (Algorithm&nbsp;2), which reduces to Euler integration of a learned velocity field on the product Riemannian manifold of categorical distributions. We pair this core with coarse-to-fine pyramid diffusion for synthetic data augmentation and source-consistent BEV conditioning.
+      </p>
+      <p>
+        On SemanticKITTI, S<sup>2</sup>D<sup>2</sup> lifts SCPNet from 36.17% to <strong>38.54%</strong> mIoU on SSC (<strong>+2.37%</strong>), and reaches <strong>36.09%</strong> on LiDAR-only BEV perception, <strong>9.06 points</strong> above the previous best dedicated 2D method. It does so while adding a single UNet forward pass on top of the base model &mdash; no distillation.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TEASER: Qualitative rare-class panel
+============================================================ -->
+<section id="teaser" class="section section--wide">
+  <h2 class="section__eyebrow">What changes at the voxel level</h2>
+  <h3 class="section__title">Rare-class recovery on SemanticKITTI validation</h3>
+  <figure class="figure-wide">
+    <div class="figure-wide__media">
+      <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison showing S²D² roughly doubles per-sample rare-class IoU of SCPNet on bicyclist and traffic-sign frames from SemanticKITTI validation sequence 08."
+           loading="lazy" width="1720" height="1040" />
+    </div>
+    <figcaption>
+      Two rare-class frames from SemanticKITTI val (sequence 08). S<sup>2</sup>D<sup>2</sup> doubles SCPNet&rsquo;s per-sample IoU on both scenes while halving phantom voxel counts. JS3C-Net collapses on both classes.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================
+     METHOD
+============================================================ -->
+<section id="method" class="section">
+  <h2 class="section__eyebrow">Method</h2>
+  <h3 class="section__title">One structured forward process, one closed-form correction</h3>
+
+  <div class="method-grid">
+    <div class="method-card">
+      <h4 class="method-card__title"><span class="method-card__num">01</span> Forward process</h4>
+      <p>
+        On the per-voxel probability simplex <span class="mono">Δ<sup>K−1</sup></span>, define
+      </p>
+      <p class="math-block">
+        <span class="mono">x<sub>t</sub> = ᾱ<sub>t</sub> · x<sub>0</sub> + (1 − ᾱ<sub>t</sub>) · x<sub>src</sub></span>
+      </p>
+      <p>where <span class="mono">x<sub>src</sub></span> is any base SSC predictor&rsquo;s output &mdash; <em>not noise</em>.</p>
+    </div>
+
+    <div class="method-card">
+      <h4 class="method-card__title"><span class="method-card__num">02</span> Reverse sampling (Algorithm 2)</h4>
+      <p>The reverse step is closed-form:</p>
+      <p class="math-block">
+        <span class="mono">x<sub>t−1</sub> = x<sub>t</sub> + (ᾱ<sub>t−1</sub> − ᾱ<sub>t</sub>)(x̂<sub>0</sub> − x<sub>src</sub>)</span>
+      </p>
+      <p>Errors do not amplify across steps. A single step at <span class="mono">N=1</span> suffices.</p>
+    </div>
+
+    <div class="method-card">
+      <h4 class="method-card__title"><span class="method-card__num">03</span> Training</h4>
+      <p>Sample random <span class="mono">t ∈ {1..T}</span>, predict <span class="mono">x̂<sub>0</sub> = softmax(f<sub>θ</sub>(x<sub>t</sub>, t, c))</span>.</p>
+      <p>Loss: <span class="mono">L<sub>KL</sub> + 0.3·L<sub>Lovász</sub> + 5×10<sup>−4</sup>·L<sub>aux</sub></span>, 100k steps, EMA deployed.</p>
+    </div>
+
+    <div class="method-card">
+      <h4 class="method-card__title"><span class="method-card__num">04</span> Deploy</h4>
+      <p>Freeze base model. Run S<sup>2</sup>D<sup>2</sup> once. No multi-step rollout, no distillation. Plug into any SSC predictor that outputs categorical distributions.</p>
+    </div>
+  </div>
+
+  <figure class="figure-wide figure-wide--tight">
+    <div class="figure-wide__media">
+      <img src="assets/figures/fig2_pipeline.png" alt="Pipeline diagram. Top row: offline data augmentation with pyramid discrete diffusion, Velodyne HDL-64E ray-tracing, and a rare-class object bank. Bottom row: S²D² correction of a base model's prediction conditioned on BEV and LiDAR, emitting the refined voxel grid in one forward pass." loading="lazy" />
+    </div>
+    <figcaption>Full pipeline: offline data augmentation (top) feeds S<sup>2</sup>D<sup>2</sup> training; deployment runs a single refinement forward pass (bottom).</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================
+     INTERACTIVE 3D VIEWER
+============================================================ -->
+<section id="viewer" class="section section--bleed">
+  <div class="section__header">
+    <h2 class="section__eyebrow">Interactive</h2>
+    <h3 class="section__title">Compare predictions in 3D. Orbit, zoom, fly through.</h3>
+    <p class="section__lede">
+      Two rare-class frames from SemanticKITTI validation. Toggle between the sparse LiDAR input, the SCPNet base prediction, the S<sup>2</sup>D<sup>2</sup> refinement, and the ground truth.
+      The camera stays put between views so you can see exactly which voxels changed.
+    </p>
+  </div>
+
+  <div class="viewer3d">
+    <div class="viewer3d__stage" id="viewer3d-stage" role="application" aria-label="3D point cloud viewer. Use mouse or touch to rotate, scroll or pinch to zoom.">
+      <div class="viewer3d__loading" id="viewer3d-loading">
+        <div class="viewer3d__spinner"></div>
+        <span>Loading voxel grid&hellip;</span>
+      </div>
+    </div>
+
+    <aside class="viewer3d__controls" aria-label="Viewer controls">
+      <div class="control-group">
+        <span class="control-group__label">Scene</span>
+        <div class="seg" role="tablist">
+          <button class="seg__btn is-active" data-scene="bicyclist" role="tab" aria-selected="true">
+            Bicyclist <span class="seg__hint">seq 08 · 003096</span>
+          </button>
+          <button class="seg__btn" data-scene="traffic-sign" role="tab">
+            Traffic-sign <span class="seg__hint">seq 08 · 002870</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="control-group__label">View</span>
+        <div class="seg seg--stack" role="radiogroup">
+          <button class="seg__btn" data-view="sparse" role="radio">
+            <span class="seg__dot" style="--dot:#89A3B5"></span>
+            Sparse LiDAR input
+            <span class="seg__meta">~1% occupied</span>
+          </button>
+          <button class="seg__btn" data-view="scpnet" role="radio">
+            <span class="seg__dot" style="--dot:#6BA8FF"></span>
+            SCPNet (base)
+            <span class="seg__meta">36.17% mIoU</span>
+          </button>
+          <button class="seg__btn is-active" data-view="s2d2" role="radio" aria-checked="true">
+            <span class="seg__dot" style="--dot:#F19340"></span>
+            S<sup>2</sup>D<sup>2</sup> (ours)
+            <span class="seg__meta">38.54% mIoU</span>
+          </button>
+          <button class="seg__btn" data-view="gt" role="radio">
+            <span class="seg__dot" style="--dot:#8BCFA8"></span>
+            Ground truth
+            <span class="seg__meta">reference</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="control-group__label">Display</span>
+        <label class="check">
+          <input type="checkbox" id="viewer3d-ego" checked>
+          <span>Show ego-vehicle marker</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="viewer3d-highlight" checked>
+          <span>Highlight rare classes</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="viewer3d-autorotate">
+          <span>Auto-rotate (pauses on drag)</span>
+        </label>
+      </div>
+
+      <div class="control-group control-group--info">
+        <span class="control-group__label">Rare class in this scene</span>
+        <div class="stat-row" id="viewer3d-stat-row">
+          <div class="stat">
+            <span class="stat__label">SCPNet</span>
+            <span class="stat__value" data-stat="scp">31.3%</span>
+          </div>
+          <div class="stat stat--accent">
+            <span class="stat__label">S²D²</span>
+            <span class="stat__value" data-stat="ours">56.4%</span>
+          </div>
+          <div class="stat">
+            <span class="stat__label">Δ</span>
+            <span class="stat__value" data-stat="delta">+25.1</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="viewer3d__tip">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Drag to orbit, scroll or pinch to zoom. Double-click to re-frame.
+      </p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================================================
+     SPEED / LATENCY RACE
+============================================================ -->
+<section id="speed" class="section">
+  <h2 class="section__eyebrow">Efficiency</h2>
+  <h3 class="section__title">A single UNet forward pass on top of the base model.</h3>
+  <p class="section__lede">
+    The multi-step diffusion schedule is a <em>training</em> device; deployment runs exactly one correction step.
+    The race below is a real measurement on a contention-free H100 80GB.
+  </p>
+
+  <div class="race" id="race-widget">
+    <button class="btn btn--primary btn--lg" id="race-start" aria-label="Start the latency race">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      Start the race
+    </button>
+    <div class="race__lanes" id="race-lanes" aria-live="polite"></div>
+    <p class="race__note">
+      All three runs use the same validation frame at 256×256×32 voxels. SCPNet latency is shared overhead; S<sup>2</sup>D<sup>2</sup> is the additional work on top.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================
+     RESULTS
+============================================================ -->
+<section id="results" class="section">
+  <h2 class="section__eyebrow">Results</h2>
+  <h3 class="section__title">SemanticKITTI validation · single-frame single-sample</h3>
+
+  <div class="table-card" id="main-results-card">
+    <div class="table-card__head">
+      <h4>Main comparison</h4>
+      <p>Click a column to sort. C = camera-only · L-SF = LiDAR single-frame.</p>
+    </div>
+    <div class="table-card__scroll">
+      <table class="datatable" id="main-results-table" aria-describedby="main-results-card">
+        <thead>
+          <tr>
+            <th scope="col" data-sort="string">Method</th>
+            <th scope="col" data-sort="string" class="th--center">Modality</th>
+            <th scope="col" data-sort="number" aria-sort="descending">mIoU</th>
+            <th scope="col" class="th--center">Note</th>
+          </tr>
+        </thead>
+        <tbody id="main-results-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card__head">
+      <h4>Per-class IoU (SCPNet → S<sup>2</sup>D<sup>2</sup>)</h4>
+      <p>Sorted by gain Δ. Safety-critical classes marked with †.</p>
+    </div>
+    <div class="table-card__scroll">
+      <table class="datatable" id="perclass-table">
+        <thead>
+          <tr>
+            <th scope="col" data-sort="string">Class</th>
+            <th scope="col" data-sort="number">SCPNet</th>
+            <th scope="col" data-sort="number">S<sup>2</sup>D<sup>2</sup></th>
+            <th scope="col" data-sort="number" aria-sort="descending">Δ</th>
+          </tr>
+        </thead>
+        <tbody id="perclass-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     BIBTEX
+============================================================ -->
+<section id="bibtex" class="section section--narrow">
+  <h2 class="section__eyebrow">Cite</h2>
+  <h3 class="section__title">BibTeX</h3>
+  <div class="code-card">
+    <button class="btn-ghost code-card__copy" id="bibtex-copy">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span id="bibtex-copy-label">Copy</span>
+    </button>
+    <pre class="code-card__pre"><code id="bibtex-code">@article{anon2026s2d2,
+  title   = {Structured Source Discrete Diffusion for Semantic Scene Completion},
+  author  = {Anonymous},
+  journal = {Under review at TPAMI},
+  year    = {2026}
+}</code></pre>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer class="footer">
+  <div class="footer__grid">
+    <p class="footer__title">S<sup>2</sup>D<sup>2</sup></p>
+    <p class="footer__note">
+      Page rendered statically · no tracking · no cookies. <br/>
+      Built with Three.js, vanilla JS, and a lot of voxels.
+    </p>
+    <p class="footer__ack" data-anon-section>
+      Supported by NSFC Grant No.&nbsp;624B1006. Thanks to SemanticKITTI and SCPNet authors for public data and checkpoints.
+    </p>
+  </div>
+</footer>
+
+<!-- ============================================================
+     Scripts
+============================================================ -->
+<script src="scripts/anon.js" defer></script>
+<script src="scripts/tableSort.js" defer></script>
+<script src="scripts/latencyRace.js" defer></script>
+<script src="scripts/main.js" defer></script>
+<script type="module" src="scripts/viewer3d.js"></script>
+
+</body>
+</html>

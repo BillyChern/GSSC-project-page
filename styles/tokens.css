@@ -1,0 +1,85 @@
+/* =============================================================
+   DESIGN TOKENS — dark editorial science
+   Deep ink background, orange accent from the paper, serif display,
+   technical monospace for code and numerals.
+   ============================================================= */
+
+:root {
+  /* Color — backgrounds */
+  --c-bg:            #0B0E14;   /* deep ink */
+  --c-bg-elev:       #141A24;   /* cards, table rows */
+  --c-bg-elev-2:     #1C2431;   /* raised controls */
+  --c-bg-faint:      rgba(234, 237, 243, 0.04);
+
+  /* Color — ink (text on dark) */
+  --c-ink:           #EAEDF3;
+  --c-ink-mute:      #A9B1BE;
+  --c-ink-dim:       #6B7487;
+
+  /* Color — accents */
+  --c-accent:        #F19340;   /* S²D² signature orange, brighter for dark */
+  --c-accent-deep:   #C05A00;   /* paper's PDF orange */
+  --c-accent-bg:     rgba(241, 147, 64, 0.08);
+
+  --c-navy:          #6BA8FF;   /* cool complement */
+  --c-navy-bg:       rgba(107, 168, 255, 0.08);
+
+  --c-green:         #8BCFA8;
+  --c-red:           #E87A7A;
+  --c-gold:          #E6C67A;
+
+  /* Lines, rules */
+  --c-line:          rgba(234, 237, 243, 0.08);
+  --c-line-strong:   rgba(234, 237, 243, 0.16);
+
+  /* Typography */
+  --ff-display:      'Instrument Serif', 'Iowan Old Style', 'Palatino', Georgia, serif;
+  --ff-sans:         'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --ff-mono:         'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Type scale */
+  --fs-xs:       0.78rem;
+  --fs-sm:       0.88rem;
+  --fs-base:     1.00rem;
+  --fs-md:       1.14rem;
+  --fs-lg:       1.35rem;
+  --fs-xl:       1.75rem;
+  --fs-2xl:      2.4rem;
+  --fs-3xl:      3.6rem;
+  --fs-4xl:      5.6rem;
+
+  /* Spacing scale (4px base) */
+  --s-1:   4px;
+  --s-2:   8px;
+  --s-3:   12px;
+  --s-4:   16px;
+  --s-5:   24px;
+  --s-6:   32px;
+  --s-7:   48px;
+  --s-8:   64px;
+  --s-9:   96px;
+  --s-10:  128px;
+
+  /* Layout */
+  --container:           1180px;
+  --container-narrow:    820px;
+  --container-wide:      1400px;
+  --radius-sm:           4px;
+  --radius:              8px;
+  --radius-lg:           14px;
+
+  /* Motion */
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:      160ms;
+  --dur:           320ms;
+  --dur-slow:      620ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+    --dur-slow: 0ms;
+  }
+}

@@ -1,0 +1,122 @@
+/* =============================================================
+   RESET + BASE TYPOGRAPHY
+   ============================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  font-size: 16px;
+}
+
+@media (min-width: 1600px) { html { font-size: 17px; } }
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font-family: var(--ff-sans);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  letter-spacing: 0.003em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Body grain — a faint film-grain texture for warmth */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(241, 147, 64, 0.06), transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(107, 168, 255, 0.04), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+main, header, section, nav, footer { position: relative; z-index: 1; }
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+h2 { font-size: var(--fs-2xl); }
+h3 { font-size: var(--fs-xl); line-height: 1.18; }
+h4 { font-size: var(--fs-lg); line-height: 1.24; letter-spacing: 0; font-family: var(--ff-sans); font-weight: 500; }
+
+p { margin: 0 0 var(--s-4); }
+
+em {
+  font-family: var(--ff-display);
+  font-style: italic;
+  color: var(--c-accent);
+}
+
+strong { color: var(--c-ink); font-weight: 500; }
+
+a {
+  color: var(--c-accent);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+a:hover { color: var(--c-ink); }
+
+sup, sub {
+  font-size: 0.62em;
+  line-height: 0;
+  vertical-align: baseline;
+  position: relative;
+  font-family: var(--ff-sans);
+  letter-spacing: 0;
+}
+sup { top: -0.5em; }
+sub { bottom: -0.3em; }
+
+code, pre, .mono {
+  font-family: var(--ff-mono);
+  font-feature-settings: 'ss01' on, 'ss02' on, 'calt' on;
+}
+
+/* Selection */
+::selection { background: var(--c-accent); color: var(--c-bg); }
+
+/* Focus outline — high contrast for a11y */
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+img, svg, canvas, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Scroll reveal utility — applied by IntersectionObserver in main.js */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--dur-slow) var(--ease-out),
+              transform var(--dur-slow) var(--ease-out);
+  will-change: opacity, transform;
+}
+.reveal.is-in { opacity: 1; transform: none; }
+
+/* Utility */
+.visually-hidden {
+  position: absolute !important;
+  clip: rect(0 0 0 0);
+  width: 1px; height: 1px;
+  overflow: hidden;
+}

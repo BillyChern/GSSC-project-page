@@ -1,0 +1,12 @@
+[
+  { "method": "MonoScene",        "mod": "C",  "mIoU": 11.3, "note": "val, 51.2 m", "best": false, "ours": false },
+  { "method": "VoxFormer-S",      "mod": "C",  "mIoU": 12.4, "note": "single-frame",  "best": false, "ours": false },
+  { "method": "VoxFormer-T",      "mod": "C",  "mIoU": 13.4, "note": "temporal",       "best": false, "ours": false },
+  { "method": "CGFormer",         "mod": "C",  "mIoU": 16.9, "note": "NeurIPS 2024",   "best": false, "ours": false },
+  { "method": "LMSCNet",          "mod": "L",  "mIoU": 17.6, "note": "3D CNN",        "best": false, "ours": false },
+  { "method": "JS3C-Net",         "mod": "L",  "mIoU": 23.8, "note": "joint seg+SSC", "best": false, "ours": false },
+  { "method": "PaSCo",            "mod": "L",  "mIoU": 30.1, "note": "M=3 ensemble",  "best": false, "ours": false, "note_inline": "ensemble" },
+  { "method": "SCPNet (base)",    "mod": "L",  "mIoU": 36.5, "note": "distillation",  "best": false, "ours": false },
+  { "method": "TALoS",            "mod": "L",  "mIoU": 39.3, "note": "test-time adapt", "best": false, "ours": false, "note_inline": "TTA" },
+  { "method": "S\u00B2D\u00B2 (Ours)", "mod": "L", "mIoU": 38.5, "note": "1-step, no TTA", "best": true,  "ours": true }
+]
