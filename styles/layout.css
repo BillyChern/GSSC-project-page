@@ -280,6 +280,56 @@ body[data-anon="true"] [data-anon-section] { display: none !important; }
   overflow: hidden;
   position: relative;
 }
+/* The <canvas> that heroCanvas.js appends must fill the mount. */
+.hero-canvas > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+/* Small caption pinned bottom-left with a live-dot; reveals when the
+   PLY finishes loading so it never flashes over an empty canvas. */
+.hero-canvas__caption {
+  position: absolute;
+  left: var(--s-4);
+  bottom: var(--s-4);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(11, 14, 20, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  font-family: var(--ff-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--c-ink-mute);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.hero-canvas__caption.is-loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+.hero-canvas__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  box-shadow: 0 0 10px rgba(241, 147, 64, 0.75);
+  animation: hero-pulse 2.2s ease-in-out infinite;
+}
+@keyframes hero-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.9); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-canvas__dot { animation: none; }
+}
 .hero__art-caption {
   font-family: var(--ff-mono);
   font-size: 0.72rem;
