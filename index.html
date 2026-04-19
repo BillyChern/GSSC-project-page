@@ -113,9 +113,6 @@
     <aside class="hero__art" aria-hidden="true">
       <!-- Decorative canvas: a floating point-cloud silhouette of a real scene -->
       <div class="hero-canvas" id="hero-canvas"></div>
-      <figcaption class="hero__art-caption">
-        Live preview · 100 step reverse trajectory collapses to one forward pass
-      </figcaption>
     </aside>
   </div>
 
@@ -141,7 +138,7 @@
         Semantic Scene Completion (SSC) predicts dense 3D geometry and semantics from sparse LiDAR observations. Existing methods treat SSC as a discriminative regression problem, and their predictions degrade sharply under extreme sparsity (~1% voxel occupancy) and class imbalance (over 7,000× between the most and least common classes on SemanticKITTI).
       </p>
       <p>
-        Standard diffusion generates from noise. S<sup>2</sup>D<sup>2</sup> starts from the structured prediction of a supervised base model and applies correction-based sampling (Algorithm&nbsp;2), which reduces to Euler integration of a learned velocity field on the product Riemannian manifold of categorical distributions. We pair this core with coarse-to-fine pyramid diffusion for synthetic data augmentation and source-consistent BEV conditioning.
+        Standard diffusion generates from noise. S<sup>2</sup>D<sup>2</sup> instead starts from a supervised base model&rsquo;s prediction and learns the correction that carries it to the ground truth. The reverse update is closed-form, so a single step is enough at deployment — we do not iterate, and we do not distill a multi-step schedule. We pair this core with coarse-to-fine pyramid diffusion for synthetic data augmentation and a matching BEV conditioning stream.
       </p>
       <p>
         On SemanticKITTI, S<sup>2</sup>D<sup>2</sup> lifts SCPNet from 36.17% to <strong>38.54%</strong> mIoU on SSC (<strong>+2.37%</strong>), and reaches <strong>36.09%</strong> on LiDAR-only BEV perception, <strong>9.06 points</strong> above the previous best dedicated 2D method. It does so while adding a single UNet forward pass on top of the base model &mdash; no distillation.
@@ -172,41 +169,40 @@
 ============================================================ -->
 <section id="method" class="section">
   <h2 class="section__eyebrow">Method</h2>
-  <h3 class="section__title">A generative framework with one closed-form correction at its core</h3>
+  <h3 class="section__title">Refine a base model&rsquo;s prediction, don&rsquo;t regenerate the scene from noise.</h3>
   <p class="section__lede">
-    GSSC has three coupled parts: an <strong>offline data augmentation pipeline</strong> that generates labelled synthetic scenes, the <strong>S<sup>2</sup>D<sup>2</sup></strong> diffusion refiner that corrects any base predictor, and a <strong>BEV secondary task</strong> that demonstrates the refiner transfers beyond 3D completion. Below we zoom into the S<sup>2</sup>D<sup>2</sup> core — its forward, reverse, training, and deployment behaviour.
+    Standard diffusion turns pure noise into data across many steps. S<sup>2</sup>D<sup>2</sup> instead starts from a pretrained SSC model&rsquo;s output and learns the correction that carries it to the ground truth. That change &mdash; what it starts from, and how many steps it takes &mdash; is the whole idea.
   </p>
 
-  <div class="method-grid">
+  <div class="method-grid method-grid--three">
     <div class="method-card">
-      <h4 class="method-card__title"><span class="method-card__num">01</span> Forward process</h4>
+      <h4 class="method-card__title"><span class="method-card__num">01</span> Start from a real prediction, not noise</h4>
       <p>
-        On the per-voxel probability simplex <span class="mono">Δ<sup>K−1</sup></span>, define
+        Classical diffusion denoises random noise until it looks like the data. S<sup>2</sup>D<sup>2</sup> denoises <em>another model&rsquo;s prediction</em> toward ground truth.
       </p>
-      <p class="math-block">
-        <span class="mono">x<sub>t</sub> = ᾱ<sub>t</sub> · x<sub>0</sub> + (1 − ᾱ<sub>t</sub>) · x<sub>src</sub></span>
+      <p>
+        The base model already captures the coarse scene (road, buildings, vegetation), so the correction task is much smaller and much more forgiving of noisy conditioning.
       </p>
-      <p>where <span class="mono">x<sub>src</sub></span> is any base SSC predictor&rsquo;s output &mdash; <em>not noise</em>.</p>
     </div>
 
     <div class="method-card">
-      <h4 class="method-card__title"><span class="method-card__num">02</span> Reverse sampling (Algorithm 2)</h4>
-      <p>The reverse step is closed-form:</p>
-      <p class="math-block">
-        <span class="mono">x<sub>t−1</sub> = x<sub>t</sub> + (ᾱ<sub>t−1</sub> − ᾱ<sub>t</sub>)(x̂<sub>0</sub> − x<sub>src</sub>)</span>
+      <h4 class="method-card__title"><span class="method-card__num">02</span> Correct once, then stop</h4>
+      <p>
+        The reverse update has a closed form: the direction from the base prediction to ground truth is exact. We integrate it in a single Euler step.
       </p>
-      <p>Errors do not amplify across steps. A single step at <span class="mono">N=1</span> suffices.</p>
+      <p>
+        No iterative rollout, no teacher/student distillation. On SemanticKITTI val, one step matches a 100-step schedule within 0.1 mIoU while adding only 107&nbsp;ms on an H100.
+      </p>
     </div>
 
     <div class="method-card">
-      <h4 class="method-card__title"><span class="method-card__num">03</span> Training</h4>
-      <p>Sample random <span class="mono">t ∈ {1..T}</span>, predict <span class="mono">x̂<sub>0</sub> = softmax(f<sub>θ</sub>(x<sub>t</sub>, t, c))</span>.</p>
-      <p>Loss: <span class="mono">L<sub>KL</sub> + 0.3·L<sub>Lovász</sub> + 5×10<sup>−4</sup>·L<sub>aux</sub></span>, 100k steps, EMA deployed.</p>
-    </div>
-
-    <div class="method-card">
-      <h4 class="method-card__title"><span class="method-card__num">04</span> Deploy</h4>
-      <p>Freeze base model. Run S<sup>2</sup>D<sup>2</sup> once. No multi-step rollout, no distillation. Plug into any SSC predictor that outputs categorical distributions.</p>
+      <h4 class="method-card__title"><span class="method-card__num">03</span> Drop in on top of any SSC model</h4>
+      <p>
+        The refiner reads in the frozen base model&rsquo;s output alongside a BEV semantic map and the raw LiDAR voxelization, then emits a corrected voxel grid.
+      </p>
+      <p>
+        We use SCPNet as the base here; nothing in the training recipe ties it to that specific predictor. Any SSC model that outputs categorical distributions can be plugged in.
+      </p>
     </div>
   </div>
 
@@ -217,8 +213,8 @@
     <figcaption>Full pipeline: offline data augmentation (top) feeds S<sup>2</sup>D<sup>2</sup> training; deployment runs a single refinement forward pass (bottom).</figcaption>
   </figure>
 
-  <!-- Architecture in detail (collapsible) -->
-  <details class="details-card">
+  <!-- Architecture in detail (open by default; reader can collapse) -->
+  <details class="details-card" open>
     <summary>
       <span class="details-card__label">Architecture in detail</span>
       <span class="details-card__hint">3-layer breakdown: transport intuition · dense UNet · rare-class recovery</span>
@@ -231,6 +227,31 @@
         <strong>Top</strong>: the learned velocity field transports samples from the base prediction (gray cluster) to ground truth (orange cluster) in a single Euler step. <strong>Middle</strong>: the denoising network is a four-level sparse 3D U-Net with skip connections, FiLM conditioning, and three input streams (current iterate, LiDAR occupancy, base-derived BEV). <strong>Bottom</strong>: a representative rare-class recovery; motorcyclist IoU goes from 27.3% to 41.5% in one forward pass.
       </figcaption>
     </figure>
+  </details>
+
+  <!-- Equations (for reviewers who want the formalism) -->
+  <details class="details-card details-card--compact">
+    <summary>
+      <span class="details-card__label">Show the equations</span>
+      <span class="details-card__hint">forward interpolation, reverse update, training objective</span>
+    </summary>
+    <div class="eq-list">
+      <div class="eq-row">
+        <span class="eq-row__label">Forward</span>
+        <span class="eq-row__math mono">x<sub>t</sub> = ᾱ<sub>t</sub> · x<sub>0</sub> + (1 − ᾱ<sub>t</sub>) · x<sub>src</sub></span>
+        <span class="eq-row__note">on the per-voxel probability simplex Δ<sup>K−1</sup>; x<sub>src</sub> is the frozen base model&rsquo;s one-hot prediction.</span>
+      </div>
+      <div class="eq-row">
+        <span class="eq-row__label">Reverse</span>
+        <span class="eq-row__math mono">x<sub>t−1</sub> = x<sub>t</sub> + (ᾱ<sub>t−1</sub> − ᾱ<sub>t</sub>)(x̂<sub>0</sub> − x<sub>src</sub>)</span>
+        <span class="eq-row__note">closed-form; at deployment we take a single step from t=T to t=0.</span>
+      </div>
+      <div class="eq-row">
+        <span class="eq-row__label">Training</span>
+        <span class="eq-row__math mono">x̂<sub>0</sub> = softmax(f<sub>θ</sub>(x<sub>t</sub>, t, c))</span>
+        <span class="eq-row__note">c = (BEV map, LiDAR voxel occupancy). Objective is KL on the posterior with a Lovász-softmax regulariser; full schedule and EMA settings are in the paper.</span>
+      </div>
+    </div>
   </details>
 </section>
 

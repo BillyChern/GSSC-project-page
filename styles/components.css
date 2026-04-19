@@ -394,6 +394,60 @@
 }
 .details-card > .figure-wide { padding: 0 var(--s-5) var(--s-5); }
 
+/* Compact details variant for the equations disclosure: no large figure
+   inside, just a short list of math rows. Kept narrow so it reads as
+   "appendix-style" secondary detail, not another primary card. */
+.details-card--compact { margin-top: var(--s-5); }
+.details-card--compact > summary { padding: var(--s-3) var(--s-4); }
+.eq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: 0 var(--s-5) var(--s-5);
+}
+.eq-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: var(--s-4);
+  row-gap: 4px;
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--c-line);
+}
+.eq-row:first-child { border-top: none; padding-top: 0; }
+.eq-row__label {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: baseline;
+  font-family: var(--ff-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  color: var(--c-accent);
+  text-transform: uppercase;
+}
+.eq-row__math {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 0.95rem;
+  color: var(--c-ink);
+  line-height: 1.5;
+  overflow-x: auto;
+}
+.eq-row__note {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: var(--fs-sm);
+  color: var(--c-ink-mute);
+  line-height: 1.55;
+}
+@media (max-width: 640px) {
+  .eq-row { grid-template-columns: 1fr; }
+  .eq-row__label, .eq-row__math, .eq-row__note { grid-column: 1; }
+  .eq-row__label { grid-row: 1; }
+  .eq-row__math { grid-row: 2; }
+  .eq-row__note { grid-row: 3; }
+}
+
 /* ---- BibTeX code card ---- */
 .code-card {
   position: relative;

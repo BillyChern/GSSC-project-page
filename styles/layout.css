@@ -116,7 +116,9 @@
 
 .hero {
   min-height: 100vh;
-  padding: var(--s-8) var(--s-6) var(--s-7);
+  /* Extra bottom padding reserves a clear gutter for the absolutely-positioned
+     .hero__scroll indicator, preventing it from overlapping the bottom-row metrics. */
+  padding: var(--s-8) var(--s-6) calc(var(--s-7) + 72px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -346,6 +348,16 @@ body[data-anon="true"] [data-anon-section] { display: none !important; }
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: var(--s-4);
   margin-bottom: var(--s-7);
+}
+
+/* Three-column variant: pins to exactly 3 cards on wide screens so the
+   narrative reads as three beats, not "however many fit". Collapses to
+   a single column on narrow viewports for readability. */
+.method-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 960px) {
+  .method-grid--three { grid-template-columns: 1fr; }
 }
 
 /* =============================================================
