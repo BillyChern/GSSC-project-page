@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="description" content="S²D²: Structured Source Discrete Diffusion for LiDAR semantic scene completion. Refine any base SSC predictor in a single forward pass." />
+<meta name="description" content="Generative Semantic Scene Completion — a generative LiDAR SSC framework introducing S²D² structured-source discrete diffusion, a three-stage pyramid data augmentation pipeline, and an application to LiDAR-only BEV semantic segmentation." />
 <meta name="theme-color" content="#0B0E14" />
-<meta property="og:title" content="S²D² — Structured Source Discrete Diffusion" />
-<meta property="og:description" content="Single-step diffusion refinement of LiDAR semantic scene completion. 38.54% mIoU on SemanticKITTI, +2.37 over SCPNet, no distillation needed." />
+<meta property="og:title" content="Generative Semantic Scene Completion" />
+<meta property="og:description" content="Generative LiDAR scene completion via structured-source discrete diffusion. 38.54% SemanticKITTI mIoU, single forward pass, no distillation." />
 <meta property="og:type" content="article" />
-<title>S²D² — Structured Source Discrete Diffusion</title>
+<title>Generative Semantic Scene Completion</title>
 
 <!-- Fonts: Instrument Serif display · IBM Plex Sans body · JetBrains Mono code -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,7 @@
      TOP NAV
 ============================================================ -->
 <nav class="topnav" aria-label="Primary">
-  <a class="logo" href="#top">S<sup>2</sup>D<sup>2</sup></a>
+  <a class="logo" href="#top">GSSC</a>
   <ul class="topnav__links">
     <li><a href="#abstract">Abstract</a></li>
     <li><a href="#method">Method</a></li>
@@ -62,12 +62,13 @@
     <div class="hero__lede">
       <p class="hero__eyebrow">TPAMI 2026 · Under Review</p>
       <h1 class="hero__title">
-        <span class="hero__title-line">Structured Source</span>
-        <span class="hero__title-line hero__title-line--accent">Discrete Diffusion</span>
+        <span class="hero__title-line">Generative Semantic</span>
+        <span class="hero__title-line hero__title-line--accent">Scene Completion</span>
       </h1>
       <p class="hero__subtitle">
-        Refine any base semantic scene completion predictor toward ground truth through a closed-form diffusion on the probability simplex.
-        A single forward pass. No distillation. <em>38.54%</em> mIoU on SemanticKITTI.
+        A generative framework for LiDAR semantic scene completion built around <strong>S<sup>2</sup>D<sup>2</sup></strong>, a structured-source discrete diffusion that refines any base predictor in a single forward pass.
+        Paired with a three-stage pyramid data-augmentation pipeline and a BEV-perception secondary task.
+        <em>38.54%</em> mIoU on SemanticKITTI val.
       </p>
 
       <div class="hero__authors" data-anon-section>
@@ -171,7 +172,10 @@
 ============================================================ -->
 <section id="method" class="section">
   <h2 class="section__eyebrow">Method</h2>
-  <h3 class="section__title">One structured forward process, one closed-form correction</h3>
+  <h3 class="section__title">A generative framework with one closed-form correction at its core</h3>
+  <p class="section__lede">
+    GSSC has three coupled parts: an <strong>offline data augmentation pipeline</strong> that generates labelled synthetic scenes, the <strong>S<sup>2</sup>D<sup>2</sup></strong> diffusion refiner that corrects any base predictor, and a <strong>BEV secondary task</strong> that demonstrates the refiner transfers beyond 3D completion. Below we zoom into the S<sup>2</sup>D<sup>2</sup> core — its forward, reverse, training, and deployment behaviour.
+  </p>
 
   <div class="method-grid">
     <div class="method-card">
@@ -212,6 +216,22 @@
     </div>
     <figcaption>Full pipeline: offline data augmentation (top) feeds S<sup>2</sup>D<sup>2</sup> training; deployment runs a single refinement forward pass (bottom).</figcaption>
   </figure>
+
+  <!-- Architecture in detail (collapsible) -->
+  <details class="details-card">
+    <summary>
+      <span class="details-card__label">Architecture in detail</span>
+      <span class="details-card__hint">3-layer breakdown: transport intuition · dense UNet · rare-class recovery</span>
+    </summary>
+    <figure class="figure-wide figure-wide--tight">
+      <div class="figure-wide__media">
+        <img src="assets/figures/fig3_s2d2.png" alt="Detailed three-layer S²D² architecture. Top: one-step transport on the per-voxel probability simplex. Middle: sparse 3D U-Net with 4 encoder/decoder stages, a bottleneck with two sparse residual blocks, FiLM modulation at every level, and three conditioning streams (timestep, LiDAR occupancy, BEV map). Bottom: rare-class recovery example on SemanticKITTI sequence 08 frame 001390 showing motorcyclist IoU lifting from 27.3% to 41.5%." loading="lazy" />
+      </div>
+      <figcaption>
+        <strong>Top</strong>: the learned velocity field transports samples from the base prediction (gray cluster) to ground truth (orange cluster) in a single Euler step. <strong>Middle</strong>: the denoising network is a four-level sparse 3D U-Net with skip connections, FiLM conditioning, and three input streams (current iterate, LiDAR occupancy, base-derived BEV). <strong>Bottom</strong>: a representative rare-class recovery; motorcyclist IoU goes from 27.3% to 41.5% in one forward pass.
+      </figcaption>
+    </figure>
+  </details>
 </section>
 
 <!-- ============================================================
@@ -398,8 +418,8 @@
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       <span id="bibtex-copy-label">Copy</span>
     </button>
-    <pre class="code-card__pre"><code id="bibtex-code">@article{anon2026s2d2,
-  title   = {Structured Source Discrete Diffusion for Semantic Scene Completion},
+    <pre class="code-card__pre"><code id="bibtex-code">@article{anon2026gssc,
+  title   = {Generative Semantic Scene Completion},
   author  = {Anonymous},
   journal = {Under review at TPAMI},
   year    = {2026}

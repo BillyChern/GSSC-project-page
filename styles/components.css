@@ -352,6 +352,48 @@
 .chip--lidar  { color: var(--c-navy); border-color: rgba(107, 168, 255, 0.3); }
 .chip--ours   { color: var(--c-accent); border-color: var(--c-accent); background: var(--c-accent-bg); }
 
+/* ---- Collapsible details card ---- */
+.details-card {
+  margin-top: var(--s-6);
+  background: var(--c-bg-elev);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--dur-fast);
+}
+.details-card[open] { border-color: var(--c-accent); }
+.details-card > summary {
+  padding: var(--s-4) var(--s-5);
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  font-family: var(--ff-sans);
+  font-size: var(--fs-base);
+  color: var(--c-ink);
+  list-style: none;
+  position: relative;
+  transition: background var(--dur-fast);
+}
+.details-card > summary::-webkit-details-marker { display: none; }
+.details-card > summary::after {
+  content: "+";
+  margin-left: auto;
+  font-family: var(--ff-mono);
+  font-size: 1.4rem;
+  color: var(--c-accent);
+  transition: transform var(--dur-fast);
+  line-height: 1;
+}
+.details-card[open] > summary::after { content: "\2212"; }
+.details-card > summary:hover { background: var(--c-bg-elev-2); }
+.details-card__label { font-weight: 500; }
+.details-card__hint {
+  color: var(--c-ink-dim);
+  font-size: var(--fs-sm);
+}
+.details-card > .figure-wide { padding: 0 var(--s-5) var(--s-5); }
+
 /* ---- BibTeX code card ---- */
 .code-card {
   position: relative;

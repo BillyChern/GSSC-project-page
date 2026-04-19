@@ -12,8 +12,17 @@
   // "base + add-on" story).
   const LANES = [
     {
+      id: 's2d2-only',
+      label: 'S\u00B2D\u00B2 1-step alone',
+      sub:   'Our correction UNet forward, excluding base',
+      color: '#F19340',
+      segments: [
+        { name: 'S\u00B2D\u00B2 1-step', ms: 107 }
+      ]
+    },
+    {
       id: 'scpnet',
-      label: 'SCPNet base only',
+      label: 'SCPNet base alone',
       sub:   'Single-frame LiDAR \u2192 3D voxel prediction',
       color: '#6BA8FF',
       segments: [
@@ -21,12 +30,12 @@
       ]
     },
     {
-      id: 's2d2',
-      label: 'S\u00B2D\u00B2 1-step (ours)',
-      sub:   'SCPNet + one correction UNet forward',
-      color: '#F19340',
+      id: 'combined',
+      label: 'SCPNet + S\u00B2D\u00B2 (ours, deployed)',
+      sub:   'Realistic end-to-end deployment path',
+      color: '#D97742',
       segments: [
-        { name: 'SCPNet base',  ms: 210 },
+        { name: 'SCPNet base',          ms: 210 },
         { name: '+ S\u00B2D\u00B2 1-step', ms: 107 }
       ]
     },
