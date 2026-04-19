@@ -84,7 +84,11 @@ function boot() {
   scene.fog = new THREE.FogExp2(0x0B0E14, 0.005);
 
   const camera = new THREE.PerspectiveCamera(45, 16/10, 0.1, 2000);
-  camera.position.set(140, 100, 140);
+  // Hand-tuned default pose: close enough to read individual voxels at a
+  // glance on first load, but far enough that drag-to-orbit still reveals
+  // the scene in full. Matches the framing of the hero preview so the
+  // two viewers feel consistent.
+  camera.position.set(55, 42, 55);
   camera.lookAt(0, 0, 0);
 
   // 3-light rig that mimics the Blender "dramatic" preset used in
@@ -205,10 +209,19 @@ function boot() {
     if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
     inst.rotateX(-Math.PI / 2); // voxel Z-up -> scene Y-up
 
-    // Stash base colors + rare mask so the "Highlight rare classes"
-    // checkbox can dim common classes without re-parsing the PLY.
+    // Stash base colors + rare mask + centered positions so the
+    // "Highlight rare classes" checkbox can rescale rare-class instances
+    // and boost their colour saturation without re-parsing the PLY.
+    // Positions are post-centering, in world units.
+    const basePositions = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      basePositions[3 * i    ] = pos[3 * i    ] - center.x;
+      basePositions[3 * i + 1] = pos[3 * i + 1] - center.y;
+      basePositions[3 * i + 2] = pos[3 * i + 2] - center.z;
+    }
     inst.userData.baseColors = cols;
     inst.userData.isRare = isRare;
+    inst.userData.basePositions = basePositions;
 
     if (currentCloud) scene.remove(currentCloud);
     currentCloud = inst;
@@ -345,26 +358,52 @@ function boot() {
     applyHighlight(currentCloud, hlChk.checked);
   });
 
-  // Helper used both on load and on toggle. When highlight is ON, repaint
-  // every common-class instance at 25% brightness so rare classes pop
-  // visually; when OFF, restore the original PLY colour. We repaint the
-  // instanceColor attribute in place rather than rebuilding the mesh.
+  // When "Highlight rare classes" is ON, make the 8 rare classes visually
+  // dominant by (i) scaling their cubes up 1.6x and (ii) shifting their
+  // colour toward white to boost perceived brightness. Common classes
+  // are left completely unchanged (not dimmed) so the scene stays
+  // readable as a scene. Toggling OFF restores the default per-voxel
+  // colour and scale. We rewrite both instanceMatrix and instanceColor
+  // in place rather than rebuilding the mesh.
   function applyHighlight(mesh, on) {
     const base = mesh.userData && mesh.userData.baseColors;
     const rare = mesh.userData && mesh.userData.isRare;
-    if (!base || !rare) return;
-    const COMMON_DIM = 0.22;
+    const basePos = mesh.userData && mesh.userData.basePositions;
+    if (!base || !rare || !basePos) return;
+
+    const RARE_SCALE = on ? 1.6 : 1.0;
+    const RARE_LIGHTEN = 0.35; // lerp toward white by this much when ON
     const c = new THREE.Color();
+    const tmp = new THREE.Object3D();
     const count = rare.length;
+
     for (let i = 0; i < count; i++) {
-      const br = base[3 * i], bg = base[3 * i + 1], bb = base[3 * i + 2];
-      if (on && !rare[i]) {
-        c.setRGB(br * COMMON_DIM, bg * COMMON_DIM, bb * COMMON_DIM);
+      const x = basePos[3 * i    ];
+      const y = basePos[3 * i + 1];
+      const z = basePos[3 * i + 2];
+      tmp.position.set(x, y, z);
+      tmp.rotation.set(0, 0, 0);
+
+      const isR = rare[i] === 1;
+      if (isR && on) {
+        tmp.scale.set(RARE_SCALE, RARE_SCALE, RARE_SCALE);
+        const br = base[3 * i    ];
+        const bg = base[3 * i + 1];
+        const bb = base[3 * i + 2];
+        c.setRGB(
+          br + (1 - br) * RARE_LIGHTEN,
+          bg + (1 - bg) * RARE_LIGHTEN,
+          bb + (1 - bb) * RARE_LIGHTEN,
+        );
       } else {
-        c.setRGB(br, bg, bb);
+        tmp.scale.set(1, 1, 1);
+        c.setRGB(base[3 * i], base[3 * i + 1], base[3 * i + 2]);
       }
+      tmp.updateMatrix();
+      mesh.setMatrixAt(i, tmp.matrix);
       mesh.setColorAt(i, c);
     }
+    mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }
   function isHighlightOn() {
@@ -374,7 +413,7 @@ function boot() {
   // Double-click to re-frame
   stage.addEventListener('dblclick', () => {
     controls.target.set(0, 0, 0);
-    camera.position.set(140, 100, 140);
+    camera.position.set(55, 42, 55);
   });
 
   // Kick off first load
