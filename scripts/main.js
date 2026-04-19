@@ -50,8 +50,18 @@
   // ---------- Smooth scroll with sticky-nav offset ----------
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (e) => {
+      // Placeholder links under double-blind review: swallow the click so
+      // the page does not jump to top when the user clicks Paper/arXiv/Code.
+      if (a.getAttribute('aria-disabled') === 'true') {
+        e.preventDefault();
+        return;
+      }
       const id = a.getAttribute('href').slice(1);
-      if (!id) return;
+      if (!id) {
+        // Bare href="#" with no target: prevent the implicit top-scroll.
+        e.preventDefault();
+        return;
+      }
       const target = document.getElementById(id);
       if (!target) return;
       e.preventDefault();

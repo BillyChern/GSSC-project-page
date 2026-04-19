@@ -84,9 +84,16 @@
       </div>
 
       <div class="hero__cta">
-        <a class="btn" href="#" data-link="paper"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/></svg>Paper</a>
-        <a class="btn" href="#" data-link="arxiv"><span class="btn__mono">arXiv</span></a>
-        <a class="btn" href="#" data-link="code"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code</a>
+        <!-- Paper / arXiv / Code placeholders stay visible so the shape of the
+             page matches the final version, but they are explicitly disabled
+             under double-blind review. When reveal-authors mode is on, the
+             anon.js script flips them live (see .btn--pending rule in CSS). -->
+        <a class="btn btn--pending" href="#" data-link="paper" aria-disabled="true"
+           title="Paper link will be enabled after acceptance."><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/></svg>Paper<span class="btn__suffix">· pending</span></a>
+        <a class="btn btn--pending" href="#" data-link="arxiv" aria-disabled="true"
+           title="arXiv link will be enabled after acceptance."><span class="btn__mono">arXiv</span><span class="btn__suffix">· pending</span></a>
+        <a class="btn btn--pending" href="#" data-link="code" aria-disabled="true"
+           title="Code release is blinded during review."><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code<span class="btn__suffix">· pending</span></a>
         <a class="btn btn--primary" href="#viewer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Interactive 3D Viewer</a>
       </div>
 
@@ -110,9 +117,10 @@
       </div>
     </div>
 
-    <aside class="hero__art" aria-hidden="true">
-      <!-- Decorative canvas: a floating point-cloud silhouette of a real scene -->
-      <div class="hero-canvas" id="hero-canvas"></div>
+    <aside class="hero__art" aria-label="Live preview of an S²D² prediction">
+      <!-- Canvas is populated by scripts/heroCanvas.js with a real S²D² PLY. -->
+      <div class="hero-canvas" id="hero-canvas" role="img"
+           aria-label="Slowly rotating 3D point cloud of the S²D² semantic scene completion prediction on SemanticKITTI sequence 08 frame 003096."></div>
     </aside>
   </div>
 

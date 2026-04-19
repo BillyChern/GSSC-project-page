@@ -48,6 +48,27 @@
 
 .btn--lg { padding: 14px 22px; font-size: var(--fs-base); }
 
+/* Pending / disabled CTA buttons (used under double-blind review while
+   Paper / arXiv / Code URLs are still blinded). Reads as a placeholder
+   chip, does not hover-lift, does not receive pointer events. */
+.btn--pending {
+  color: var(--c-ink-dim);
+  border-style: dashed;
+  background: transparent;
+  cursor: not-allowed;
+  pointer-events: none;       /* kills the hover/active state entirely */
+  opacity: 0.75;
+}
+.btn--pending svg,
+.btn--pending .btn__mono { opacity: 0.8; }
+.btn__suffix {
+  font-family: var(--ff-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  color: var(--c-ink-dim);
+  margin-left: 2px;
+}
+
 .btn-ghost {
   border-color: transparent;
   background: transparent;
