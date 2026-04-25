@@ -3,18 +3,26 @@
 Static, dependency-free project page for the paper
 **Generative Semantic Scene Completion**.
 
-The page is centered on **S²D²** (Structured Source Discrete Diffusion),
+The page is centred on **S²D²** (Structured Source Discrete Diffusion),
 a one-step refiner that lifts any base SSC model by learning a correction
-on the discrete probability simplex. On SemanticKITTI val it reaches
-**38.54 %** mIoU (**+2.37** over the SCPNet base) while adding only
-**107 ms** per frame on an H100 — no distillation, no multi-step rollout.
+on the discrete probability simplex.
+
+**Headline numbers (SemanticKITTI hidden test leaderboard, single-frame single-sample):**
+
+- **39.2 %** mIoU with $D_4$ test-time augmentation — **the new state of the art**, +1.3 % over the previous best (TALoS, 37.9 %), which had held the leaderboard for ~2 years.
+- **39.0 %** mIoU without TTA — beats TALoS (37.9 %) without using any test-time tricks.
+- **38.8 %** mIoU at the **1-step real-time** configuration (107 ms / 9.34 FPS marginal cost on H100), still +0.9 % over TALoS at no TTA cost.
+- **+2.5 %** mIoU over the SCPNet base (the apples-to-apples improvement attributable to S²D², since both TALoS and S²D² build on SCPNet).
+
+**Validation set:** 38.54 % mIoU (+2.37 over the SCPNet port at 36.17 %).
+**LiDAR-only BEV (secondary task):** 36.09 % mIoU, +9.06 over the previous best dedicated 2D method.
 
 ## Live site
 
 Served from GitHub Pages:
 
-- Production URL: https://billychern.github.io/GSSC-project-page/ (once Pages is enabled on the repo)
-- Repository: https://github.com/BillyChern/GSSC-project-page
+- Production URL: <https://billychern.github.io/GSSC-project-page/>
+- Repository: <https://github.com/BillyChern/GSSC-project-page>
 
 A `.nojekyll` sentinel sits at the repo root so `assets/` is served as-is.
 
@@ -22,13 +30,13 @@ A `.nojekyll` sentinel sits at the repo root so `assets/` is served as-is.
 
 | Section | What it shows |
 |---|---|
-| Hero | Title, abstract lede, headline metrics, live 3D preview of an S²D² prediction (seq 08 frame 003096) |
-| Abstract | Two-paragraph summary of the method and its headline numbers |
+| Hero | Title, abstract lede, four headline metrics (39.2 %, +1.3 over TALoS, 107 ms, 1 step), live 3D preview of an S²D² prediction (seq 08 frame 003096) |
+| Abstract | Two-paragraph summary leading with the test SOTA story and the real-time 1-step result |
 | Teaser (Fig 4) | Qualitative rare-class recovery on SemanticKITTI val |
-| Method | Three plain-language cards + full pipeline figure + open-by-default "Architecture in detail" and "Equations" disclosures |
+| Method | Three plain-language cards + full pipeline figure + open-by-default "Architecture in detail" disclosure |
 | 3D Viewer | Interactive Three.js comparison across four views (sparse / SCPNet / S²D² / GT) on two rare-class frames |
-| Efficiency | Four-lane latency race (H100 80 GB, real measurements) |
-| Results | Sortable main-results table plus per-class IoU table (SCPNet → S²D²) |
+| Efficiency | Four-lane latency race with explicit log-warp disclosure (real H100 80 GB measurements) |
+| Results | Sortable test-set leaderboard table (LMSCNet → SSA-SC → JS3C-Net → SCPNet → TALoS → S²D² 1-step / plain N=4 / +D₄ TTA) plus per-class IoU table |
 | BibTeX | Copy-to-clipboard citation block |
 
 ## Local preview
@@ -62,17 +70,14 @@ The exporter reads SemanticKITTI GT voxel labels, SCPNet pre-computed
 predictions, and our S²D² label outputs, colour-codes each voxel by class,
 and writes ASCII PLY files ready for `three.js` `PLYLoader`.
 
-## Anonymous mode (double-blind review)
+## TPAMI single-blind submission
 
-The top-right button toggles between anonymous and named mode. State is
-remembered in `localStorage`. Default:
-
-```html
-<body data-anon="true">   <!-- show the 'Anonymous under review' placeholder -->
-```
-
-Flip to `data-anon="false"` to reveal authors by default; the button still
-lets visitors toggle.
+The page is single-blind: authors (Shi Chen, Weifeng Ge — Fudan University)
+are visible by default and the bibtex carries the real names. The earlier
+double-blind toggle / `data-anon` attribute / `scripts/anon.js` machinery
+has been removed. The orphaned `scripts/anon.js` file remains on disk for
+git history but is no longer referenced by `index.html` and can be deleted
+in a future cleanup commit if desired.
 
 ## Filling in the release links
 
@@ -100,9 +105,28 @@ Remove the `aria-disabled` attribute and the tooltip `title` once the URL is liv
 
 ## Editing numbers
 
-- Main comparison table: `data/results.json`
-- Per-class table: `data/perclass.json`
-- Inference-race latencies: the `LANES` object at the top of `scripts/latencyRace.js`
+- **Main comparison (test set)**: `data/results.json` — 8 rows, ordered by mIoU,
+  with `best:true` on the `S²D² + D₄ TTA` row and `ours:true` on all three of
+  our deployment configurations.
+- **Per-class table (val set)**: `data/perclass.json` — SCPNet → S²D² val
+  per-class IoUs with safety-class flags.
+- **Inference-race latencies**: the `LANES` object at the top of
+  `scripts/latencyRace.js`. Real Apr-2026 contention-free H100 measurements:
+  SCPNet base 202 ms · S²D² 1-step 107 ms · 100-step 10 784 ms.
+
+## Speed-race time-warp disclosure
+
+The four-lane latency race in §Efficiency uses **log-warped UI pacing** so
+the 100-step lane completes its bar in ~6 s of UI time instead of the
+actual ~11 s — without the warp the contrast across lanes would not be
+visible in a single viewing.
+
+- **Bar widths** are linearly proportional to the real measured latency.
+- **Numeric readouts** beside each bar are the real measured ms.
+- Only the **per-pixel animation pacing** is compressed.
+
+The disclosure is rendered directly under the race widget in
+`index.html`, so visitors can see the caveat without reading source.
 
 ## Deploying to GitHub Pages
 
@@ -154,24 +178,35 @@ s2d2_website/
 ├── .nojekyll
 ├── README.md
 ├── styles/
-│   ├── tokens.css       design tokens (colors, fonts, spacing)
+│   ├── tokens.css       design tokens (colours, fonts, spacing)
 │   ├── base.css         reset + typography
 │   ├── layout.css       nav, hero, section grids
-│   └── components.css   buttons, tables, cards, controls, equations list
+│   └── components.css   buttons, tables, cards, controls
 ├── scripts/
 │   ├── main.js          reveal, smooth scroll, table hydration
-│   ├── anon.js          double-blind toggle
+│   ├── anon.js          orphaned (no longer referenced; can delete)
 │   ├── tableSort.js     click-to-sort
-│   ├── latencyRace.js   4-lane latency visualization
+│   ├── latencyRace.js   4-lane latency visualisation (log-warp pacing)
 │   ├── viewer3d.js      main interactive point cloud viewer
 │   └── heroCanvas.js    autorotating hero preview
 ├── data/
-│   ├── results.json
-│   └── perclass.json
+│   ├── results.json     test-set leaderboard table
+│   └── perclass.json    val per-class IoU table
 ├── assets/
 │   ├── favicon.svg
 │   ├── figures/         paper Fig 2 / Fig 3 / Fig 4 PNG exports
 │   └── ply/             8 PLY point clouds (2 scenes × 4 views)
 └── tools/
     └── export_ply.py    voxel-grid → colored PLY exporter
+```
+
+## Citation
+
+```bibtex
+@article{chen2026gssc,
+  title   = {Generative Semantic Scene Completion},
+  author  = {Chen, Shi and Ge, Weifeng},
+  journal = {Submitted to IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year    = {2026}
+}
 ```
