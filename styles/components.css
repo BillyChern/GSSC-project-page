@@ -326,8 +326,14 @@
 .datatable thead th[aria-sort="descending"]::after { content: " ▼"; color: var(--c-accent); }
 .datatable .th--center { text-align: center; }
 .datatable td.td--center { text-align: center; }
-.datatable .th--num { text-align: right; padding-right: var(--s-4); }
-.datatable .th--num::after { display: inline-block; min-width: 0; }
+/* Numeric column headers: must right-align to match .num body cells. */
+.datatable thead th.th--num,
+.datatable th.th--num {
+  text-align: right !important;
+  padding-right: var(--s-4);
+}
+/* Sort arrow appended via ::after — keep it inline-end of the header text. */
+.datatable thead th.th--num::after { display: inline-block; }
 .datatable tbody tr { transition: background var(--dur-fast); }
 .datatable tbody tr:hover { background: var(--c-bg-faint); }
 
