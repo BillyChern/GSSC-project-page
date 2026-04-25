@@ -175,6 +175,22 @@
   color: var(--c-ink-dim);
   margin-left: auto;
   padding-left: var(--s-2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Main label inside .seg__btn — keep "S²D² (ours)" on one line and
+   render <sup> as proper superscript, not as a wrapped character. */
+.seg__main {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.seg__main sup {
+  font-size: 0.7em;
+  vertical-align: super;
+  line-height: 0;
 }
 
 /* Checkbox control */
