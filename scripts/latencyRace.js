@@ -1,8 +1,14 @@
 /* =============================================================
-   latencyRace.js — three-lane horizontal latency race.
-   SCPNet base | S²D² 1-step (base + 107ms) | 100-step comparison.
-   Real measurements on H100 80GB, padded with SCPNet estimate until
-   we swap in a measured number.
+   latencyRace.js — four-lane horizontal latency race.
+   SCPNet base | S²D² 1-step alone | SCPNet + S²D² (deployed)
+                                   | 100-step diffusion alternative.
+   Real contention-free H100 80GB measurements (Apr 2026 clean run):
+     SCPNet base full forward: 202.25 ms (4.94 FPS, std 7.57)
+     S²D² UNet 1 step:         107.09 ms (9.34 FPS, std 0.45)
+     S²D² 100-step:           10783.7  ms (0.09 FPS)
+   Bar width = LINEAR proportion to real latency; numeric readout =
+   real measured ms. The PACING of the bar animation is log-warped
+   so the 100-step lane finishes in ~6 s of UI time instead of 11 s.
    ============================================================= */
 (function () {
   'use strict';
@@ -26,7 +32,7 @@
       sub:   'Single-frame LiDAR \u2192 3D voxel prediction',
       color: '#6BA8FF',
       segments: [
-        { name: 'SCPNet forward', ms: 210 }
+        { name: 'SCPNet forward', ms: 202 }
       ]
     },
     {
@@ -35,7 +41,7 @@
       sub:   'Realistic end-to-end deployment path',
       color: '#D97742',
       segments: [
-        { name: 'SCPNet base',          ms: 210 },
+        { name: 'SCPNet base',          ms: 202 },
         { name: '+ S\u00B2D\u00B2 1-step', ms: 107 }
       ]
     },
@@ -45,8 +51,8 @@
       sub:   'DiffSSC-style multi-step unrolled sampling',
       color: '#6B7487',
       segments: [
-        { name: 'SCPNet base',  ms: 210 },
-        { name: '100\u00D7 UNet', ms: 10790 }
+        { name: 'SCPNet base',  ms: 202 },
+        { name: '100\u00D7 UNet', ms: 10784 }
       ]
     }
   ];

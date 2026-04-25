@@ -6,7 +6,7 @@
 <meta name="description" content="Generative Semantic Scene Completion — a generative LiDAR SSC framework introducing S²D² structured-source discrete diffusion, a three-stage pyramid data augmentation pipeline, and an application to LiDAR-only BEV semantic segmentation." />
 <meta name="theme-color" content="#0B0E14" />
 <meta property="og:title" content="Generative Semantic Scene Completion" />
-<meta property="og:description" content="Generative LiDAR scene completion via structured-source discrete diffusion. 38.54% SemanticKITTI mIoU, single forward pass, no distillation." />
+<meta property="og:description" content="Generative LiDAR scene completion via structured-source discrete diffusion. 39.2% SemanticKITTI test mIoU — new state of the art on the LiDAR single-frame leaderboard, +1.3% over TALoS. 38.54% on val. Single forward pass, no distillation." />
 <meta property="og:type" content="article" />
 <title>Generative Semantic Scene Completion</title>
 
@@ -31,7 +31,7 @@
 }
 </script>
 </head>
-<body data-anon="true">
+<body>
 
 <!-- ============================================================
      TOP NAV
@@ -47,10 +47,7 @@
     <li><a href="#bibtex">BibTeX</a></li>
   </ul>
   <div class="topnav__meta">
-    <button class="btn-ghost" id="anon-toggle" aria-pressed="true" title="Toggle anonymous mode for double-blind review">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-      <span id="anon-label">Anonymous</span>
-    </button>
+    <span class="topnav__badge">TPAMI 2026 · Submitted</span>
   </div>
 </nav>
 
@@ -68,19 +65,16 @@
       <p class="hero__subtitle">
         A generative framework for LiDAR semantic scene completion built around <strong>S<sup>2</sup>D<sup>2</sup></strong>, a structured-source discrete diffusion that refines any base predictor in a single forward pass.
         Paired with a three-stage pyramid data-augmentation pipeline and a BEV-perception secondary task.
-        <em>38.54%</em> mIoU on SemanticKITTI val.
+        <em>39.2%</em> hidden-test mIoU — the new LiDAR single-frame state of the art (+1.3% over the previous best, TALoS).
       </p>
 
-      <div class="hero__authors" data-anon-section>
-        <span class="hero__author"><span class="author-name">Shi Chen</span><sup>1,*</sup></span>
-        <span class="hero__author"><span class="author-name">Weifeng Ge</span><sup>1,†</sup></span>
+      <div class="hero__authors">
+        <span class="hero__author"><span class="author-name">Shi Chen</span><sup>1,&dagger;</sup></span>
+        <span class="hero__author"><span class="author-name">Weifeng Ge</span><sup>1,*</sup></span>
       </div>
-      <div class="hero__affiliations" data-anon-section>
+      <div class="hero__affiliations">
         <span><sup>1</sup>School of Computer Science, Fudan University</span>
-        <span class="affil-note"><sup>*</sup>First author · <sup>†</sup>Corresponding author</span>
-      </div>
-      <div class="hero__anon-placeholder" data-anon-placeholder>
-        <span>Authors anonymized for double-blind review.</span>
+        <span class="affil-note"><sup>&dagger;</sup>Project lead and first author &middot; <sup>*</sup>Corresponding author</span>
       </div>
 
       <div class="hero__cta">
@@ -102,20 +96,20 @@
 
       <div class="hero__metrics">
         <div class="metric">
-          <span class="metric__value">38.54<small>%</small></span>
-          <span class="metric__label">SemanticKITTI val mIoU</span>
+          <span class="metric__value">39.2<small>%</small></span>
+          <span class="metric__label">SemanticKITTI hidden test mIoU · new SOTA</span>
         </div>
         <div class="metric">
-          <span class="metric__value">+2.37<small>%</small></span>
-          <span class="metric__label">over SCPNet base</span>
+          <span class="metric__value">+1.3<small>%</small></span>
+          <span class="metric__label">over TALoS (37.9%) — previous best</span>
         </div>
         <div class="metric">
           <span class="metric__value">107<small>ms</small></span>
-          <span class="metric__label">added per frame · H100</span>
+          <span class="metric__label">marginal cost on H100 · 9.33 FPS</span>
         </div>
         <div class="metric">
           <span class="metric__value">1<small>&nbsp;step</small></span>
-          <span class="metric__label">no distillation</span>
+          <span class="metric__label">no distillation, no TTA</span>
         </div>
       </div>
     </div>
@@ -147,7 +141,7 @@
         Standard diffusion generates from noise. S<sup>2</sup>D<sup>2</sup> instead starts from a supervised base model&rsquo;s prediction and learns the correction that carries it to the ground truth. The reverse update is closed-form, so a single step is enough at deployment — we do not iterate, and we do not distill a multi-step schedule. We pair this core with coarse-to-fine pyramid diffusion for synthetic data augmentation and a matching BEV conditioning stream.
       </p>
       <p>
-        On SemanticKITTI, S<sup>2</sup>D<sup>2</sup> lifts SCPNet from 36.17% to <strong>38.54%</strong> mIoU on SSC (<strong>+2.37%</strong>), and reaches <strong>36.09%</strong> on LiDAR-only BEV perception, <strong>9.06 points</strong> above the previous best dedicated 2D method. It does so while adding a single UNet forward pass on top of the base model &mdash; no distillation.
+        On the SemanticKITTI hidden test leaderboard, S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> mIoU under D<sub>4</sub> test-time augmentation and <strong>39.0%</strong> without — both establish the new LiDAR single-frame state of the art (+1.3% over TALoS, the previous best at 37.9%). On val, the same approach lifts SCPNet from 36.17% to <strong>38.54%</strong> (<strong>+2.37%</strong>); applied as a secondary task to LiDAR-only BEV perception it reaches <strong>36.09%</strong> mIoU, <strong>9.06 points</strong> above the previous best dedicated 2D method. The 1-step real-time configuration runs at <strong>9.33&nbsp;FPS</strong> marginal cost on a contention-free H100 and still hits <strong>38.8%</strong> on test — beating TALoS by +0.9% in real time without TTA.
       </p>
     </div>
   </div>
@@ -235,30 +229,6 @@
     </figure>
   </details>
 
-  <!-- Equations (for reviewers who want the formalism; open by default) -->
-  <details class="details-card details-card--compact" open>
-    <summary>
-      <span class="details-card__label">Equations</span>
-      <span class="details-card__hint">forward interpolation, reverse update, training objective</span>
-    </summary>
-    <div class="eq-list">
-      <div class="eq-row">
-        <span class="eq-row__label">Forward</span>
-        <span class="eq-row__math mono">x<sub>t</sub> = ᾱ<sub>t</sub> · x<sub>0</sub> + (1 − ᾱ<sub>t</sub>) · x<sub>src</sub></span>
-        <span class="eq-row__note">on the per-voxel probability simplex Δ<sup>K−1</sup>; x<sub>src</sub> is the frozen base model&rsquo;s one-hot prediction.</span>
-      </div>
-      <div class="eq-row">
-        <span class="eq-row__label">Reverse</span>
-        <span class="eq-row__math mono">x<sub>t−1</sub> = x<sub>t</sub> + (ᾱ<sub>t−1</sub> − ᾱ<sub>t</sub>)(x̂<sub>0</sub> − x<sub>src</sub>)</span>
-        <span class="eq-row__note">closed-form; at deployment we take a single step from t=T to t=0.</span>
-      </div>
-      <div class="eq-row">
-        <span class="eq-row__label">Training</span>
-        <span class="eq-row__math mono">x̂<sub>0</sub> = softmax(f<sub>θ</sub>(x<sub>t</sub>, t, c))</span>
-        <span class="eq-row__note">c = (BEV map, LiDAR voxel occupancy). Objective is KL on the posterior with a Lovász-softmax regulariser; full schedule and EMA settings are in the paper.</span>
-      </div>
-    </div>
-  </details>
 </section>
 
 <!-- ============================================================
@@ -381,7 +351,8 @@
     </button>
     <div class="race__lanes" id="race-lanes" aria-live="polite"></div>
     <p class="race__note">
-      All three runs use the same validation frame at 256×256×32 voxels. SCPNet latency is shared overhead; S<sup>2</sup>D<sup>2</sup> is the additional work on top.
+      All four lanes use the same validation frame at 256×256×32 voxels and were measured on a contention-free NVIDIA H100&nbsp;80GB. The numeric readouts beside each bar show the <strong>real measured latency</strong> (in ms); the bar widths are linearly proportional to that latency.
+      <strong>The wall-clock animation is <em>log-warped</em></strong> so that the 100-step lane finishes the bar in $\sim$6&nbsp;s of UI time instead of the actual $\sim$11&nbsp;s, otherwise the contrast across the four lanes would not be visible in a single viewing. The widths and readouts are real; only the per-pixel <em>animation pacing</em> is compressed.
     </p>
   </div>
 </section>
@@ -391,7 +362,10 @@
 ============================================================ -->
 <section id="results" class="section">
   <h2 class="section__eyebrow">Results</h2>
-  <h3 class="section__title">SemanticKITTI validation · single-frame single-sample</h3>
+  <h3 class="section__title">SemanticKITTI hidden test set · single-frame single-sample</h3>
+  <p class="section__lede">
+    All numbers are CodaLab leaderboard mIoU on the official hidden test split. S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> with D<sub>4</sub> test-time augmentation, the new state of the art (+1.3% over the previous best, TALoS at 37.9%). Even the real-time 1-step configuration at <strong>9.33&nbsp;FPS</strong> reaches <strong>38.8%</strong>, beating TALoS by +0.9% without any TTA or test-time adaptation.
+  </p>
 
   <div class="table-card" id="main-results-card">
     <div class="table-card__head">
@@ -445,10 +419,10 @@
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       <span id="bibtex-copy-label">Copy</span>
     </button>
-    <pre class="code-card__pre"><code id="bibtex-code">@article{anon2026gssc,
+    <pre class="code-card__pre"><code id="bibtex-code">@article{chen2026gssc,
   title   = {Generative Semantic Scene Completion},
-  author  = {Anonymous},
-  journal = {Under review at TPAMI},
+  author  = {Chen, Shi and Ge, Weifeng},
+  journal = {Submitted to IEEE Transactions on Pattern Analysis and Machine Intelligence},
   year    = {2026}
 }</code></pre>
   </div>
@@ -464,7 +438,7 @@
       Page rendered statically · no tracking · no cookies. <br/>
       Built with Three.js, vanilla JS, and a lot of voxels.
     </p>
-    <p class="footer__ack" data-anon-section>
+    <p class="footer__ack">
       Supported by NSFC Grant No.&nbsp;624B1006. Thanks to SemanticKITTI and SCPNet authors for public data and checkpoints.
     </p>
   </div>
@@ -473,7 +447,6 @@
 <!-- ============================================================
      Scripts
 ============================================================ -->
-<script src="scripts/anon.js" defer></script>
 <script src="scripts/tableSort.js" defer></script>
 <script src="scripts/latencyRace.js" defer></script>
 <script src="scripts/main.js" defer></script>

@@ -1,12 +1,10 @@
 [
-  { "method": "MonoScene",        "mod": "C",  "mIoU": 11.3, "note": "val, 51.2 m", "best": false, "ours": false },
-  { "method": "VoxFormer-S",      "mod": "C",  "mIoU": 12.4, "note": "single-frame",  "best": false, "ours": false },
-  { "method": "VoxFormer-T",      "mod": "C",  "mIoU": 13.4, "note": "temporal",       "best": false, "ours": false },
-  { "method": "CGFormer",         "mod": "C",  "mIoU": 16.9, "note": "NeurIPS 2024",   "best": false, "ours": false },
-  { "method": "LMSCNet",          "mod": "L",  "mIoU": 17.6, "note": "3D CNN",        "best": false, "ours": false },
-  { "method": "JS3C-Net",         "mod": "L",  "mIoU": 23.8, "note": "joint seg+SSC", "best": false, "ours": false },
-  { "method": "PaSCo",            "mod": "L",  "mIoU": 30.1, "note": "M=3 ensemble",  "best": false, "ours": false, "note_inline": "ensemble" },
-  { "method": "SCPNet (base)",    "mod": "L",  "mIoU": 36.5, "note": "distillation",  "best": false, "ours": false },
-  { "method": "TALoS",            "mod": "L",  "mIoU": 39.3, "note": "test-time adapt", "best": false, "ours": false, "note_inline": "TTA" },
-  { "method": "S\u00B2D\u00B2 (Ours)", "mod": "L", "mIoU": 38.5, "note": "1-step, no TTA", "best": true,  "ours": true }
+  { "method": "LMSCNet",                              "mod": "L-SF", "mIoU": 17.6, "note": "test, 3D CNN",                                  "best": false, "ours": false },
+  { "method": "SSA-SC",                               "mod": "L-SF", "mIoU": 23.5, "note": "test, joint seg-completion",                    "best": false, "ours": false },
+  { "method": "JS3C-Net",                             "mod": "L-SF", "mIoU": 23.8, "note": "test, joint seg+SSC",                           "best": false, "ours": false },
+  { "method": "SCPNet (base)",                        "mod": "L-SF", "mIoU": 36.7, "note": "test, our spconv-v2 port matches paper",        "best": false, "ours": false },
+  { "method": "TALoS (prior SOTA)",                   "mod": "L-SF", "mIoU": 37.9, "note": "test, line-of-sight TTA",                       "best": false, "ours": false, "note_inline": "TTA" },
+  { "method": "S²D² 1-step (real-time)",    "mod": "L-SF", "mIoU": 38.8, "note": "test, 9.33 FPS marginal, no TTA, no LoS",       "best": false, "ours": true,  "note_inline": "real-time" },
+  { "method": "S²D² plain N=4",             "mod": "L-SF", "mIoU": 39.0, "note": "test, no TTA — beats TALoS without TTA",        "best": false, "ours": true },
+  { "method": "S²D² + D₄ TTA (Ours)",  "mod": "L-SF", "mIoU": 39.2, "note": "test, +D₄ TTA — new SOTA (+1.3 over TALoS)", "best": true,  "ours": true,  "note_inline": "SOTA" }
 ]
