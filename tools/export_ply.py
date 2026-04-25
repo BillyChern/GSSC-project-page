@@ -58,7 +58,7 @@ RARE_CLASS_BOOST = {2, 3, 5, 6, 7, 8, 18, 19}  # enlarge these at export time
 
 FRAMES = {
     "bicyclist":    {"seq": "08", "frame": "003096"},
-    "traffic":      {"seq": "08", "frame": "002870"},
+    "motorcyclist": {"seq": "08", "frame": "001417"},
 }
 
 VOXEL_SIZE = 0.2  # meters per voxel on SemanticKITTI

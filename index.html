@@ -155,7 +155,7 @@
   <h3 class="section__title">Rare-class recovery on SemanticKITTI validation</h3>
   <figure class="figure-wide">
     <div class="figure-wide__media">
-      <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison showing S²D² roughly doubles per-sample rare-class IoU of SCPNet on bicyclist and traffic-sign frames from SemanticKITTI validation sequence 08."
+      <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison showing S²D² roughly doubles per-sample rare-class IoU of SCPNet on bicyclist and motorcyclist frames from SemanticKITTI validation sequence 08."
            loading="lazy" width="1720" height="1040" />
     </div>
     <figcaption>
@@ -221,10 +221,10 @@
     </summary>
     <figure class="figure-wide figure-wide--tight">
       <div class="figure-wide__media">
-        <img src="assets/figures/fig3_s2d2.png" alt="Detailed three-layer S²D² architecture. Top: one-step transport on the per-voxel probability simplex. Middle: sparse 3D U-Net with 4 encoder/decoder stages, a bottleneck with two sparse residual blocks, FiLM modulation at every level, and three conditioning streams (timestep, LiDAR occupancy, BEV map). Bottom: rare-class recovery example on SemanticKITTI sequence 08 frame 001390 showing motorcyclist IoU lifting from 27.3% to 41.5%." loading="lazy" />
+        <img src="assets/figures/fig3_s2d2.png" alt="Detailed three-layer S²D² architecture. Top: one-step transport on the per-voxel probability simplex. Middle: sparse 3D U-Net with 4 encoder/decoder stages, a bottleneck with two sparse residual blocks, FiLM modulation at every level, and three conditioning streams (timestep, LiDAR occupancy, BEV map). Bottom: rare-class recovery example on SemanticKITTI sequence 08 frame 001390 showing motorcyclist IoU lifting from 27.3% to 50.5% with D4 TTA." loading="lazy" />
       </div>
       <figcaption>
-        <strong>Top</strong>: the learned velocity field transports samples from the base prediction (gray cluster) to ground truth (orange cluster) in a single Euler step. <strong>Middle</strong>: the denoising network is a four-level sparse 3D U-Net with skip connections, FiLM conditioning, and three input streams (current iterate, LiDAR occupancy, base-derived BEV). <strong>Bottom</strong>: a representative rare-class recovery; motorcyclist IoU goes from 27.3% to 41.5% in one forward pass.
+        <strong>Top</strong>: the learned velocity field transports samples from the base prediction (gray cluster) to ground truth (orange cluster) in a single Euler step. <strong>Middle</strong>: the denoising network is a four-level sparse 3D U-Net with skip connections, FiLM conditioning, and three input streams (current iterate, LiDAR occupancy, base-derived BEV). <strong>Bottom</strong>: a representative rare-class recovery; motorcyclist IoU goes from 27.3% to 50.5% with D4 TTA.
       </figcaption>
     </figure>
   </details>
@@ -260,9 +260,9 @@
             <span class="seg__main">Bicyclist</span>
             <span class="seg__hint">seq 08 · 003096</span>
           </button>
-          <button class="seg__btn" data-scene="traffic-sign" role="tab" title="seq 08 · 002870">
-            <span class="seg__main">Traffic&#8209;sign</span>
-            <span class="seg__hint">seq 08 · 002870</span>
+          <button class="seg__btn" data-scene="motorcyclist" role="tab" title="seq 08 · 001417">
+            <span class="seg__main">Motorcyclist</span>
+            <span class="seg__hint">seq 08 · 001417</span>
           </button>
         </div>
       </div>

@@ -48,7 +48,7 @@ function computeRareMask(colors, n) {
 const SCENES = {
   'bicyclist': {
     label: 'Bicyclist — SemanticKITTI seq 08 · frame 003096',
-    stats: { scp: 31.3, ours: 56.4, delta: '+25.1', klass: 'bicyclist IoU' },
+    stats: { scp: 31.3, ours: 56.9, delta: '+25.6', klass: 'bicyclist IoU' },
     plys: {
       'sparse': 'assets/ply/bicyclist_sparse.ply',
       'scpnet': 'assets/ply/bicyclist_scpnet.ply',
@@ -56,14 +56,14 @@ const SCENES = {
       'gt':     'assets/ply/bicyclist_gt.ply',
     }
   },
-  'traffic-sign': {
-    label: 'Traffic-sign — SemanticKITTI seq 08 · frame 002870',
-    stats: { scp: 17.1, ours: 39.5, delta: '+22.4', klass: 'traffic-sign IoU' },
+  'motorcyclist': {
+    label: 'Motorcyclist — SemanticKITTI seq 08 · frame 001417',
+    stats: { scp: 33.0, ours: 62.4, delta: '+29.3', klass: 'motorcyclist IoU' },
     plys: {
-      'sparse': 'assets/ply/traffic_sparse.ply',
-      'scpnet': 'assets/ply/traffic_scpnet.ply',
-      's2d2':   'assets/ply/traffic_s2d2.ply',
-      'gt':     'assets/ply/traffic_gt.ply',
+      'sparse': 'assets/ply/motorcyclist_sparse.ply',
+      'scpnet': 'assets/ply/motorcyclist_scpnet.ply',
+      's2d2':   'assets/ply/motorcyclist_s2d2.ply',
+      'gt':     'assets/ply/motorcyclist_gt.ply',
     }
   }
 };
