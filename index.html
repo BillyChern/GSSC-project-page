@@ -387,30 +387,23 @@
     </div>
   </div>
 
-  <aside class="callout">
-    <span class="callout__eyebrow">Where the gains concentrate</span>
-    <h4 class="callout__title">The improvements land on the safety-critical long&#8209;tail.</h4>
-    <p>
-      On the SemanticKITTI hidden test set, S<sup>2</sup>D<sup>2</sup> with <em>D</em><sub>4</sub>&nbsp;TTA holds the column-wise maximum on
-      <strong>7 of the 8 safety-critical classes</strong> &mdash; bicycle, truck, other-vehicle, person, bicyclist, motorcyclist, and traffic-sign.
-      Only motorcycle goes to TALoS, by 2.7 points.
-    </p>
-    <dl class="callout__stats" aria-label="Per-class IoU gains over the SCPNet base">
-      <div><dt>bicyclist</dt><dd>+7.3</dd></div>
-      <div><dt>traffic-sign</dt><dd>+6.5</dd></div>
-      <div><dt>truck</dt><dd>+5.8</dd></div>
-      <div><dt>person</dt><dd>+3.5</dd></div>
-      <div><dt>motorcyclist</dt><dd>+1.5</dd></div>
-      <div><dt>bicycle</dt><dd>+1.7</dd></div>
-    </dl>
-    <p class="callout__foot">
-      Mean per-class gain over SCPNet: <strong>+3.58</strong> on the 8 safety-critical classes
-      vs <strong>+1.70</strong> on the 11 remaining classes &mdash; a <strong>2.1&times;</strong> concentration
-      onto rare safety-critical classes. Common-class regressions stay tiny and outside the safety set
-      (motorcycle &minus;0.7, trunk &minus;0.2, pole &minus;1.3). This same pattern drives the SC-mIoU
-      and VRU-IoU safety-aware metrics in the paper.
-    </p>
-  </aside>
+  <div class="table-card safety-card">
+    <div class="table-card__head">
+      <h4>Where the gains concentrate</h4>
+      <p>The improvements land on the safety-critical long-tail. On the SemanticKITTI hidden test set, S<sup>2</sup>D<sup>2</sup> with D<sub>4</sub> TTA holds the column-wise maximum on <strong>7 of the 8 safety-critical classes</strong> (bicycle, truck, other-vehicle, person, bicyclist, motorcyclist, traffic-sign). Only motorcycle goes to TALoS, by 2.7 points.</p>
+    </div>
+    <div class="safety-card__grid">
+      <div class="safety-stat"><span class="safety-stat__class">bicyclist</span><span class="safety-stat__delta">+7.3</span></div>
+      <div class="safety-stat"><span class="safety-stat__class">traffic-sign</span><span class="safety-stat__delta">+6.5</span></div>
+      <div class="safety-stat"><span class="safety-stat__class">truck</span><span class="safety-stat__delta">+5.8</span></div>
+      <div class="safety-stat"><span class="safety-stat__class">person</span><span class="safety-stat__delta">+3.5</span></div>
+      <div class="safety-stat"><span class="safety-stat__class">bicycle</span><span class="safety-stat__delta">+1.7</span></div>
+      <div class="safety-stat"><span class="safety-stat__class">motorcyclist</span><span class="safety-stat__delta">+1.5</span></div>
+    </div>
+    <div class="safety-card__foot">
+      Mean per-class gain over SCPNet: <strong>+3.58</strong> across the 8 safety-critical classes vs <strong>+1.70</strong> across the 11 remaining classes &mdash; a <strong>2.1&times;</strong> concentration onto rare safety-critical classes. Common-class regressions stay tiny and stay outside the safety set (motorcycle &minus;0.7, trunk &minus;0.2, pole &minus;1.3). This pattern drives our SC-mIoU and VRU-IoU safety-aware metrics in the paper.
+    </div>
+  </div>
 
   <div class="table-card">
     <div class="table-card__head">
