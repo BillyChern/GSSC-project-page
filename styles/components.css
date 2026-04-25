@@ -336,33 +336,43 @@
    same alignment (right) and the same width, guaranteeing visual stack. */
 
 /* --- Main results: Method | Modality | mIoU | Note ---
-   Percentage widths so columns distribute evenly across the card width
-   without leaving a huge blank gap. Method takes 38%, the right-side
-   columns share the rest. */
-#main-results-table { table-layout: fixed; }
+   Compact fixed-width table centered in its card so the columns don't
+   stretch into a wide blank zone on the left. Sums to 820px. */
+#main-results-table {
+  table-layout: fixed;
+  width: 820px !important;
+  margin: 0 auto;
+  max-width: 100%;
+}
 #main-results-table th:nth-child(1),
-#main-results-table td:nth-child(1) { width: 38%; }
+#main-results-table td:nth-child(1) { width: 290px; }
 #main-results-table th:nth-child(2),
-#main-results-table td:nth-child(2) { width: 14%; text-align: center; }
+#main-results-table td:nth-child(2) { width: 110px; text-align: center; }
 #main-results-table th:nth-child(3),
 #main-results-table td:nth-child(3) {
-  width: 12%;
+  width: 100px;
   text-align: right;
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;
 }
 #main-results-table th:nth-child(4),
-#main-results-table td:nth-child(4) { width: 36%; text-align: center; }
+#main-results-table td:nth-child(4) { width: 320px; text-align: center; }
 
 /* --- Per-class: Class | SCPNet | S²D² | Δ ---
-   Class column 40%, three numeric columns 20% each. Numbers stay close
-   to the class name with a comfortable visual rhythm. */
-#perclass-table { table-layout: fixed; }
+   Compact fixed-width table centered in its card. Class column 240px
+   (fits 'motorcyclist †' with breathing room), three numeric columns
+   120px each. Total 600px. */
+#perclass-table {
+  table-layout: fixed;
+  width: 600px !important;
+  margin: 0 auto;
+  max-width: 100%;
+}
 #perclass-table th:nth-child(1),
-#perclass-table td:nth-child(1) { width: 40%; }
+#perclass-table td:nth-child(1) { width: 240px; }
 #perclass-table th:nth-child(n+2),
 #perclass-table td:nth-child(n+2) {
-  width: 20%;
+  width: 120px;
   text-align: right;
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;

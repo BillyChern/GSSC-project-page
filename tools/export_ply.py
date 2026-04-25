@@ -134,11 +134,17 @@ def load_voxel_grid_s2d2(seq: str, frame: str) -> np.ndarray:
     Tries several candidate prediction directories in order of preference.
     Falls back to SCPNet if none are found so the viewer still renders.
     """
+    # Prefer the highest-quality S²D² output for the live demo:
+    # the 31K MF champion checkpoint at N=4 + D4 TTA (38.73% val mIoU,
+    # paper's headline test row at 39.2%). Same model the paper claims
+    # SOTA with — just the inference variant that produces the cleanest
+    # voxel grid for a visual demonstration.
     candidates = [
-        DATA_ROOT / ".." / "outputs" / "official_predictions_exp1_31k_sf_35k_1step_algo2" / "sequences" / seq / "predictions" / f"{frame}.label",
-        DATA_ROOT / ".." / "outputs" / "official_predictions_exp1_40k_1step_algo2"       / "sequences" / seq / "predictions" / f"{frame}.label",
-        DATA_ROOT / ".." / "outputs" / "official_predictions_exp1_57k_45k_1step_algo2"   / "sequences" / seq / "predictions" / f"{frame}.label",
-        DATA_ROOT / ".." / "outputs" / "official_predictions_b4b_val"                    / "sequences" / seq / "predictions" / f"{frame}.label",
+        DATA_ROOT / ".." / "outputs" / "official_predictions_exp1_31k_mf_40k_4step_tta_d4" / "sequences" / seq / "predictions" / f"{frame}.label",
+        DATA_ROOT / ".." / "outputs" / "official_predictions_exp1_31k_sf_35k_1step_algo2"  / "sequences" / seq / "predictions" / f"{frame}.label",
+        DATA_ROOT / ".." / "outputs" / "official_predictions_exp1_40k_1step_algo2"        / "sequences" / seq / "predictions" / f"{frame}.label",
+        DATA_ROOT / ".." / "outputs" / "official_predictions_exp1_57k_45k_1step_algo2"    / "sequences" / seq / "predictions" / f"{frame}.label",
+        DATA_ROOT / ".." / "outputs" / "official_predictions_b4b_val"                     / "sequences" / seq / "predictions" / f"{frame}.label",
     ]
     for candidate in candidates:
         candidate = candidate.resolve()
