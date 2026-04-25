@@ -192,13 +192,23 @@
   vertical-align: 0.35em;   /* shift up just enough; doesn't overflow line-box */
   line-height: 1;
 }
-/* Scene-row buttons (.seg, not .seg--stack) need width-honest layout so
-   "Traffic-sign" + "seq 08 · 002870" don't wrap to two lines. Hide the
-   seq hint at narrow widths; show as a tooltip via `title` attribute
-   instead. */
-.seg:not(.seg--stack) .seg__btn { min-width: 0; }
-@media (max-width: 380px) {
-  .seg:not(.seg--stack) .seg__hint { display: none; }
+/* Scene-row buttons (.seg, not .seg--stack): stack the seq hint BELOW
+   the main label so they never overlap regardless of button width. Two
+   small lines reads cleaner than one cramped line and avoids the prior
+   overlap bug where "Bicyclist" ran on top of "seq 08 · 003096". */
+.seg:not(.seg--stack) .seg__btn {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+.seg:not(.seg--stack) .seg__main {
+  font-size: var(--fs-sm);
+}
+.seg:not(.seg--stack) .seg__hint {
+  margin-left: 0;
+  padding-left: 0;
+  font-size: 0.65rem;
 }
 
 /* Checkbox control */
