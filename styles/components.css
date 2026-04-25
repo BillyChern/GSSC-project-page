@@ -179,18 +179,26 @@
   flex-shrink: 0;
 }
 /* Main label inside .seg__btn — keep "S²D² (ours)" on one line and
-   render <sup> as proper superscript, not as a wrapped character. */
+   render <sup> as proper superscript without clipping above the line. */
 .seg__main {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;        /* don't clip the superscript caps */
   flex: 0 1 auto;
   min-width: 0;
+  line-height: 1.4;         /* enough vertical room for sup */
 }
 .seg__main sup {
-  font-size: 0.7em;
-  vertical-align: super;
-  line-height: 0;
+  font-size: 0.65em;
+  vertical-align: 0.35em;   /* shift up just enough; doesn't overflow line-box */
+  line-height: 1;
+}
+/* Scene-row buttons (.seg, not .seg--stack) need width-honest layout so
+   "Traffic-sign" + "seq 08 · 002870" don't wrap to two lines. Hide the
+   seq hint at narrow widths; show as a tooltip via `title` attribute
+   instead. */
+.seg:not(.seg--stack) .seg__btn { min-width: 0; }
+@media (max-width: 380px) {
+  .seg:not(.seg--stack) .seg__hint { display: none; }
 }
 
 /* Checkbox control */
