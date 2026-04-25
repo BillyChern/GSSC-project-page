@@ -335,29 +335,34 @@
    applies .num / .th--num markers correctly. Numeric columns share the
    same alignment (right) and the same width, guaranteeing visual stack. */
 
-/* --- Main results: Method | Modality | mIoU | Note --- */
+/* --- Main results: Method | Modality | mIoU | Note ---
+   Percentage widths so columns distribute evenly across the card width
+   without leaving a huge blank gap. Method takes 38%, the right-side
+   columns share the rest. */
 #main-results-table { table-layout: fixed; }
 #main-results-table th:nth-child(1),
-#main-results-table td:nth-child(1) { width: auto; }
+#main-results-table td:nth-child(1) { width: 38%; }
 #main-results-table th:nth-child(2),
-#main-results-table td:nth-child(2) { width: 110px; text-align: center; }
+#main-results-table td:nth-child(2) { width: 14%; text-align: center; }
 #main-results-table th:nth-child(3),
 #main-results-table td:nth-child(3) {
-  width: 100px;
+  width: 12%;
   text-align: right;
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;
 }
 #main-results-table th:nth-child(4),
-#main-results-table td:nth-child(4) { width: 200px; text-align: center; }
+#main-results-table td:nth-child(4) { width: 36%; text-align: center; }
 
-/* --- Per-class: Class | SCPNet | S²D² | Δ --- */
+/* --- Per-class: Class | SCPNet | S²D² | Δ ---
+   Class column 40%, three numeric columns 20% each. Numbers stay close
+   to the class name with a comfortable visual rhythm. */
 #perclass-table { table-layout: fixed; }
 #perclass-table th:nth-child(1),
-#perclass-table td:nth-child(1) { width: auto; }
+#perclass-table td:nth-child(1) { width: 40%; }
 #perclass-table th:nth-child(n+2),
 #perclass-table td:nth-child(n+2) {
-  width: 100px;
+  width: 20%;
   text-align: right;
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;
