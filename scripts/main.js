@@ -47,32 +47,6 @@
     });
   }
 
-  // ---------- Mobile burger menu ----------
-  const burger = document.querySelector('.topnav__burger');
-  const navList = document.getElementById('topnav-links');
-  if (burger && navList) {
-    const closeMenu = () => {
-      burger.setAttribute('aria-expanded', 'false');
-      navList.classList.remove('is-open');
-    };
-    burger.addEventListener('click', () => {
-      const open = burger.getAttribute('aria-expanded') === 'true';
-      burger.setAttribute('aria-expanded', String(!open));
-      navList.classList.toggle('is-open', !open);
-    });
-    // Close on link click (mobile users tap a link to navigate)
-    navList.querySelectorAll('a').forEach((a) =>
-      a.addEventListener('click', closeMenu)
-    );
-    // Close on Escape, for keyboard users
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && burger.getAttribute('aria-expanded') === 'true') {
-        closeMenu();
-        burger.focus();
-      }
-    });
-  }
-
   // ---------- Smooth scroll with sticky-nav offset ----------
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (e) => {

@@ -95,30 +95,6 @@ code, pre, .mono {
   outline-offset: 3px;
 }
 
-/* Skip-to-content link: invisible until keyboard-focused, then anchors
-   to the top-left so screen-reader / Tab users can bypass the topnav. */
-.skip-link {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 200;
-  padding: 10px 14px;
-  margin: 8px;
-  background: var(--c-accent);
-  color: #1C1408;
-  font-family: var(--ff-sans);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  border-radius: var(--radius);
-  transform: translateY(-150%);
-  transition: transform var(--dur-fast) var(--ease-out);
-}
-.skip-link:focus,
-.skip-link:focus-visible {
-  transform: translateY(0);
-  color: #1C1408;
-}
-
 button { font-family: inherit; cursor: pointer; }
 
 img, svg, canvas, video {
