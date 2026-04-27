@@ -14,7 +14,10 @@
   /* Color — ink (text on dark) */
   --c-ink:           #EAEDF3;
   --c-ink-mute:      #A9B1BE;
-  --c-ink-dim:       #6B7487;
+  /* WCAG: lifted from #6B7487 (4.07:1) to #828B9D (~5.0:1 vs #0B0E14)
+     so the eyebrow / metric-label / footer-ack microtype passes AA
+     for normal text instead of only AA-large. */
+  --c-ink-dim:       #828B9D;
 
   /* Color — accents */
   --c-accent:        #F19340;   /* S²D² signature orange, brighter for dark */

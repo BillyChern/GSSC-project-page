@@ -33,12 +33,14 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main">Skip to content</a>
+
 <!-- ============================================================
      TOP NAV
 ============================================================ -->
 <nav class="topnav" aria-label="Primary">
   <a class="logo" href="#top">GSSC</a>
-  <ul class="topnav__links">
+  <ul class="topnav__links" id="topnav-links">
     <li><a href="#abstract">Abstract</a></li>
     <li><a href="#method">Method</a></li>
     <li><a href="#viewer">3D Viewer</a></li>
@@ -46,10 +48,20 @@
     <li><a href="#results">Results</a></li>
     <li><a href="#bibtex">BibTeX</a></li>
   </ul>
+  <button class="topnav__burger" type="button"
+          aria-label="Toggle navigation menu"
+          aria-controls="topnav-links"
+          aria-expanded="false">
+    <span class="topnav__burger-bar"></span>
+    <span class="topnav__burger-bar"></span>
+    <span class="topnav__burger-bar"></span>
+  </button>
   <div class="topnav__meta">
-    <span class="topnav__badge">TPAMI 2026 · Submitted</span>
+    <span class="topnav__badge">TPAMI 2026 · Under review</span>
   </div>
 </nav>
+
+<main id="main">
 
 <!-- ============================================================
      HERO
@@ -126,8 +138,9 @@
 <!-- ============================================================
      ABSTRACT
 ============================================================ -->
-<section id="abstract" class="section section--narrow">
-  <h2 class="section__eyebrow">Abstract</h2>
+<section id="abstract" class="section section--narrow" aria-labelledby="abstract-heading">
+  <p class="section__eyebrow" aria-hidden="true">Abstract</p>
+  <h2 id="abstract-heading" class="visually-hidden">Abstract</h2>
   <div class="abstract-grid">
     <p class="abstract-lede">
       We propose <em>Structured Source Discrete Diffusion</em> (S<sup>2</sup>D<sup>2</sup>),
@@ -151,15 +164,15 @@
      TEASER: Qualitative rare-class panel
 ============================================================ -->
 <section id="teaser" class="section section--wide">
-  <h2 class="section__eyebrow">What changes at the voxel level</h2>
-  <h3 class="section__title">Rare-class recovery on SemanticKITTI validation</h3>
+  <p class="section__eyebrow">What changes at the voxel level</p>
+  <h2 class="section__title">Rare-class recovery on SemanticKITTI validation</h2>
   <figure class="figure-wide">
     <div class="figure-wide__media">
-      <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison showing S²D² roughly doubles per-sample rare-class IoU of SCPNet on bicyclist and motorcyclist frames from SemanticKITTI validation sequence 08."
+      <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI val: JS3C-Net, SCPNet, TALoS, S²D² (ours), and Ground truth on a bicyclist frame (seq 08, frame 003096) and a motorcyclist frame (seq 08, frame 001417). Per-sample IoU and TP/FP voxel counts shown under each panel. S²D² lifts bicyclist IoU from 31.3% (SCPNet) and 33.0% (TALoS) to 56.9%, and motorcyclist from 33.0% (SCPNet) and 30.0% (TALoS) to 62.4%; JS3C-Net collapses to 0.7% and 0.0% respectively."
            loading="lazy" width="1720" height="1040" />
     </div>
     <figcaption>
-      Two rare-class frames from SemanticKITTI val (sequence 08). S<sup>2</sup>D<sup>2</sup> doubles SCPNet&rsquo;s per-sample IoU on both scenes while halving phantom voxel counts. JS3C-Net collapses on both classes.
+      Two rare-class frames from SemanticKITTI val (seq 08): bicyclist (frame&nbsp;003096) and motorcyclist (frame&nbsp;001417). On the bicyclist row S<sup>2</sup>D<sup>2</sup> reaches <strong>56.9%</strong> IoU vs. SCPNet&rsquo;s 31.3% and TALoS&rsquo;s 33.0% (+894 true-positive voxels, &minus;1053 false positives); on the motorcyclist row <strong>62.4%</strong> vs. 33.0% / 30.0% with &asymp;6.6&times; fewer phantom voxels. JS3C-Net collapses on both rare classes (0.7% bicyclist, 0.0% motorcyclist). S<sup>2</sup>D<sup>2</sup> here is the test-server SOTA configuration (31K-MF + <em>D</em><sub>4</sub> TTA, <em>N</em>=4). Source: paper Fig.&nbsp;4.
     </figcaption>
   </figure>
 </section>
@@ -168,8 +181,8 @@
      METHOD
 ============================================================ -->
 <section id="method" class="section">
-  <h2 class="section__eyebrow">Method</h2>
-  <h3 class="section__title">Refine a base model&rsquo;s prediction, don&rsquo;t regenerate the scene from noise.</h3>
+  <p class="section__eyebrow">Method</p>
+  <h2 class="section__title">Refine a base model&rsquo;s prediction, don&rsquo;t regenerate the scene from noise.</h2>
   <p class="section__lede">
     Standard diffusion turns pure noise into data across many steps. S<sup>2</sup>D<sup>2</sup> instead starts from a pretrained SSC model&rsquo;s output and learns the correction that carries it to the ground truth. That change &mdash; what it starts from, and how many steps it takes &mdash; is the whole idea.
   </p>
@@ -208,9 +221,11 @@
 
   <figure class="figure-wide figure-wide--tight">
     <div class="figure-wide__media">
-      <img src="assets/figures/fig2_pipeline.png" alt="Pipeline diagram. Top row: offline data augmentation with pyramid discrete diffusion, Velodyne HDL-64E ray-tracing, and a rare-class object bank. Bottom row: S²D² correction of a base model's prediction conditioned on BEV and LiDAR, emitting the refined voxel grid in one forward pass." loading="lazy" />
+      <img src="assets/figures/fig2_pipeline.png" alt="Two-stage pipeline. Stage A — Offline Data Augmentation (run once, pooled with real training): real GT scenes feed pyramid multinomial diffusion at S1=32²·4, S2=64²·8, S3=256²·32; a Velodyne HDL-64E Bresenham3D ray-tracer with 64×2048 rays converts each synthetic complete scene to a matching sparse input; a 5,000-instance / 10-rare-class object bank pastes rare-class instances on ground-level voxels. Stage B — S²D² Deployment (one forward pass on any test scan): a real sparse LiDAR scan is voxelized, passed through a frozen base SSC model (e.g. SCPNet, LMSCNet) to produce x_src, then refined by the S²D² denoiser f_θ — a sparse 3D U-Net with FiLM(t, L, B) modulation at every level — emitting x̂_0 in one Euler step." loading="lazy" />
     </div>
-    <figcaption>Full pipeline: offline data augmentation (top) feeds S<sup>2</sup>D<sup>2</sup> training; deployment runs a single refinement forward pass (bottom).</figcaption>
+    <figcaption>
+      <strong>Stage&nbsp;A &mdash; Offline data augmentation (run once).</strong> Pyramid multinomial diffusion synthesises complete scenes; an HDL-64E Bresenham3D ray-tracer (64&times;2048 rays) makes them sparse; a balanced 5,000-instance / 10-rare-class object bank (500 per class: bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, pole, traffic-sign, trunk) enriches each scene. <strong>Stage&nbsp;B &mdash; S<sup>2</sup>D<sup>2</sup> deployment (one forward pass).</strong> A frozen base SSC model produces x<sub>src</sub>; a sparse 3D U-Net with FiLM(<em>t</em>, <em>L</em>, <em>B</em>) modulation refines it into x&#770;<sub>0</sub> in a single Euler step. No distillation. Source: paper Fig.&nbsp;2.
+    </figcaption>
   </figure>
 
   <!-- Architecture in detail (open by default; reader can collapse) -->
@@ -221,10 +236,10 @@
     </summary>
     <figure class="figure-wide figure-wide--tight">
       <div class="figure-wide__media">
-        <img src="assets/figures/fig3_s2d2.png" alt="Detailed three-layer S²D² architecture. Top: one-step transport on the per-voxel probability simplex. Middle: sparse 3D U-Net with 4 encoder/decoder stages, a bottleneck with two sparse residual blocks, FiLM modulation at every level, and three conditioning streams (timestep, LiDAR occupancy, BEV map). Bottom: rare-class recovery example on SemanticKITTI sequence 08 frame 001390 showing motorcyclist IoU lifting from 27.3% to 50.5% with D4 TTA." loading="lazy" />
+        <img src="assets/figures/fig3_s2d2.png" alt="S²D² in three layers. Intuition (top): the learned velocity field v_θ = f_θ(x_t, t, c) − x_src transports samples from the base prediction x_src (gray cluster) toward the ground truth x_0 (orange cluster) in one Euler step on the per-voxel simplex. Architecture (middle): 4-level sparse 3D U-Net with stages 256²×32 → 128²×16 → 64²×8 → 32²×4, channels 32/64/128/256, a 16²×2 bottleneck with two Sparse Residual Blocks, mirror decoder, and FiLM(t, L, B) modulation at every E/D/bottleneck level. Qualitative example (bottom): val seq 08 frame 001390 — base model motorcyclist IoU 27.3%, S²D² (N=1, single Euler step) 41.5%, GT 322 motorcyclist voxels, a +14.3 point jump." loading="lazy" />
       </div>
       <figcaption>
-        <strong>Top</strong>: the learned velocity field transports samples from the base prediction (gray cluster) to ground truth (orange cluster) in a single Euler step. <strong>Middle</strong>: the denoising network is a four-level sparse 3D U-Net with skip connections, FiLM conditioning, and three input streams (current iterate, LiDAR occupancy, base-derived BEV). <strong>Bottom</strong>: a representative rare-class recovery; motorcyclist IoU goes from 27.3% to 50.5% with D4 TTA.
+        <strong>Top &mdash; intuition.</strong> The learned velocity field <em>v</em><sub>&theta;</sub> = <em>f</em><sub>&theta;</sub>(<em>x</em><sub><em>t</em></sub>, <em>t</em>, <em>c</em>) &minus; <em>x</em><sub>src</sub> transports samples from the base prediction (gray) to ground truth (orange) on the per-voxel simplex in a single Euler step at deployment. <strong>Middle &mdash; architecture.</strong> A 4-level sparse 3D U-Net (stages 256<sup>2</sup>&times;32 &rarr; 32<sup>2</sup>&times;4, channels 32&rarr;256, 16<sup>2</sup>&times;2 bottleneck with two Sparse Residual Blocks, mirror decoder) with FiLM(<em>t</em>, <em>L</em>, <em>B</em>) modulation at every level. <strong>Bottom &mdash; qualitative example.</strong> Val seq 08 frame 001390: base model motorcyclist IoU <strong>27.3%</strong>, S<sup>2</sup>D<sup>2</sup> (<em>N</em>=1, single Euler step) <strong>41.5%</strong> &mdash; a +14.3-point jump representative of the per-class gains in <a href="#results">Results</a>. Source: paper Fig.&nbsp;3.
       </figcaption>
     </figure>
   </details>
@@ -236,8 +251,8 @@
 ============================================================ -->
 <section id="viewer" class="section section--bleed">
   <div class="section__header">
-    <h2 class="section__eyebrow">Interactive</h2>
-    <h3 class="section__title">Compare predictions in 3D. Orbit, zoom, fly through.</h3>
+    <p class="section__eyebrow">Interactive</p>
+    <h2 class="section__title">Compare predictions in 3D. Orbit, zoom, fly through.</h2>
     <p class="section__lede">
       Two rare-class frames from SemanticKITTI validation. Toggle between the sparse LiDAR input, the SCPNet base prediction, the S<sup>2</sup>D<sup>2</sup> refinement, and the ground truth.
       The camera stays put between views so you can see exactly which voxels changed.
@@ -318,11 +333,11 @@
           </div>
           <div class="stat stat--accent">
             <span class="stat__label">S²D²</span>
-            <span class="stat__value" data-stat="ours">56.4%</span>
+            <span class="stat__value" data-stat="ours">56.9%</span>
           </div>
           <div class="stat">
             <span class="stat__label">Δ</span>
-            <span class="stat__value" data-stat="delta">+25.1</span>
+            <span class="stat__value" data-stat="delta">+25.6</span>
           </div>
         </div>
       </div>
@@ -339,8 +354,8 @@
      SPEED / LATENCY RACE
 ============================================================ -->
 <section id="speed" class="section">
-  <h2 class="section__eyebrow">Efficiency</h2>
-  <h3 class="section__title">A single UNet forward pass on top of the base model.</h3>
+  <p class="section__eyebrow">Efficiency</p>
+  <h2 class="section__title">A single UNet forward pass on top of the base model.</h2>
   <p class="section__lede">
     The multi-step diffusion schedule is a <em>training</em> device; deployment runs exactly one correction step.
     The race below is a real measurement on a contention-free H100 80GB.
@@ -363,8 +378,8 @@
      RESULTS
 ============================================================ -->
 <section id="results" class="section">
-  <h2 class="section__eyebrow">Results</h2>
-  <h3 class="section__title">SemanticKITTI hidden test set · single-frame single-sample</h3>
+  <p class="section__eyebrow">Results</p>
+  <h2 class="section__title">SemanticKITTI hidden test set · single-frame single-sample</h2>
   <p class="section__lede">
     All numbers are CodaLab leaderboard mIoU on the official hidden test split. S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> with D<sub>4</sub> test-time augmentation, the new state of the art (+1.3% over the previous best, TALoS at 37.9%). Even the real-time 1-step configuration at <strong>9.33&nbsp;FPS</strong> reaches <strong>38.8%</strong>, beating TALoS by +0.9% without any TTA or test-time adaptation.
   </p>
@@ -432,8 +447,8 @@
      BIBTEX
 ============================================================ -->
 <section id="bibtex" class="section section--narrow">
-  <h2 class="section__eyebrow">Cite</h2>
-  <h3 class="section__title">BibTeX</h3>
+  <p class="section__eyebrow">Cite</p>
+  <h2 class="section__title">BibTeX</h2>
   <div class="code-card">
     <button class="btn-ghost code-card__copy" id="bibtex-copy">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -447,6 +462,8 @@
 }</code></pre>
   </div>
 </section>
+
+</main>
 
 <!-- ============================================================
      FOOTER

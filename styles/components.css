@@ -50,13 +50,18 @@
 
 /* Placeholder CTAs (Paper / arXiv / Code): look like normal buttons so the
    hero stays visually balanced; clicks are swallowed by main.js so we don't
-   jump to top. Hover stays disabled to signal the link isn't live yet. */
+   jump to top. Hover keeps the same visual state as rest, with a "not-allowed"
+   cursor signalling the link isn't live yet. The previous rule reset the
+   background to the page colour on hover, which read as a broken style;
+   keep the elevated background instead so the button stays visible. */
 .btn[aria-disabled="true"] {
-  cursor: default;
+  cursor: not-allowed;
+  opacity: 0.72;
 }
 .btn[aria-disabled="true"]:hover {
-  background: var(--c-bg);
-  border-color: var(--c-line);
+  background: var(--c-bg-elev);
+  border-color: var(--c-line-strong);
+  color: var(--c-ink);
   transform: none;
 }
 
@@ -298,6 +303,9 @@
 }
 @keyframes lane-stripes {
   to { background-position: 20px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lane__fill::after { animation: none; }
 }
 
 .lane__time {

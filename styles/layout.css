@@ -61,9 +61,61 @@
 
 .topnav__meta { display: flex; align-items: center; gap: var(--s-3); }
 
+/* Burger button: hidden on desktop; unhidden < 880px. Lives between the
+   logo and the meta badge so the right side doesn't shift on collapse. */
+.topnav__burger {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  margin-left: auto;
+}
+.topnav__burger-bar {
+  display: block;
+  width: 18px;
+  height: 1.5px;
+  background: var(--c-ink);
+  transition: transform var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
+}
+.topnav__burger[aria-expanded="true"] .topnav__burger-bar:nth-child(1) {
+  transform: translateY(5.5px) rotate(45deg);
+}
+.topnav__burger[aria-expanded="true"] .topnav__burger-bar:nth-child(2) {
+  opacity: 0;
+}
+.topnav__burger[aria-expanded="true"] .topnav__burger-bar:nth-child(3) {
+  transform: translateY(-5.5px) rotate(-45deg);
+}
+
 @media (max-width: 880px) {
-  .topnav { grid-template-columns: auto auto; }
-  .topnav__links { display: none; }
+  .topnav { grid-template-columns: auto 1fr auto; }
+  .topnav__burger { display: inline-flex; }
+  /* Links collapse into a dropdown anchored to the topnav; opens on burger
+     toggle. Hidden by default (aria-expanded="false" on the button). */
+  .topnav__links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    padding: var(--s-3) var(--s-5);
+    background: rgba(11, 14, 20, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--c-line-strong);
+    display: none;
+  }
+  .topnav__links.is-open { display: flex; }
+  .topnav__links li { padding: 10px 0; border-bottom: 1px solid var(--c-line); }
+  .topnav__links li:last-child { border-bottom: 0; }
+  .topnav__links a { display: block; font-size: var(--fs-md); color: var(--c-ink); }
+  .topnav__meta { display: none; }
 }
 
 /* =============================================================
@@ -462,6 +514,9 @@ body[data-anon="true"] [data-anon-section] { display: none !important; }
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .viewer3d__spinner { animation: none; border-top-color: var(--c-line); }
+}
 
 .viewer3d__controls {
   padding: var(--s-6) var(--s-5);
