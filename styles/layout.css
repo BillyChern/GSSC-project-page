@@ -256,6 +256,20 @@ body[data-anon="true"] [data-anon-section] { display: none !important; }
   color: var(--c-ink-dim);
   text-transform: uppercase;
 }
+/* When the metric label is a verifiable external link (e.g. SOTA -> live
+   leaderboard), inherit the label style and add a subtle hover affordance. */
+a.metric__label--link {
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px dotted currentColor;
+  transition: color 0.15s ease, border-bottom-color 0.15s ease;
+}
+a.metric__label--link:hover,
+a.metric__label--link:focus-visible {
+  color: var(--c-accent, var(--c-ink));
+  border-bottom-color: currentColor;
+}
 
 /* Hero art panel */
 .hero__art {

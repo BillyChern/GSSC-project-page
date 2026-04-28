@@ -80,11 +80,12 @@
       </div>
 
       <div class="hero__cta">
-        <!-- Four release links: Paper (arXiv), Code (GitHub), Model
-             (HuggingFace), Dataset (HuggingFace). All four still placeholders
-             during review: href='#' + aria-disabled='true' so clicks are
-             swallowed by scripts/main.js. When each URL goes live, replace
-             href + drop aria-disabled / title. -->
+        <!-- Five release links: Paper (arXiv), Code (GitHub), Model
+             (HuggingFace), Dataset (HuggingFace), Leaderboard (Codabench).
+             The first four are placeholders during review: href='#' +
+             aria-disabled='true' so clicks are swallowed by scripts/main.js.
+             When each URL goes live, replace href + drop aria-disabled / title.
+             The Leaderboard link is live and opens in a new tab. -->
         <a class="btn" href="#" data-link="paper" aria-disabled="true"
            title="Paper (arXiv) coming soon."><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/></svg>Paper</a>
         <a class="btn" href="#" data-link="code" aria-disabled="true"
@@ -93,13 +94,15 @@
            title="Pretrained model (HuggingFace) coming soon."><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Model</a>
         <a class="btn" href="#" data-link="dataset" aria-disabled="true"
            title="Synthetic dataset (HuggingFace) coming soon."><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 11v6c0 1.7 4 3 9 3s9-1.3 9-3v-6"/></svg>Dataset</a>
+        <a class="btn" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener" data-link="leaderboard"
+           title="Live SemanticKITTI Codabench leaderboard"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 4h3v3a3 3 0 0 1-3 3"/><path d="M7 4H4v3a3 3 0 0 0 3 3"/></svg>Leaderboard</a>
         <a class="btn btn--primary" href="#viewer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Interactive 3D Viewer</a>
       </div>
 
       <div class="hero__metrics">
         <div class="metric">
           <span class="metric__value">39.2<small>%</small></span>
-          <span class="metric__label">SemanticKITTI hidden test mIoU · new SOTA</span>
+          <a class="metric__label metric__label--link" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener" title="Verify on the live SemanticKITTI Codabench leaderboard">SemanticKITTI hidden test mIoU · new SOTA &rarr;</a>
         </div>
         <div class="metric">
           <span class="metric__value">+1.3<small>%</small></span>
@@ -371,7 +374,7 @@
   <p class="section__eyebrow">Results</p>
   <h2 class="section__title">SemanticKITTI hidden test set · single-frame single-sample</h2>
   <p class="section__lede">
-    All numbers are CodaLab leaderboard mIoU on the official hidden test split. S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> with D<sub>4</sub> test-time augmentation, the new state of the art (+1.3% over the previous best, TALoS at 37.9%). Even the real-time 1-step configuration at <strong>9.33&nbsp;FPS</strong> reaches <strong>38.8%</strong>, beating TALoS by +0.9% without any TTA or test-time adaptation.
+    All numbers are <a href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">Codabench leaderboard</a> mIoU on the official hidden test split. S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> with D<sub>4</sub> test-time augmentation, the new state of the art (+1.3% over the previous best, TALoS at 37.9%). Even the real-time 1-step configuration at <strong>9.33&nbsp;FPS</strong> reaches <strong>38.8%</strong>, beating TALoS by +0.9% without any TTA or test-time adaptation.
   </p>
 
   <div class="table-card" id="main-results-card">
