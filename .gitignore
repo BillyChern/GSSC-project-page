@@ -13,3 +13,9 @@ __pycache__/
 
 # SVG + PLY intermediates we keep regenerating
 *.swp
+
+# Dated backups of figure assets (kept locally for rollback only)
+assets/**/*_backup_*.png
+assets/**/*_backup_*.pdf
+assets/**/*_20[0-9][0-9][0-9][0-9][0-9][0-9]_*.png
+assets/**/*_20[0-9][0-9][0-9][0-9][0-9][0-9]_*.pdf
