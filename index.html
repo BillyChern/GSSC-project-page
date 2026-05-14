@@ -41,6 +41,7 @@
   <ul class="topnav__links">
     <li><a href="#abstract">Abstract</a></li>
     <li><a href="#method">Method</a></li>
+    <li><a href="#data-aug">Data</a></li>
     <li><a href="#viewer">3D Viewer</a></li>
     <li><a href="#speed">Speed</a></li>
     <li><a href="#results">Results</a></li>
@@ -147,7 +148,7 @@
         Standard diffusion generates from noise. S<sup>2</sup>D<sup>2</sup> instead starts from a supervised base model&rsquo;s prediction and learns the correction that carries it to the ground truth. The reverse update is closed-form, so a single step is enough at deployment — we do not iterate, and we do not distill a multi-step schedule. We pair this core with coarse-to-fine pyramid diffusion for synthetic data augmentation and a matching BEV conditioning stream.
       </p>
       <p>
-        On the SemanticKITTI hidden test leaderboard, S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> mIoU under D<sub>4</sub> test-time augmentation and <strong>39.0%</strong> without — both establish the new LiDAR single-frame state of the art (+1.3% over TALoS, the previous best at 37.9%). On val, the same approach lifts SCPNet from 36.17% to <strong>38.54%</strong> (<strong>+2.37%</strong>); applied as a secondary task to LiDAR-only BEV perception it reaches <strong>36.09%</strong> mIoU, <strong>9.06 points</strong> above the previous best dedicated 2D method. The 1-step real-time configuration runs at <strong>9.33&nbsp;FPS</strong> marginal cost on a contention-free H100 and still hits <strong>38.8%</strong> on test — beating TALoS by +0.9% in real time without TTA.
+        On the SemanticKITTI hidden test leaderboard, S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> mIoU under D<sub>4</sub> test-time augmentation and <strong>39.0%</strong> without — both establish the new LiDAR single-frame state of the art (+1.3% over TALoS, the previous best at 37.9%). On val, the same approach lifts SCPNet from 36.17% to <strong>38.54%</strong> (<strong>+2.37%</strong>); stacked on the older point-voxel JS3C-Net base it lifts val mIoU from 22.73% to <strong>26.72%</strong> (<strong>+3.99&nbsp;pp</strong>) under the official <span class="mono">semantic-kitti-api</span> evaluator — direct evidence the refinement is base-agnostic. Applied as a secondary task to LiDAR-only BEV perception, S<sup>2</sup>D<sup>2</sup> reaches <strong>36.09%</strong> mIoU, <strong>9.06 points</strong> above the previous best dedicated 2D method. The 1-step real-time configuration runs at <strong>9.33&nbsp;FPS</strong> marginal cost on a contention-free H100 and still hits <strong>38.8%</strong> on test — beating TALoS by +0.9% in real time without TTA.
       </p>
     </div>
   </div>
@@ -207,7 +208,7 @@
         The refiner reads in the frozen base model&rsquo;s output alongside a BEV semantic map and the raw LiDAR voxelization, then emits a corrected voxel grid.
       </p>
       <p>
-        We use SCPNet as the base here; nothing in the training recipe ties it to that specific predictor. Any SSC model that outputs categorical distributions can be plugged in.
+        Empirically base-agnostic: swapping SCPNet for the older point-voxel hybrid <strong>JS3C-Net</strong> lifts val mIoU from 22.73% to <strong>26.72%</strong> (<strong>+3.99 pp</strong>) under the official <span class="mono">semantic-kitti-api</span> evaluator &mdash; a larger absolute gain than on SCPNet itself.
       </p>
     </div>
   </div>
@@ -237,6 +238,86 @@
     </figure>
   </details>
 
+</section>
+
+<!-- ============================================================
+     DATA AUGMENTATION — co-equal first contribution
+============================================================ -->
+<section id="data-aug" class="section section--wide">
+  <p class="section__eyebrow">Data side · co-equal contribution</p>
+  <h2 class="section__title">A pyramid pipeline that turns long-tail scarcity into supervised pairs.</h2>
+  <p class="section__lede">
+    SemanticKITTI puts more than 7,000&times; as many vegetation voxels in the training set as motorcyclist voxels. The model side cannot reweight its way out of that &mdash; the rare classes simply are not there to learn from. The data side runs offline, once, on top of the existing supervised set: pyramid discrete diffusion synthesises full complete scenes; a quality filter keeps the in-distribution half; an HDL-64E ray-tracer pairs each with a sparse input; a rare-class object bank fills the residual gaps. The result is an extra <strong>32,039</strong> labelled pairs that the rest of the system can train against without any change to the SSC pipeline.
+  </p>
+
+  <figure class="figure-wide figure-wide--tight">
+    <div class="figure-wide__media">
+      <img src="assets/figures/fig4_da_pipeline.png"
+           alt="Three-stage offline data-augmentation pipeline. Stage 1 — Pyramid Discrete Diffusion: three cascaded multinomial diffusions at 32²×4 → 64²×8 → 256²×32, each conditioning on the upsampled output of the previous scale; the S₃ stage tiles into overlapping 136²×32 patches merged by majority vote, then a Jensen–Shannon divergence filter keeps the top half by class-distribution similarity to real scenes. Stage 2 — LiDAR Ray-Trace Resampling: a simulated Velodyne HDL-64E (64 beams × 2,048 azimuth bins = 131,072 rays per sweep, up to 2 returns per beam, σ_r = 3 cm range noise) traverses each synthetic complete scene via Bresenham-3D to produce the matching sparse input; the highlighted beam shows the first and second returns. Stage 3 — Object Bank Paste: 57,789 rare-class instances across 8 safety-critical classes (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) are pasted onto ground-level voxels of every synthetic scene. The final synthetic pool is 19,130 real + 32,039 synthetic = 51,169 training pairs, a 2.67× pool expansion."
+           loading="lazy" />
+    </div>
+    <figcaption>
+      <strong>Stage&nbsp;1 &mdash; Pyramid Discrete Diffusion.</strong> Three cascaded multinomial diffusions at 32<sup>2</sup>&times;4 &rarr; 64<sup>2</sup>&times;8 &rarr; 256<sup>2</sup>&times;32, each conditioned on the upsampled prior scale; the 256<sup>2</sup>&times;32 stage tiles into 136<sup>2</sup>&times;32 patches merged by majority vote, then a Jensen&ndash;Shannon filter keeps the top half by class-distribution similarity to real scenes.
+      <strong>Stage&nbsp;2 &mdash; LiDAR Ray-Trace Resampling.</strong> A simulated Velodyne HDL-64E (64&thinsp;&times;&thinsp;2,048 = <strong>131,072</strong> rays per sweep, up to 2 returns per beam, &sigma;<sub><em>r</em></sub>=3&thinsp;cm) traverses each synthetic scene via Bresenham-3D to produce a matching sparse input.
+      <strong>Stage&nbsp;3 &mdash; Object Bank Paste.</strong> <strong>57,789</strong> rare-class instances across 8 safety-critical classes pasted onto ground-level voxels.
+      The final pool is <strong>19,130 + 32,039 = 51,169</strong> pairs (<strong>2.67&times;</strong>). Source: paper Fig.&nbsp;4.
+    </figcaption>
+  </figure>
+
+  <div class="method-grid method-grid--three">
+    <div class="method-card">
+      <h4 class="method-card__title"><span class="method-card__num">01</span> Generate the dense scene</h4>
+      <p>
+        Pyramid multinomial diffusion synthesises full <em>256<sup>2</sup>&times;32</em> labelled scenes from coarse to fine. Each scale conditions on the upsampled prior; the top scale tiles into overlapping 136<sup>2</sup>&times;32 patches merged by majority vote.
+      </p>
+      <p>
+        A Jensen&ndash;Shannon divergence filter then drops samples whose class distribution drifts away from real KITTI scenes &mdash; only the top half survives.
+      </p>
+    </div>
+
+    <div class="method-card">
+      <h4 class="method-card__title"><span class="method-card__num">02</span> Match it to a real sensor</h4>
+      <p>
+        A simulated <strong>Velodyne HDL-64E</strong> ray-tracer fires 64&thinsp;&times;&thinsp;2,048 = <strong>131,072</strong> rays per sweep across every synthetic scene, with up to two returns per beam and &sigma;<sub><em>r</em></sub>&thinsp;=&thinsp;3&thinsp;cm range noise.
+      </p>
+      <p>
+        Bresenham-3D voxel traversal produces the matching <em>sparse</em> input <span style="font-family:var(--ff-mono); color:var(--c-ink);">X&#770;</span> at the same density real LiDAR would &mdash; so the synthetic pairs look, train, and fail like real ones.
+      </p>
+    </div>
+
+    <div class="method-card">
+      <h4 class="method-card__title"><span class="method-card__num">03</span> Fill the rare tail</h4>
+      <p>
+        A pre-built bank of <strong>57,789</strong> instances across 8 safety-critical rare classes (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) pastes onto ground-level voxels of every synthetic scene.
+      </p>
+      <p>
+        Placement passes three legality checks: in-bounds within the 256<sup>2</sup>&times;32 grid, no-collision with existing non-empty voxels of a different class, and grounded on road / sidewalk / parking / terrain.
+      </p>
+    </div>
+  </div>
+
+  <div class="da-stats">
+    <div class="da-stat">
+      <span class="da-stat__value">32,039</span>
+      <span class="da-stat__label">extra labelled pairs synthesised offline</span>
+    </div>
+    <div class="da-stat">
+      <span class="da-stat__value">2.67<small>&times;</small></span>
+      <span class="da-stat__label">training-pool expansion (19,130&rarr;51,169)</span>
+    </div>
+    <div class="da-stat">
+      <span class="da-stat__value">57,789</span>
+      <span class="da-stat__label">rare-class instances across 8 safety classes</span>
+    </div>
+    <div class="da-stat da-stat--accent">
+      <span class="da-stat__value">+0.79<small>%</small></span>
+      <span class="da-stat__label">val&nbsp;mIoU contribution &mdash; paper Tab.&nbsp;6 ablation</span>
+    </div>
+  </div>
+
+  <p class="da-tagline">
+    The pipeline is decoupled from the SSC model: any voxel-grid LiDAR perception task that shares the long-tail pathology can reuse it. We release the 32K synthetic pool alongside the headline checkpoint.
+  </p>
 </section>
 
 <!-- ============================================================

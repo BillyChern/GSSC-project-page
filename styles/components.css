@@ -618,3 +618,73 @@
   line-height: 1.7;
 }
 .safety-card__foot strong { color: var(--c-ink); font-weight: 500; }
+
+/* ---- Data-augmentation stat panel ---- */
+.da-stats {
+  margin-top: var(--s-6);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-1);
+  background: var(--c-bg-elev);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.da-stat {
+  padding: var(--s-5) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  background: var(--c-bg-elev);
+  position: relative;
+}
+/* faint divider between adjacent stats — works in row direction */
+.da-stat + .da-stat::before {
+  content: "";
+  position: absolute;
+  inset: var(--s-4) 0 var(--s-4) 0;
+  border-left: 1px solid var(--c-line);
+}
+.da-stat__value {
+  font-family: var(--ff-display);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1;
+  color: var(--c-ink);
+  letter-spacing: -0.01em;
+  font-feature-settings: "tnum" 1;
+}
+.da-stat__value small {
+  font-family: var(--ff-mono);
+  font-size: 0.42em;
+  color: var(--c-ink-dim);
+  margin-left: 2px;
+  letter-spacing: 0;
+}
+.da-stat__label {
+  font-family: var(--ff-sans);
+  font-size: var(--fs-sm);
+  color: var(--c-ink-mute);
+  line-height: 1.45;
+}
+.da-stat--accent .da-stat__value { color: var(--c-accent); }
+.da-stat--accent .da-stat__value small { color: var(--c-accent-deep); }
+.da-stat--accent { background: linear-gradient(180deg, var(--c-accent-bg) 0%, transparent 100%); }
+
+.da-tagline {
+  margin-top: var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border-left: 2px solid var(--c-accent);
+  background: var(--c-bg-faint);
+  color: var(--c-ink-mute);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  font-style: italic;
+}
+.da-tagline strong { color: var(--c-ink); font-weight: 500; font-style: normal; }
+@media (max-width: 720px) {
+  .da-stat + .da-stat::before { display: none; }
+  .da-stats { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .da-stats { grid-template-columns: 1fr; }
+}
