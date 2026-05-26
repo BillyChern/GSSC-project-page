@@ -495,6 +495,71 @@
     </div>
   </div>
 
+  <div class="table-card" id="framework-card">
+    <div class="table-card__head">
+      <h4>Beyond the headline: framework properties</h4>
+      <p>Two evidence axes that the gain is a property of the <em>framework</em>, not of any single frozen base. Numbers are val seq~08 mIoU under the configurations stated in the paper.</p>
+    </div>
+    <div class="table-card__scroll">
+      <table class="datatable" id="crossbase-table">
+        <thead>
+          <tr>
+            <th scope="col">Frozen base</th>
+            <th scope="col" class="th--center">Architecture family</th>
+            <th scope="col" data-sort="number" class="th--num">Base mIoU</th>
+            <th scope="col" data-sort="number" class="th--num">Base + S<sup>2</sup>D<sup>2</sup></th>
+            <th scope="col" data-sort="number" class="th--num" aria-sort="descending">Δ&nbsp;mIoU</th>
+            <th scope="col" class="th--center">Evaluator</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">LMSCNet</th>
+            <td class="th--center">2D&nbsp;CNN (dense)</td>
+            <td class="th--num mono">12.10</td>
+            <td class="th--num mono"><strong>16.59</strong></td>
+            <td class="th--num mono"><strong>+4.49</strong></td>
+            <td class="th--center"><span class="mono">semantic-kitti-api</span></td>
+          </tr>
+          <tr>
+            <th scope="row">JS3C-Net</th>
+            <td class="th--center">Point&nbsp;+&nbsp;voxel hybrid</td>
+            <td class="th--num mono">22.73</td>
+            <td class="th--num mono"><strong>26.72</strong></td>
+            <td class="th--num mono"><strong>+3.99</strong></td>
+            <td class="th--center"><span class="mono">semantic-kitti-api</span></td>
+          </tr>
+          <tr>
+            <th scope="row">SCPNet</th>
+            <td class="th--center">Sparse&nbsp;3D CNN</td>
+            <td class="th--num mono">36.17</td>
+            <td class="th--num mono"><strong>38.54</strong></td>
+            <td class="th--num mono"><strong>+2.37</strong></td>
+            <td class="th--center">internal&nbsp;SSCMetrics</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-card__foot">
+      Same recipe, same hyperparameters, only the frozen base changes &mdash; consistent positive Δ across three structurally different families (dense 2D CNN, point&ndash;voxel hybrid, sparse 3D CNN).
+    </div>
+  </div>
+
+  <div class="table-card safety-card" id="from-noise-card">
+    <div class="table-card__head">
+      <h4>Pillar 2 &mdash; from-noise SSC without any 3D SSC base</h4>
+      <p>S<sup>2</sup>D<sup>2</sup> with a <strong>uniform source</strong> (no base predictor; conditioning is LiDAR-only) reduces to a discrete diffusion model trained from noise. It still produces a usable scene in a small number of steps.</p>
+    </div>
+    <div class="safety-card__grid">
+      <div class="safety-stat"><span class="safety-stat__class">from-noise S<sup>2</sup>D<sup>2</sup></span><span class="safety-stat__delta">30.54</span></div>
+      <div class="safety-stat"><span class="safety-stat__class">PaSCo (prior no-SCPNet best)</span><span class="safety-stat__delta">30.11</span></div>
+      <div class="safety-stat"><span class="safety-stat__class">stacked: from-noise + S<sup>2</sup>D<sup>2</sup> refinement</span><span class="safety-stat__delta">32.88</span></div>
+    </div>
+    <div class="safety-card__foot">
+      Without using SCPNet or any of its three reproductions, the framework still passes the previous no-SCPNet best by <strong>+0.43&nbsp;pp</strong>; stacking one S<sup>2</sup>D<sup>2</sup> refinement step on top adds another <strong>+2.34&nbsp;pp</strong>.
+    </div>
+  </div>
+
   <div class="table-card">
     <div class="table-card__head">
       <h4>Per-class IoU on val (SCPNet → S<sup>2</sup>D<sup>2</sup>)</h4>
