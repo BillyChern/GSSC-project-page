@@ -70,7 +70,7 @@ The exporter reads SemanticKITTI GT voxel labels, SCPNet pre-computed
 predictions, and our S²D² label outputs, colour-codes each voxel by class,
 and writes ASCII PLY files ready for `three.js` `PLYLoader`.
 
-## TPAMI single-blind submission
+## Single-blind submission
 
 The page is single-blind: authors (Shi Chen, Weifeng Ge — Fudan University)
 are visible by default and the bibtex carries the real names. The earlier
