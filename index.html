@@ -66,8 +66,7 @@
         <span class="hero__title-line">Semantic Scene Completion</span>
       </h1>
       <p class="hero__subtitle">
-        A generative framework for LiDAR semantic scene completion built around <strong>S<sup>2</sup>D<sup>2</sup></strong>, a structured-source discrete diffusion that refines any base predictor in a single forward pass.
-        Paired with a three-stage pyramid data-augmentation pipeline and a BEV-perception secondary task.
+        A generative framework for LiDAR semantic scene completion with three pillars: (1) a pyramid discrete diffusion pipeline that synthesises a 51K-pair augmentation pool, (2) a from-noise variant of <strong>S<sup>2</sup>D<sup>2</sup></strong> that reaches <em>30.54%</em> val mIoU without any 3D SSC base, and (3) <strong>S<sup>2</sup>D<sup>2</sup></strong> refinement — a structured-source discrete diffusion that lifts any frozen base predictor in one Euler step.
         <em>39.2%</em> hidden-test mIoU — the new LiDAR single-frame state of the art (+1.3% over the previous best, TALoS).
       </p>
 
@@ -148,7 +147,7 @@
         Standard diffusion generates from noise. S<sup>2</sup>D<sup>2</sup> instead starts from a supervised base model&rsquo;s prediction and learns the correction that carries it to the ground truth. The reverse update is closed-form, so a single step is enough at deployment — we do not iterate, and we do not distill a multi-step schedule. We pair this core with coarse-to-fine pyramid diffusion for synthetic data augmentation and a matching BEV conditioning stream.
       </p>
       <p>
-        On the SemanticKITTI hidden test leaderboard, S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> mIoU under D<sub>4</sub> test-time augmentation and <strong>39.0%</strong> without — both establish the new LiDAR single-frame state of the art (+1.3% over TALoS, the previous best at 37.9%). On val, the same approach lifts SCPNet from 36.17% to <strong>38.54%</strong> (<strong>+2.37%</strong>); stacked on the older point-voxel JS3C-Net base it lifts val mIoU from 22.73% to <strong>26.72%</strong> (<strong>+3.99&nbsp;pp</strong>) under the official <span class="mono">semantic-kitti-api</span> evaluator — direct evidence the refinement is base-agnostic. Applied as a secondary task to LiDAR-only BEV perception, S<sup>2</sup>D<sup>2</sup> reaches <strong>36.09%</strong> mIoU, <strong>9.06 points</strong> above the previous best dedicated 2D method. The 1-step real-time configuration runs at <strong>9.33&nbsp;FPS</strong> marginal cost on a contention-free H100 and still hits <strong>38.8%</strong> on test — beating TALoS by +0.9% in real time without TTA.
+        On the SemanticKITTI hidden test leaderboard, S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> mIoU under D<sub>4</sub> test-time augmentation and <strong>39.0%</strong> without — both establish the new LiDAR single-frame state of the art (+1.3% over TALoS, the previous best at 37.9%). The framework is also base-agnostic: applied without architectural change to three structurally different frozen base models, the identical recipe lifts <strong>LMSCNet</strong> from 12.10% to <strong>16.59%</strong> (<strong>+4.49&nbsp;pp</strong>), the point-voxel hybrid <strong>JS3C-Net</strong> from 22.73% to <strong>26.72%</strong> (<strong>+3.99&nbsp;pp</strong>, official <span class="mono">semantic-kitti-api</span> evaluator), and SCPNet from 36.17% to <strong>38.54%</strong> (<strong>+2.37&nbsp;pp</strong>) — direct evidence the refinement is a property of the framework, not of any specific base. The from-noise variant of S<sup>2</sup>D<sup>2</sup> (uniform source, LiDAR-only conditioning) reaches <strong>30.54%</strong> val mIoU without any 3D SSC base, surpassing PaSCo (30.11%); stacked with one S<sup>2</sup>D<sup>2</sup> refinement step it reaches <strong>32.88%</strong>. Applied as a secondary task to LiDAR-only BEV perception, S<sup>2</sup>D<sup>2</sup> reaches <strong>36.09%</strong> mIoU, <strong>9.06 points</strong> above the previous best dedicated 2D method. The 1-step real-time configuration runs at <strong>9.33&nbsp;FPS</strong> marginal cost on a contention-free H100 and still hits <strong>38.8%</strong> on test — beating TALoS by +0.9% in real time without TTA.
       </p>
     </div>
   </div>
@@ -208,7 +207,7 @@
         The refiner reads in the frozen base model&rsquo;s output alongside a BEV semantic map and the raw LiDAR voxelization, then emits a corrected voxel grid.
       </p>
       <p>
-        Empirically base-agnostic: swapping SCPNet for the older point-voxel hybrid <strong>JS3C-Net</strong> lifts val mIoU from 22.73% to <strong>26.72%</strong> (<strong>+3.99 pp</strong>) under the official <span class="mono">semantic-kitti-api</span> evaluator &mdash; a larger absolute gain than on SCPNet itself.
+        Empirically base-agnostic across three structurally different frozen bases: <strong>LMSCNet</strong> (12.10 &rarr; <strong>16.59%</strong>, <strong>+4.49 pp</strong>), point-voxel hybrid <strong>JS3C-Net</strong> (22.73 &rarr; <strong>26.72%</strong>, <strong>+3.99 pp</strong>, under official <span class="mono">semantic-kitti-api</span>), and <strong>SCPNet</strong> (36.17 &rarr; <strong>38.54%</strong>, <strong>+2.37 pp</strong>) &mdash; same recipe, same hyperparameters, only the source changes.
       </p>
     </div>
   </div>
