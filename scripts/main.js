@@ -143,7 +143,7 @@
       if (r.safety) {
         const dagger = el('span', {
           text: ' \u2020',
-          attrs: { 'aria-label': 'safety-critical', style: 'color:var(--c-accent)' }
+          attrs: { role: 'img', 'aria-label': 'safety-critical', style: 'color:var(--c-accent)' }
         });
         klassTd.appendChild(dagger);
       }
