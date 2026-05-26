@@ -358,12 +358,12 @@
       <div class="control-group">
         <span class="control-group__label">View</span>
         <div class="seg seg--stack" role="radiogroup">
-          <button class="seg__btn" data-view="sparse" role="radio">
+          <button class="seg__btn" data-view="sparse" role="radio" aria-checked="false">
             <span class="seg__dot" style="--dot:#89A3B5"></span>
             <span class="seg__main">Sparse LiDAR input</span>
             <span class="seg__meta">~1% occupied</span>
           </button>
-          <button class="seg__btn" data-view="scpnet" role="radio">
+          <button class="seg__btn" data-view="scpnet" role="radio" aria-checked="false">
             <span class="seg__dot" style="--dot:#6BA8FF"></span>
             <span class="seg__main">SCPNet (base)</span>
             <span class="seg__meta">36.17% mIoU</span>
@@ -373,7 +373,7 @@
             <span class="seg__main">S<sup>2</sup>D<sup>2</sup> (ours)</span>
             <span class="seg__meta">38.73% mIoU</span>
           </button>
-          <button class="seg__btn" data-view="gt" role="radio">
+          <button class="seg__btn" data-view="gt" role="radio" aria-checked="false">
             <span class="seg__dot" style="--dot:#8BCFA8"></span>
             <span class="seg__main">Ground truth</span>
             <span class="seg__meta">reference</span>
@@ -592,7 +592,7 @@
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       <span id="bibtex-copy-label">Copy</span>
     </button>
-    <pre class="code-card__pre"><code id="bibtex-code">@article{chen2026gssc,
+    <pre class="code-card__pre" tabindex="0" aria-label="BibTeX citation, scrollable code block"><code id="bibtex-code">@article{chen2026gssc,
   title   = {Generative Semantic Scene Completion},
   author  = {Chen, Shi and Ge, Weifeng},
   journal = {Submitted to IEEE Transactions on Pattern Analysis and Machine Intelligence},
