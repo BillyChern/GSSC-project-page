@@ -200,6 +200,22 @@ s2d2_website/
     └── export_ply.py    voxel-grid → colored PLY exporter
 ```
 
+## Develop locally
+
+The page is dependency-free — just serve the repo root over HTTP. Opening
+`index.html` directly via `file://` will NOT populate the leaderboard or
+per-class tables, because `scripts/main.js` loads `data/results.json` and
+`data/perclass.json` via `fetch()`, which browsers block over the local
+file scheme.
+
+```bash
+cd GSSC-project-page
+python3 -m http.server 8000
+```
+
+Then open <http://localhost:8000>. Any free port works; stop later with
+`pkill -f "http.server 8000"`.
+
 ## Citation
 
 ```bibtex
