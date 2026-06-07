@@ -183,6 +183,9 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+/* (R4) .seg__hint sub-labels measured ~4.55:1 at 10.4px (AA-pass but no
+   margin at the smallest text). Nudge to --c-ink-mute (~5.6:1) for buffer. */
+.seg__hint { color: var(--c-ink-mute); }
 /* Main label inside .seg__btn — keep "S²D² (ours)" on one line and
    render <sup> as proper superscript without clipping above the line. */
 .seg__main {
@@ -338,7 +341,7 @@
   padding: var(--s-5) var(--s-5) var(--s-3);
   border-bottom: 1px solid var(--c-line);
 }
-.table-card__head h4 { font-family: var(--ff-sans); font-weight: 500; font-size: var(--fs-md); color: var(--c-ink); margin: 0 0 var(--s-2); }
+.table-card__head h3 { font-family: var(--ff-sans); font-weight: 500; font-size: var(--fs-md); color: var(--c-ink); margin: 0 0 var(--s-2); }
 .table-card__head p { margin: 0; color: var(--c-ink-mute); font-size: var(--fs-sm); line-height: 1.5; }
 .table-card__scroll { overflow-x: auto; }
 
@@ -670,7 +673,9 @@
   line-height: 1.45;
 }
 .da-stat--accent .da-stat__value { color: var(--c-accent); }
-.da-stat--accent .da-stat__value small { color: var(--c-accent-deep); }
+/* (R4) the deep-orange '%' glyph (c-accent-deep #C05A00) measured ~3.91:1 on
+   the dark card — under AA body. Use the brighter accent (#F19340, ~8.27:1). */
+.da-stat--accent .da-stat__value small { color: var(--c-accent); }
 .da-stat--accent { background: linear-gradient(180deg, var(--c-accent-bg) 0%, transparent 100%); }
 
 .da-tagline {
@@ -738,7 +743,7 @@
 .method-card__num {
   font-size: 0.82rem;
 }
-.table-card__head h4 {
+.table-card__head h3 {
   font-size: var(--fs-lg);
 }
 

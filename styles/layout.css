@@ -804,6 +804,7 @@ a.metric__label--link:focus-visible {
 .da-tagline,
 .race__note,
 .card-scope-note,
+.table-card__head p,
 .table-card__foot,
 .safety-card__foot {
   max-width: 70ch;
@@ -944,4 +945,80 @@ a.metric__label--link:focus-visible {
     position: sticky;
     left: 0;       /* pin the hint to the left edge while the diagram scrolls */
   }
+}
+
+/* =============================================================
+   ROUND-4 AUDIT FIXES
+   ============================================================= */
+
+/* ---- (R4) <picture> + intrinsic-dimension CLS reservation ----
+   The four figure imgs are now wrapped in <picture> for WebP-with-PNG-
+   fallback and carry intrinsic width/height attributes. <picture> is
+   inline by default, which would add a descender gap and break the
+   width:100% sizing; make it a block that fills the media box. The img's
+   width/height attributes give the browser an aspect-ratio, so the box is
+   reserved before decode (eliminates the load-time layout shift / broken-
+   image flash). height stays auto so the ratio drives the reserved height.
+   Desktop byte-stable: same rendered size, only the reservation is new. */
+.figure-wide__media picture {
+  display: block;
+  width: 100%;
+}
+.figure-wide__media picture img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- (R4) Dense-figure mobile width override must reach <picture> img ----
+   The <=480px R2-7 rule pins .figure-wide--dense .figure-wide__media img to
+   width:760px so the scroll box renders the diagram larger than the column.
+   Now that the img lives inside <picture>, re-assert it for the nested img and
+   keep height:auto so the intrinsic aspect ratio is preserved (no distortion)
+   inside the horizontally scrollable box. Scoped to <=480px: desktop/tablet
+   keep width:100%. */
+@media (max-width: 480px) {
+  .figure-wide--dense .figure-wide__media picture img {
+    width: 760px;
+    max-width: none;
+    height: auto;
+  }
+}
+
+/* ---- (R4) Skip-to-content link (a11y 7.6) ----
+   Visually hidden until focused; first focusable element in <body> so
+   keyboard/SR users can jump past the 8 sticky-nav links to <main id="main">.
+   Reveals on :focus with an accessible, high-contrast pill. No layout impact
+   when unfocused (position:absolute, off-screen). */
+.skip-link {
+  position: absolute;
+  left: 50%;
+  top: -56px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 10px 18px;
+  background: var(--c-accent);
+  color: #0B0E14;
+  font-family: var(--ff-sans);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid #0B0E14;
+  outline-offset: -4px;
+}
+
+/* ---- (R4) Footer prose legibility (typography 2.7) ----
+   .footer__note / .footer__ack carried real prose at --fs-xs (~12.5px),
+   below the 16px mobile body guideline. Lift to ~14px with a slightly
+   tighter measure so the two-column footer at 1920 does not run long lines,
+   and so the larger text still stacks cleanly at 375/768 (single column
+   below 720px via the existing .footer__grid rule). */
+.footer__note, .footer__ack {
+  font-size: var(--fs-sm);   /* ~14px */
+  max-width: 70ch;
 }
