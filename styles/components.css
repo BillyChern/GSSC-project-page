@@ -175,8 +175,12 @@
 
 .seg__hint, .seg__meta {
   font-family: var(--ff-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
+  /* (R7 minor) Lift off the ~10.4px floor: 0.7rem -> 0.72rem (~11.5px) with a
+     touch more tracking so the frame-id / mIoU meta labels read effortlessly.
+     Stays inside the existing tab width (no overflow); the <=880px readability
+     block raises these further to 0.8rem on small viewports. */
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
   color: var(--c-ink-dim);
   margin-left: auto;
   padding-left: var(--s-2);
@@ -216,7 +220,10 @@
 .seg:not(.seg--stack) .seg__hint {
   margin-left: 0;
   padding-left: 0;
-  font-size: 0.65rem;
+  /* (R7 minor) scene-tab frame-id ('seq 08 · 003096') was 0.65rem/~10.4px,
+     the smallest label on the page; lift to 0.72rem (~11.5px). The scene tabs
+     stack the hint on its own line, so the wider text has room. */
+  font-size: 0.72rem;
 }
 
 /* Checkbox control */

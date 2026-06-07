@@ -502,7 +502,8 @@
       <h3>Main comparison</h3>
       <p>Click a column to sort. C = camera-only · L-SF = LiDAR single-frame.</p>
     </div>
-    <div class="table-card__scroll">
+    <div class="table-card__scroll" role="region"
+         aria-label="Main comparison table, scroll horizontally to view all columns" tabindex="0">
       <table class="datatable" id="main-results-table" aria-describedby="main-results-card">
         <caption class="visually-hidden">SemanticKITTI hidden-test single-frame single-sample comparison: method, modality, mIoU, and note.</caption>
         <thead>
@@ -542,7 +543,8 @@
       <h3>Beyond the headline: framework properties</h3>
       <p>Two evidence axes that the gain is a property of the <em>framework</em>, not of any single frozen base. Numbers are val seq~08 mIoU under the configurations stated in the paper.</p>
     </div>
-    <div class="table-card__scroll">
+    <div class="table-card__scroll" role="region"
+         aria-label="Cross-base framework results table, scroll horizontally to view all columns" tabindex="0">
       <table class="datatable" id="crossbase-table">
         <caption class="visually-hidden">Cross-base framework results on SemanticKITTI val seq 08: frozen base, architecture family, base mIoU, base plus S²D² mIoU, delta, and evaluator.</caption>
         <thead>
@@ -609,7 +611,8 @@
       <h3>Per-class IoU on val (SCPNet → S<sup>2</sup>D<sup>2</sup>)</h3>
       <p>Sorted by gain Δ. Safety-critical classes marked with †. Numbers are SemanticKITTI seq-08 validation; per-class test IoUs are in the paper's main results table.</p>
     </div>
-    <div class="table-card__scroll">
+    <div class="table-card__scroll" role="region"
+         aria-label="Per-class IoU table, scroll horizontally to view all columns" tabindex="0">
       <table class="datatable" id="perclass-table">
         <caption class="visually-hidden">Per-class IoU on SemanticKITTI seq 08 validation, SCPNet versus S²D², sorted by gain delta.</caption>
         <thead>

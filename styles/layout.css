@@ -1019,10 +1019,17 @@ a.metric__label--link:focus-visible {
      view (.is-zoomed). Styled as a sticky pill so it stays reachable while the
      zoomed diagram is scrolled horizontally. */
   .figure-wide--dense .figure-zoom-toggle {
-    display: inline-block;
+    /* (R7 major tap-target) The pill measured 32px tall, below the 44x44px
+       touch minimum. Bump to >=44px via min-height + ~11px vertical padding;
+       inline-flex + center keeps the label vertically centred in the taller
+       hit area. Mobile-only rule (<=480px); the toggle is display:none above
+       480px, so desktop/tablet layout is untouched. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin: 0 0 var(--s-2);
-    padding: 6px 12px;
-    min-height: 32px;
+    padding: 11px 14px;
+    min-height: 44px;
     font-family: var(--ff-mono);
     font-size: 0.72rem;
     letter-spacing: 0.06em;
@@ -1181,3 +1188,35 @@ a.metric__label--link:focus-visible {
     padding-right: var(--s-4);
   }
 }
+
+/* =============================================================
+   ROUND-7 AUDIT FIXES
+   ============================================================= */
+
+/* ---- (R7 minor) Drop the duplicate "Under Review" chip on mobile ----
+   The status appears twice in the first viewport at 375/768: the sticky-nav
+   .topnav__badge AND the hero-body .hero__eyebrow pill. In the tightest
+   viewports this is redundant above-the-fold clutter. Keep the sticky-nav
+   badge (always visible, the canonical place) and hide the hero-body pill
+   only at <=768px. Desktop/wide keep the eyebrow (the hero composition reads
+   on it there and the redundancy is far less acute). Mobile-only: desktop is
+   byte-stable. */
+@media (max-width: 768px) {
+  .hero__eyebrow { display: none; }
+}
+
+/* ---- (R7 minor) BibTeX long-line wrap ----
+   The journal line ("Submitted to IEEE Transactions on Pattern Analysis and
+   Machine Intelligence") overflows the code box (~772px line vs ~754px box at
+   desktop, worse on phones/tablets) and is only reachable by in-block
+   horizontal scroll. Switch to pre-wrap with overflow-wrap so that the one
+   long value wraps while every other line keeps its canonical monospaced
+   break. The Copy button still copies the unwrapped canonical textContent.
+   Applied at all widths because the overflow is present on desktop too; the
+   only visible change is the single long journal line wrapping to two lines. */
+.code-card__pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
