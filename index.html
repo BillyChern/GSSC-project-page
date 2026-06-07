@@ -87,17 +87,18 @@
       </div>
 
       <div class="hero__cta">
-        <!-- Release links. Code is live (GitHub). Paper is under review (no
-             arXiv yet): rendered as a clearly non-clickable, dimmed
-             "Paper (under review)" state with aria-disabled. Model + Dataset
-             are not public yet: rendered as dimmed "coming soon" states. None
-             of these point at a dead href="#"; the disabled ones carry a
-             visible "Soon" badge so the absence reads as deliberate, not
-             broken. The Leaderboard link is live and opens in a new tab. -->
+        <!-- Release links. Paper is under review (no arXiv yet): rendered as a
+             clearly non-clickable, dimmed "Paper (under review)" state with
+             aria-disabled. Code, Model + Dataset are not public yet: rendered
+             as dimmed "coming soon" states. None of these point at a dead
+             href="#"; the disabled ones carry a visible "soon"/"under review"
+             badge so the absence reads as deliberate, not broken. The
+             Leaderboard link is live and opens in a new tab. -->
         <a class="btn btn--disabled" role="link" aria-disabled="true"
            title="Paper is under peer review; preprint not yet public."><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/></svg>Paper <span class="btn__tag">under review</span></a>
-        <a class="btn" href="https://github.com/BillyChern/GSSC-S2D2" target="_blank" rel="noopener" data-link="code"
-           title="Source code on GitHub"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code</a>
+        <!-- TODO restore href=https://github.com/BillyChern/GSSC-S2D2 + target/rel when the repo is made public -->
+        <a class="btn btn--disabled" role="link" aria-disabled="true" data-link="code"
+           title="Source code released upon publication; repository not yet public."><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code <span class="btn__tag">soon</span></a>
         <a class="btn btn--disabled" role="link" aria-disabled="true"
            title="Pretrained model released upon publication."><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Model <span class="btn__tag">soon</span></a>
         <a class="btn btn--disabled" role="link" aria-disabled="true"
@@ -220,7 +221,7 @@
     </div>
   </div>
 
-  <figure class="figure-wide figure-wide--tight">
+  <figure class="figure-wide figure-wide--tight figure-wide--dense">
     <div class="figure-wide__media">
       <img src="assets/figures/fig2_pipeline.png" alt="Two-stage pipeline. Stage A — Offline Data Augmentation (run once, pooled with real training): real GT scenes feed pyramid multinomial diffusion at S1=32²·4, S2=64²·8, S3=256²·32; a Velodyne HDL-64E Bresenham3D ray-tracer with 64×2048 rays converts each synthetic complete scene to a matching sparse input; a 57,789-instance / 8-rare-class object bank pastes rare-class instances on ground-level voxels. Stage B — S²D² Deployment (one forward pass on any test scan): a real sparse LiDAR scan is voxelized, passed through a frozen base SSC model (e.g. SCPNet, LMSCNet) to produce x_src, then refined by the S²D² denoiser f_θ — a dense 3D U-Net (Conv3d) with additive L/B conditioning + time-AdaGN modulation at every level — emitting x̂_0 in one Euler step." loading="lazy" />
     </div>
@@ -235,7 +236,7 @@
       <span class="details-card__label">Architecture in detail</span>
       <span class="details-card__hint">3-layer breakdown: transport intuition · dense UNet · rare-class recovery</span>
     </summary>
-    <figure class="figure-wide figure-wide--tight">
+    <figure class="figure-wide figure-wide--tight figure-wide--dense">
       <div class="figure-wide__media">
         <img src="assets/figures/fig3_s2d2.png" alt="S²D² in three layers. Intuition (top): the learned velocity field v_θ = f_θ(x_t, t, c) − x_src transports samples from the base prediction x_src (gray cluster) toward the ground truth x_0 (orange cluster) in one Euler step on the per-voxel simplex. Architecture (middle): 4-level dense 3D U-Net (Conv3d) with stages 256²×32 → 128²×16 → 64²×8 → 32²×4, channels 32/64/128/256, a 16²×2 bottleneck with two Residual Blocks, mirror decoder, and additive L/B conditioning + time-AdaGN modulation at every E/D/bottleneck level. Qualitative example (bottom): val seq 08 frame 001390 — base model motorcyclist IoU 27.3%, S²D² (N=1, single Euler step) 41.5%, GT 322 motorcyclist voxels, a +14.2 point jump." loading="lazy" />
       </div>
@@ -257,7 +258,7 @@
     SemanticKITTI puts more than 7,000&times; as many vegetation voxels in the training set as motorcyclist voxels. The model side cannot reweight its way out of that &mdash; the rare classes simply are not there to learn from. The data side runs offline, once, on top of the existing supervised set: pyramid discrete diffusion synthesises full complete scenes; a quality filter keeps the in-distribution half; an HDL-64E ray-tracer pairs each with a sparse input; a rare-class object bank fills the residual gaps. The result is an extra <strong>32,039</strong> labelled pairs that the rest of the system can train against without any change to the SSC pipeline.
   </p>
 
-  <figure class="figure-wide figure-wide--tight">
+  <figure class="figure-wide figure-wide--tight figure-wide--dense">
     <div class="figure-wide__media">
       <img src="assets/figures/fig4_da_pipeline.png"
            alt="Three-stage offline data-augmentation pipeline. Stage 1 — Pyramid Discrete Diffusion: three cascaded multinomial diffusions at 32²×4 → 64²×8 → 256²×32, each conditioning on the upsampled output of the previous scale; the S₃ stage tiles into overlapping 136²×32 patches merged by majority vote, then a Jensen–Shannon divergence filter keeps the top half by class-distribution similarity to real scenes. Stage 2 — LiDAR Ray-Trace Resampling: a simulated Velodyne HDL-64E (64 beams × 2,048 azimuth bins = 131,072 rays per sweep, up to 2 returns per beam, σ_r = 3 cm range noise) traverses each synthetic complete scene via Bresenham-3D to produce the matching sparse input; the highlighted beam shows the first and second returns. Stage 3 — Object Bank Paste: 57,789 rare-class instances across 8 safety-critical classes (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) are pasted onto ground-level voxels of every synthetic scene. The final synthetic pool is 19,130 real + 32,039 synthetic = 51,169 training pairs, a 2.67× pool expansion."

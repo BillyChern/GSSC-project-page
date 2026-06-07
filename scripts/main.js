@@ -7,24 +7,40 @@
   'use strict';
 
   // ---------- Scroll reveal via IntersectionObserver ----------
+  // Reveal is one-shot: once an element fades in, it stays in (we unobserve
+  // it) so content never re-hides when a section scrolls back out of view.
+  // The hidden opacity:0 state only applies when JS is running (the .reveal
+  // class is added here), so with JS disabled / failed the content defaults
+  // to visible. A belt-and-suspenders fallback force-reveals anything still
+  // hidden shortly after load, so a card that was scrolled past too fast to
+  // trip the observer can never get stuck blank.
   const revealElements = document.querySelectorAll(
     '.section, .hero__lede, .hero__art, .figure-wide, .method-card, .table-card, .code-card, .metric'
   );
-  revealElements.forEach((el) => el.classList.add('reveal'));
+
+  const revealAll = () => revealElements.forEach((el) => el.classList.add('is-in'));
 
   if (!('IntersectionObserver' in window) ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    revealElements.forEach((el) => el.classList.add('is-in'));
+    // No fade: show everything immediately (also covers reduced-motion).
+    revealElements.forEach((el) => el.classList.add('reveal'));
+    revealAll();
   } else {
+    revealElements.forEach((el) => el.classList.add('reveal'));
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) {
-          e.target.classList.add('is-in');
-          io.unobserve(e.target);
+          e.target.classList.add('is-in');   // reveal once
+          io.unobserve(e.target);            // never re-hide
         }
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
     revealElements.forEach((el) => io.observe(el));
+
+    // Safety net: anything not yet revealed a moment after full load is
+    // force-shown so fast scrolls / never-in-view elements can't stay blank.
+    const flush = () => { io.disconnect(); revealAll(); };
+    window.addEventListener('load', () => setTimeout(flush, 1200));
   }
 
   // ---------- Mobile / tablet nav toggle (<=880px) ----------
