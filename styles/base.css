@@ -8,6 +8,13 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   font-size: 16px;
+  /* (R5) Global anchor offset for the sticky top nav. The bar is 61-64px on
+     desktop and up to 77px at <=768; without this, native hash jumps / reloads-
+     to-hash (and any future heading id lacking scroll-margin) park content
+     under the bar. 84px clears the LARGEST (77px mobile) nav with a small gap;
+     desktop only over-pads by ~20px, which reads as deliberate breathing room.
+     The per-element scroll-margin-top below stays as a belt-and-braces guard. */
+  scroll-padding-top: 84px;
 }
 
 @media (min-width: 1600px) { html { font-size: 17px; } }

@@ -321,7 +321,13 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
-.lane.is-done .lane__time { color: var(--lane-color); font-weight: 500; }
+/* (R5) The done-state readout previously inherited the lane swatch colour
+   (var(--lane-color)). For the dim "100-step" lane (#6B7487) that is only
+   3.72:1 on the #141A24 race-card background — fails WCAG AA (>=4.5:1). Pin
+   the readout to a fixed AA-passing foreground (--c-ink-mute = #A9B1BE,
+   ~8.1:1 on #141A24) for every lane regardless of swatch; emphasis is carried
+   by font-weight, not by the swatch colour. */
+.lane.is-done .lane__time { color: var(--c-ink-mute); font-weight: 500; }
 .lane.is-done .lane__fill::after { animation: none; opacity: 0.4; }
 
 @media (max-width: 720px) {

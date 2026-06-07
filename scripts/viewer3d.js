@@ -72,10 +72,36 @@ const stage = document.getElementById('viewer3d-stage');
 const loadingEl = document.getElementById('viewer3d-loading');
 if (stage) boot();
 
+// (R5) No-WebGL fallback: if the browser cannot create a WebGL context the
+// spinner would otherwise spin forever. Replace the loading element with a
+// visible in-stage note that links to the static qualitative figure (the
+// #teaser panel) so a no-WebGL visitor still gets the comparison content.
+function showNoWebGLFallback() {
+  if (!loadingEl) return;
+  loadingEl.classList.remove('is-hidden');
+  while (loadingEl.firstChild) loadingEl.removeChild(loadingEl.firstChild);
+  loadingEl.classList.add('viewer3d__fallback');
+  const note = document.createElement('p');
+  note.className = 'viewer3d__fallback-text';
+  note.append('Your browser could not start WebGL, so the interactive 3D viewer is unavailable. ');
+  const link = document.createElement('a');
+  link.href = '#teaser';
+  link.textContent = 'View the static qualitative comparison instead.';
+  note.appendChild(link);
+  loadingEl.appendChild(note);
+}
+
 function boot() {
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true, alpha: false, powerPreference: 'high-performance'
-  });
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      antialias: true, alpha: false, powerPreference: 'high-performance'
+    });
+  } catch (e) {
+    console.warn('WebGL unavailable; showing static-figure fallback in viewer', e);
+    showNoWebGLFallback();
+    return;
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(0x0B0E14, 1);
   // The stage carries role=application + aria-label describing the viewer;

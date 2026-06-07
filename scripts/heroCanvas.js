@@ -25,11 +25,20 @@ function boot() {
   // Respect reduced motion: no continuous rotation for sensitive users.
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true,           // keep the background gradient visible behind the cloud
-    powerPreference: 'low-power',
-  });
+  // (R5) Guard WebGL creation. The hero canvas is a decorative background
+  // showcase (the hero already has a CSS gradient behind it), so on a no-WebGL
+  // browser we simply skip it rather than throwing an uncaught exception.
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,           // keep the background gradient visible behind the cloud
+      powerPreference: 'low-power',
+    });
+  } catch (e) {
+    console.warn('WebGL unavailable; skipping decorative hero canvas', e);
+    return;
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(0x000000, 0);
   // The mount div carries role=img + aria-label, so the WebGL canvas itself

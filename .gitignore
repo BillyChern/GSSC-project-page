@@ -19,3 +19,11 @@ assets/**/*_backup_*.png
 assets/**/*_backup_*.pdf
 assets/**/*_20[0-9][0-9][0-9][0-9][0-9][0-9]_*.png
 assets/**/*_20[0-9][0-9][0-9][0-9][0-9][0-9]_*.pdf
+
+# Source-render PDFs and pre-patch backups never belong in the public deploy.
+# The page references only the .webp/.png exports; the multi-MB fig*.pdf
+# sources and *.bak / *.prepatch.bak scratch copies are local-only.
+assets/figures/*.pdf
+assets/**/*.pdf
+assets/**/*.prepatch.bak
+assets/**/*.bak
