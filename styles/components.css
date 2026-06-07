@@ -109,7 +109,7 @@
 }
 .method-card p {
   color: var(--c-ink-mute);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);   /* >=16px reading copy at every width */
   line-height: 1.6;
   margin-bottom: var(--s-3);
 }
@@ -336,7 +336,7 @@
   border-bottom: 1px solid var(--c-line);
 }
 .table-card__head h4 { font-family: var(--ff-sans); font-weight: 500; font-size: var(--fs-md); color: var(--c-ink); margin: 0 0 var(--s-2); }
-.table-card__head p { margin: 0; color: var(--c-ink-dim); font-size: var(--fs-xs); }
+.table-card__head p { margin: 0; color: var(--c-ink-mute); font-size: var(--fs-sm); line-height: 1.5; }
 .table-card__scroll { overflow-x: auto; }
 
 .datatable {
@@ -601,7 +601,7 @@
 }
 .safety-stat__class {
   font-family: var(--ff-sans);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   color: var(--c-ink-mute);
 }
 .safety-stat__delta {
@@ -614,7 +614,7 @@
 .safety-card__foot {
   padding: var(--s-4) var(--s-5);
   color: var(--c-ink-mute);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   line-height: 1.7;
 }
 .safety-card__foot strong { color: var(--c-ink); font-weight: 500; }
@@ -676,15 +676,170 @@
   border-left: 2px solid var(--c-accent);
   background: var(--c-bg-faint);
   color: var(--c-ink-mute);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   line-height: 1.7;
   font-style: italic;
 }
 .da-tagline strong { color: var(--c-ink); font-weight: 500; font-style: normal; }
-@media (max-width: 720px) {
+/* Tablet (<=880px incl. 768): pin to a balanced 2x2 grid so the four
+   stat cards form a square instead of a lopsided 3-up-plus-one row. */
+@media (max-width: 880px) {
+  .da-stats { grid-template-columns: repeat(2, 1fr); }
+  /* vertical dividers between adjacent cards stop reading correctly once
+     the grid wraps to two columns; drop them for a clean cell separation. */
   .da-stat + .da-stat::before { display: none; }
-  .da-stats { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 480px) {
   .da-stats { grid-template-columns: 1fr; }
 }
+
+/* =============================================================
+   AUDIT FIXES — disabled CTAs, H4 tier, table scroll cue,
+   BibTeX wrap, scope notes
+   ============================================================= */
+
+/* Honest disabled CTA state: dimmed, not-allowed cursor, and a visible
+   "soon / under review" badge so sighted users see the absence is
+   deliberate (not only via tooltip/aria). Not focusable as a link
+   because it carries no href. */
+.btn--disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  color: var(--c-ink-mute);
+  border-style: dashed;
+}
+.btn--disabled:hover {
+  background: var(--c-bg-elev);
+  border-color: var(--c-line-strong);
+  color: var(--c-ink-mute);
+  transform: none;
+}
+.btn__tag {
+  font-family: var(--ff-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink-dim);
+  border: 1px solid var(--c-line-strong);
+  border-radius: 999px;
+  padding: 1px 6px;
+  margin-left: 2px;
+  white-space: nowrap;
+}
+
+/* H4 step sub-headers: lift above body so the H4-vs-body ratio reads
+   as a distinct tier (was 1.0). ~21-24px depending on root size. */
+.method-card__title {
+  font-size: var(--fs-lg);   /* 1.35rem ~= 21.6px @16 / 23px @17 */
+}
+.method-card__num {
+  font-size: 0.82rem;
+}
+.table-card__head h4 {
+  font-size: var(--fs-lg);
+}
+
+/* Card-level scope note (e.g. "hidden test set" qualifier on the delta
+   chips) — mirrors the per-class validation note styling. */
+.card-scope-note {
+  margin: 0;
+  padding: var(--s-3) var(--s-5);
+  font-size: var(--fs-sm);
+  color: var(--c-ink-dim);
+  font-style: italic;
+  border-bottom: 1px solid var(--c-line);
+}
+.card-scope-note strong { color: var(--c-ink-mute); font-style: normal; font-weight: 500; }
+
+/* Horizontal-scroll affordance: a right-edge fade that only appears when
+   the inner table actually overflows. Pure-CSS hint that more content
+   exists to the right; pairs with a thin always-visible scrollbar. */
+.table-card__scroll {
+  position: relative;
+  scrollbar-width: thin;
+}
+.table-card__scroll::-webkit-scrollbar { height: 8px; }
+.table-card__scroll::-webkit-scrollbar-thumb {
+  background: var(--c-line-strong);
+  border-radius: 999px;
+}
+/* The fade lives on the card (the scroll container clips its own
+   ::after), revealed via a data flag toggled by tableSort.js / main.js
+   when scrollWidth > clientWidth. */
+.table-card[data-overflow="true"] { position: relative; }
+.table-card[data-overflow="true"]::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: 44px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--c-bg-elev) 88%);
+  z-index: 1;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+.table-card[data-overflow="true"] .table-card__scroll-hint {
+  display: inline-flex;
+}
+.table-card__scroll-hint {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  margin-left: var(--s-3);
+  font-family: var(--ff-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink-dim);
+  vertical-align: middle;
+}
+
+/* BibTeX: wrap long lines so the full entry is visible at rest without
+   horizontal swiping; keep the Copy button for exactness. */
+.code-card__pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow-x: hidden;
+}
+
+/* =============================================================
+   TAP TARGETS — >=44x44px at touch / small viewports
+   ============================================================= */
+@media (max-width: 880px) {
+  .btn, .btn-ghost {
+    min-height: 44px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+  .btn--lg { min-height: 48px; }
+  .logo {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  #bibtex-copy {
+    min-height: 44px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+  /* Inline body links: give them a tappable hit area without disrupting
+     the line flow. */
+  .section__lede a {
+    display: inline-block;
+    min-height: 24px;
+    padding: 4px 2px;
+  }
+  /* Viewer toggles: nudge from ~41px to >=44px. */
+  .seg__btn {
+    min-height: 44px;
+  }
+  .seg:not(.seg--stack) .seg__btn {
+    min-height: 48px;     /* two-line scene buttons */
+  }
+  .check { min-height: 44px; }
+}
+
+/* NOTE: the mobile/tablet hamburger nav (.nav-toggle + .topnav__links
+   dropdown panel) lives at the END of layout.css so its @media rules win
+   over layout.css's base (non-media) .topnav__links display rule at equal
+   specificity. Keeping it here would let layout.css override it. */

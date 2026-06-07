@@ -318,10 +318,21 @@ function boot() {
   new ResizeObserver(resize).observe(stage);
   resize();
 
+  // Pause the render loop when the viewer is scrolled off-screen so the
+  // continuous Three.js draw (and its per-frame GPU work) does not run —
+  // and resumes cleanly on re-entry. Mirrors heroCanvas.js. This also
+  // removes the steady "GPU stall due to ReadPixels" perf warnings that
+  // a never-idle render loop produces while the canvas is not visible.
+  let onScreen = true;
+  const vio = new IntersectionObserver((entries) => {
+    onScreen = entries[0].isIntersecting;
+  }, { threshold: 0.01 });
+  vio.observe(stage);
+
   // Animation loop
   function frame() {
     controls.update();
-    renderer.render(scene, camera);
+    if (onScreen) renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }
   frame();

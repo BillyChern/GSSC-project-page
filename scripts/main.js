@@ -27,6 +27,66 @@
     revealElements.forEach((el) => io.observe(el));
   }
 
+  // ---------- Mobile / tablet nav toggle (<=880px) ----------
+  const navToggle = document.getElementById('nav-toggle');
+  const navLinks = document.getElementById('topnav-links');
+  if (navToggle && navLinks) {
+    const closeNav = () => {
+      navLinks.classList.remove('is-open');
+      navToggle.setAttribute('aria-expanded', 'false');
+      navToggle.setAttribute('aria-label', 'Open navigation menu');
+    };
+    const openNav = () => {
+      navLinks.classList.add('is-open');
+      navToggle.setAttribute('aria-expanded', 'true');
+      navToggle.setAttribute('aria-label', 'Close navigation menu');
+    };
+    navToggle.addEventListener('click', () => {
+      if (navLinks.classList.contains('is-open')) closeNav();
+      else openNav();
+    });
+    // Close after picking a section so the panel doesn't cover the target.
+    navLinks.querySelectorAll('a').forEach((a) => {
+      a.addEventListener('click', closeNav);
+    });
+    // Close on Escape and when widening past the breakpoint.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeNav();
+    });
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 880) closeNav();
+    });
+  }
+
+  // ---------- Table horizontal-scroll affordance ----------
+  // Flag any table-card whose inner scroller overflows so the CSS
+  // right-edge fade + scroll hint appear only when content is clipped.
+  const tableCards = document.querySelectorAll('.table-card');
+  function updateTableOverflow() {
+    tableCards.forEach((card) => {
+      const sc = card.querySelector('.table-card__scroll');
+      if (!sc) return;
+      const overflows = sc.scrollWidth > sc.clientWidth + 1;
+      card.setAttribute('data-overflow', overflows ? 'true' : 'false');
+      // Inject a one-time "scroll →" hint into the card head.
+      if (overflows && !card.querySelector('.table-card__scroll-hint')) {
+        const head = card.querySelector('.table-card__head p')
+          || card.querySelector('.table-card__head');
+        if (head) {
+          const hint = document.createElement('span');
+          hint.className = 'table-card__scroll-hint';
+          hint.textContent = 'scroll →';
+          head.appendChild(document.createTextNode(' '));
+          head.appendChild(hint);
+        }
+      }
+    });
+  }
+  updateTableOverflow();
+  window.addEventListener('resize', updateTableOverflow);
+  // Re-check after table hydration (tables fill in async below).
+  window.__updateTableOverflow = updateTableOverflow;
+
   // ---------- BibTeX copy-to-clipboard ----------
   const copyBtn = document.getElementById('bibtex-copy');
   const copyLabel = document.getElementById('bibtex-copy-label');
@@ -173,6 +233,8 @@
       renderMain(main);
       renderPerclass(perclass);
       if (window.initTableSort) window.initTableSort();
+      // Tables just gained rows — re-evaluate overflow for the scroll cue.
+      if (window.__updateTableOverflow) window.__updateTableOverflow();
     } catch (err) {
       console.warn('Results data failed to load', err);
     }
