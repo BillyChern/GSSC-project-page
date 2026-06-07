@@ -119,6 +119,38 @@
   // Re-check after table hydration (tables fill in async below).
   window.__updateTableOverflow = updateTableOverflow;
 
+  // ---------- Mobile dense-figure tap-to-zoom (<=480px) ----------
+  // Each wide figure fits the column by default (CSS). The toggle switches the
+  // media box into the secondary scrollable detail view (.is-zoomed) and, on
+  // zoom, scrolls it so the key column (the "Ours"/S2D2-output region near the
+  // right) is visible first instead of the leftmost panel.
+  document.querySelectorAll('.figure-wide--dense').forEach((fig) => {
+    const media = fig.querySelector('.figure-wide__media');
+    if (!media) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'figure-zoom-toggle';
+    btn.textContent = 'tap to zoom →';
+    btn.setAttribute('aria-pressed', 'false');
+    media.insertAdjacentElement('afterend', btn);
+    btn.addEventListener('click', () => {
+      const zoom = !media.classList.contains('is-zoomed');
+      media.classList.toggle('is-zoomed', zoom);
+      btn.setAttribute('aria-pressed', zoom ? 'true' : 'false');
+      btn.textContent = zoom ? 'tap to fit ←' : 'tap to zoom →';
+      if (zoom) {
+        // Reveal the key column: scroll to ~58% of the overflow so the
+        // "Ours"/result region (right-of-center) lands in view.
+        requestAnimationFrame(() => {
+          const overflow = media.scrollWidth - media.clientWidth;
+          if (overflow > 0) media.scrollLeft = Math.round(overflow * 0.58);
+        });
+      } else {
+        media.scrollLeft = 0;
+      }
+    });
+  });
+
   // ---------- BibTeX copy-to-clipboard ----------
   const copyBtn = document.getElementById('bibtex-copy');
   const copyLabel = document.getElementById('bibtex-copy-label');

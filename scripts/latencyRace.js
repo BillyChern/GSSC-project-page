@@ -5,7 +5,7 @@
    Real contention-free H100 80GB measurements (Apr 2026 clean run):
      SCPNet base full forward: 202.25 ms (4.94 FPS, std 7.57)
      S²D² UNet 1 step:         107.09 ms (9.34 FPS, std 0.45)
-     S²D² 100-step:           10783.7  ms (0.09 FPS)
+     S²D² 100-step:           10790    ms (~10.79 s, paper compute table)
    Bar width = LINEAR proportion to real latency; numeric readout =
    real measured ms. The PACING of the bar animation is log-warped
    so the 100-step lane finishes in ~6 s of UI time instead of 11 s.
@@ -50,9 +50,11 @@
       label: '100-step diffusion alt.',
       sub:   'DiffSSC-style multi-step unrolled sampling',
       color: '#6B7487',
+      // 100-step full-posterior sampling scales linearly to 10.79 s
+      // (107.49 ms x 100), matching the paper's compute table. This is the
+      // multi-step diffusion sampler itself; no separate deterministic base.
       segments: [
-        { name: 'SCPNet base',  ms: 202 },
-        { name: '100\u00D7 UNet', ms: 10784 }
+        { name: '100\u00D7 UNet', ms: 10790 }
       ]
     }
   ];

@@ -216,6 +216,14 @@
   line-height: 1.55;
   margin-bottom: var(--s-6);
 }
+/* (R6) Hero gloss: the headline result leads; the PS3/SGSC detail is a
+   subordinate secondary line so the gloss passes the 5-second test. */
+.hero__subtitle-detail {
+  display: block;
+  margin-top: var(--s-3);
+  font-size: var(--fs-base);
+  color: var(--c-ink-dim);
+}
 
 .hero__authors {
   display: flex;
@@ -455,7 +463,18 @@ a.metric__label--link:focus-visible {
   padding: var(--s-4);
   overflow: hidden;
 }
-.figure-wide__media img { width: 100%; height: auto; border-radius: var(--radius-sm); }
+.figure-wide__media img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  /* (R6) Soften the hard white-block edge of the light pipeline diagrams so
+     the transition reads as an intentional inset figure surface against the
+     dark theme rather than a raw white slab. A thin inset ring + a hair of
+     brightness damping keeps the diagram fully legible while easing the
+     scroll-past brightness jump. */
+  box-shadow: 0 0 0 1px var(--c-line-strong) inset;
+  filter: brightness(0.985);
+}
 /* (R5) The dense diagrams become horizontally scrollable regions (tabindex=0,
    role=group) so keyboard users can pan to the right-hand stages. Give them a
    visible focus ring. outline (not box-shadow) is used deliberately: it draws
@@ -919,20 +938,31 @@ a.metric__label--link:focus-visible {
    legible without pinch-zoom. Desktop/tablet are untouched: the rule is
    scoped to <=480px and only to .figure-wide--dense. */
 @media (max-width: 480px) {
+  /* (R6 mobile-figure major) Default = fit-to-width: each dense figure scales
+     to the column so it is fully readable without sideways scrubbing. The
+     detail-dense pipeline diagrams keep a *secondary* zoomed scroll mode,
+     opt-in via the .is-zoomed class (toggled by a tap-to-zoom button), which
+     re-pins the img to 760px inside the horizontally scrollable media box. */
   .figure-wide--dense .figure-wide__media {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    /* a thin always-visible scrollbar advertises the scroll affordance */
   }
   .figure-wide--dense .figure-wide__media::-webkit-scrollbar { height: 8px; }
   .figure-wide--dense .figure-wide__media::-webkit-scrollbar-thumb {
     background: var(--c-line-strong);
     border-radius: 999px;
   }
+  /* fit-to-width default */
   .figure-wide--dense .figure-wide__media img {
-    width: 760px;          /* > viewport: renders larger, container scrolls */
-    max-width: none;       /* override the global img{max-width:100%} */
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  /* secondary zoomed mode: render larger and scroll horizontally */
+  .figure-wide--dense .figure-wide__media.is-zoomed img {
+    width: 760px;
+    max-width: none;
     height: auto;
   }
 }
@@ -984,18 +1014,33 @@ a.metric__label--link:focus-visible {
    container moves with content and would clip the diagram's right edge even
    when fully scrolled. The label is overflow-safe and never hides content. */
 @media (max-width: 480px) {
-  .figure-wide--dense .figure-wide__media::before {
-    content: "scroll \2192  for full diagram";
-    display: block;
+  /* (R6) Tap-to-zoom affordance. The figure now fits the column by default;
+     the button switches the media box into the secondary scrollable detail
+     view (.is-zoomed). Styled as a sticky pill so it stays reachable while the
+     zoomed diagram is scrolled horizontally. */
+  .figure-wide--dense .figure-zoom-toggle {
+    display: inline-block;
     margin: 0 0 var(--s-2);
+    padding: 6px 12px;
+    min-height: 32px;
     font-family: var(--ff-mono);
     font-size: 0.72rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--c-ink-dim);
+    background: transparent;
+    border: 1px solid var(--c-line-strong);
+    border-radius: 999px;
+    cursor: pointer;
     position: sticky;
-    left: 0;       /* pin the hint to the left edge while the diagram scrolls */
+    left: 0;
   }
+  .figure-wide--dense .figure-wide__media.is-zoomed ~ .figure-zoom-toggle,
+  .figure-wide--dense .figure-zoom-toggle:focus-visible { color: var(--c-ink); }
+}
+/* Hide the zoom toggle above the mobile breakpoint (figures already fit). */
+@media (min-width: 481px) {
+  .figure-zoom-toggle { display: none; }
 }
 
 /* =============================================================
@@ -1029,7 +1074,14 @@ a.metric__label--link:focus-visible {
    inside the horizontally scrollable box. Scoped to <=480px: desktop/tablet
    keep width:100%. */
 @media (max-width: 480px) {
+  /* (R6) Mirror the fit-to-width default / zoomed-scroll override onto the
+     nested <picture> img so the <picture> wrapper does not re-impose 760px. */
   .figure-wide--dense .figure-wide__media picture img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  .figure-wide--dense .figure-wide__media.is-zoomed picture img {
     width: 760px;
     max-width: none;
     height: auto;
@@ -1079,4 +1131,53 @@ a.metric__label--link:focus-visible {
 .footer__note, .footer__ack {
   font-size: var(--fs-sm);   /* ~14px */
   max-width: 70ch;
+}
+
+/* =============================================================
+   ROUND-6 AUDIT FIXES
+   ============================================================= */
+
+/* ---- (R6) Sub-14px captions/labels on small viewports (C2) ----
+   Several secondary text elements fall below the 14px floor on phones/tablets:
+   the hero canvas caption (~11.2px), the latency-race lane descriptions
+   (~12.8px), and prose figcaptions. Lift them toward >=14px ONLY at <=768px so
+   the desktop/wide type scale is byte-stable. Uppercase metric/eyebrow LABELS
+   are intentionally left as labels (they read as labels, not prose). */
+@media (max-width: 768px) {
+  .hero-canvas__caption {
+    font-size: 0.82rem;   /* ~13px, up from 0.7rem/~11.2px */
+  }
+  .lane__label span {
+    font-size: 0.875rem;  /* ~14px, up from 0.8rem/~12.8px */
+  }
+  .figure-wide figcaption {
+    font-size: var(--fs-sm);  /* ~14px prose floor for caption text */
+  }
+}
+
+/* ---- (R6) Mobile body measure: trim side gutters at <=375px (C2) ----
+   At 375px, body paragraphs measure ~34-39ch, just under the 45-90ch band.
+   Trim the section side padding a touch to widen the measure toward ~42-45ch
+   without changing the single-column stacking. Scoped to <=400px so 768/1280/
+   1920 are untouched. */
+@media (max-width: 400px) {
+  /* Exclude the full-bleed 3D-viewer band so it keeps edge-to-edge width. */
+  .section:not(.section--bleed) {
+    padding-left: var(--s-4);
+    padding-right: var(--s-4);
+  }
+}
+
+/* ---- (R6) Method cards widen the text measure at >=1280 (C2) ----
+   The 3-column method cards rendered body copy at ~37-42ch/line, just under the
+   45ch comfortable floor. The grid gap is already minimal (--s-4); the measure
+   is squeezed by the card's symmetric --s-5 horizontal padding. Trim the inner
+   horizontal padding at wide widths to recover ~3-5ch of measure per card while
+   keeping the three-beat layout intact. Gated to >=1280 so the mobile single-
+   column layout is unaffected (the two fixes pull in opposite directions). */
+@media (min-width: 1280px) {
+  .method-grid--three .method-card {
+    padding-left: var(--s-4);
+    padding-right: var(--s-4);
+  }
 }

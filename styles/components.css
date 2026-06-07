@@ -630,6 +630,15 @@
   line-height: 1.7;
 }
 .safety-card__foot strong { color: var(--c-ink); font-weight: 500; }
+.safety-card__note {
+  display: block;
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--c-line);
+  color: var(--c-ink-dim);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
 
 /* ---- Data-augmentation stat panel ---- */
 .da-stats {
@@ -817,13 +826,15 @@
   vertical-align: middle;
 }
 
-/* BibTeX: wrap long lines so the full entry is visible at rest without
-   horizontal swiping; keep the Copy button for exactness. */
+/* BibTeX: preserve canonical line breaks and let the one long journal line
+   scroll horizontally *inside the card* instead of soft-wrapping mid-value
+   (matches how the data tables handle width). overflow-x stays on the <pre>
+   element so it never introduces page-level horizontal overflow on mobile.
+   The Copy button copies the canonical unwrapped textContent regardless. */
 .code-card__pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  overflow-x: hidden;
+  white-space: pre;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* =============================================================
