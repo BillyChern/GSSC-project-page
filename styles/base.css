@@ -116,15 +116,21 @@ figcaption a,
   text-underline-offset: 0.15em;
 }
 
-/* Scroll reveal utility — applied by IntersectionObserver in main.js */
-.reveal {
+/* Scroll reveal utility — applied by IntersectionObserver in main.js.
+   The hidden initial state is gated behind html.js (set by an inline head
+   script before first paint), so with JS disabled / failed the content is
+   never hidden. prefers-reduced-motion also skips the hidden state. */
+.js .reveal {
   opacity: 0;
   transform: translateY(18px);
   transition: opacity var(--dur-slow) var(--ease-out),
               transform var(--dur-slow) var(--ease-out);
   will-change: opacity, transform;
 }
-.reveal.is-in { opacity: 1; transform: none; }
+.js .reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal { opacity: 1; transform: none; }
+}
 
 /* Utility */
 .visually-hidden {

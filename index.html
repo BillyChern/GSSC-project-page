@@ -15,6 +15,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+<!-- Set an html.js flag before first paint so the scroll-reveal hidden
+     state (.js .reveal { opacity:0 }) only applies when JS is running.
+     With JS disabled/failed the class is never set and all content stays
+     fully visible; with JS on, gating before paint avoids a flash of
+     visible-then-hidden content. -->
+<script>document.documentElement.classList.add('js');</script>
+
 <link rel="stylesheet" href="styles/tokens.css" />
 <link rel="stylesheet" href="styles/base.css" />
 <link rel="stylesheet" href="styles/components.css" />
@@ -342,7 +349,7 @@
   </div>
 
   <div class="viewer3d">
-    <div class="viewer3d__stage" id="viewer3d-stage" role="application" aria-label="3D point cloud viewer. Use mouse or touch to rotate, scroll or pinch to zoom.">
+    <div class="viewer3d__stage" id="viewer3d-stage" role="application" aria-label="Interactive 3D point-cloud comparison of the sparse LiDAR input, the SCPNet base prediction, the S2D2 refinement, and the ground truth on two SemanticKITTI validation frames. Use the controls to switch scene and view; drag or touch to rotate, scroll or pinch to zoom. The adjacent qualitative figure is a static accessible fallback.">
       <div class="viewer3d__loading" id="viewer3d-loading">
         <div class="viewer3d__spinner"></div>
         <span>Loading voxel grid&hellip;</span>
@@ -463,7 +470,7 @@
   <p class="section__eyebrow">Results</p>
   <h2 class="section__title">SemanticKITTI hidden test set · single-frame single-sample</h2>
   <p class="section__lede">
-    All numbers are <a href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">Codabench leaderboard</a> mIoU on the official hidden test split. S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> with D<sub>4</sub> test-time augmentation, the new state of the art (+1.3% over the previous best, TALoS at 37.9%). Even the real-time 1-step configuration at <strong>9.33&nbsp;FPS</strong> reaches <strong>38.8%</strong>, beating TALoS by +0.9% without any TTA or test-time adaptation.
+    All numbers are <a href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">Codabench leaderboard</a> mIoU on the official hidden test split. S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> with D<sub>4</sub> test-time augmentation, the new state of the art (+1.3% over the previous best, TALoS at 37.9%). Even the real-time 1-step configuration at <strong>9.33&nbsp;FPS</strong> reaches <strong>38.8%</strong>, beating TALoS by +0.9% with no TTA and no line-of-sight test-time adaptation (the LoS adaptation TALoS relies on).
   </p>
 
   <div class="table-card" id="main-results-card">
@@ -566,7 +573,7 @@
       <div class="safety-stat"><span class="safety-stat__class">stacked: from-noise + S<sup>2</sup>D<sup>2</sup> refinement</span><span class="safety-stat__delta">32.88</span></div>
     </div>
     <div class="safety-card__foot">
-      Without using SCPNet or any of its three reproductions, the framework still passes the previous no-SCPNet best by <strong>+0.43&nbsp;pp</strong>; stacking one S<sup>2</sup>D<sup>2</sup> refinement step on top adds another <strong>+2.34&nbsp;pp</strong>.
+      Without using SCPNet or any of its three independently retrained reproductions, the framework still passes the previous no-SCPNet best by <strong>+0.43&nbsp;pp</strong>; stacking one S<sup>2</sup>D<sup>2</sup> refinement step on top adds another <strong>+2.34&nbsp;pp</strong>.
     </div>
   </div>
 

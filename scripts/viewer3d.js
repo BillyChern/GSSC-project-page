@@ -78,6 +78,9 @@ function boot() {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(0x0B0E14, 1);
+  // The stage carries role=application + aria-label describing the viewer;
+  // hide the raw canvas so SR users get the stage's name, not a bare canvas.
+  renderer.domElement.setAttribute('aria-hidden', 'true');
   stage.appendChild(renderer.domElement);
 
   const scene  = new THREE.Scene();

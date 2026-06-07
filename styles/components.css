@@ -272,7 +272,10 @@
   letter-spacing: 0.02em;
   color: var(--c-ink);
 }
-.lane__label span { color: var(--c-ink-dim); font-size: 0.7rem; display: block; margin-top: 2px; }
+/* (R3) Lane sub-label: lift off the 11.2px floor to ~12.8px so the
+   descriptive secondary line stays legible on a 375px screen. Kept muted
+   (c-ink-dim) and lightweight so it reads as subordinate to the lane name. */
+.lane__label span { color: var(--c-ink-dim); font-size: 0.8rem; display: block; margin-top: 2px; line-height: 1.4; }
 
 .lane__track {
   position: relative;
@@ -776,6 +779,16 @@
   background: linear-gradient(90deg, transparent, var(--c-bg-elev) 88%);
   z-index: 1;
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+/* (R3) Overflow-aware: when the user has scrolled the card to its right
+   end there is no more content to the right, so the fade scrim is hidden to
+   avoid scrimming fully-revealed NOTE text. main.js toggles data-scroll-end
+   on the .table-card as the inner .table-card__scroll reaches its end. */
+.table-card[data-overflow="true"][data-scroll-end="true"]::after {
+  opacity: 0;
+}
+.table-card[data-overflow="true"]::after {
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 .table-card[data-overflow="true"] .table-card__scroll-hint {
   display: inline-flex;

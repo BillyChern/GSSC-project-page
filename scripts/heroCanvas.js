@@ -32,6 +32,9 @@ function boot() {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(0x000000, 0);
+  // The mount div carries role=img + aria-label, so the WebGL canvas itself
+  // is decorative to screen readers — hide it to avoid a nameless canvas node.
+  renderer.domElement.setAttribute('aria-hidden', 'true');
   mount.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();

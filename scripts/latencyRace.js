@@ -62,10 +62,17 @@
     const startBtn = document.getElementById('race-start');
     if (!root || !startBtn) return;
 
+    // (R3) Static fallback: lanes render in their final filled state with
+    // the real measured ms readout on load, so a non-interacting visitor
+    // (or a static/print capture) reads the 107 ms / 9.33 FPS comparison
+    // without clicking. "Start the race" replays the animation from zero.
+    const staticTotals = LANES.map((l) => l.segments.reduce((a, s) => a + s.ms, 0));
+    const staticMax = Math.max(...staticTotals);
+
     // Build static DOM with safe constructors.
-    LANES.forEach((lane) => {
+    LANES.forEach((lane, i) => {
       const row = document.createElement('div');
-      row.className = 'lane';
+      row.className = 'lane is-done';   // start in the resolved static state
       row.dataset.id = lane.id;
       row.style.setProperty('--lane-color', lane.color);
 
@@ -82,12 +89,14 @@
       const fill = document.createElement('div');
       fill.className = 'lane__fill';
       fill.style.setProperty('--lane-color', lane.color);
+      // Static fallback width = linear proportion to the slowest lane.
+      fill.style.width = (Math.min(1, staticTotals[i] / staticMax) * 100).toFixed(2) + '%';
       track.appendChild(fill);
       row.appendChild(track);
 
       const time = document.createElement('div');
       time.className = 'lane__time';
-      time.textContent = '—';
+      time.textContent = fmtMs(staticTotals[i]);   // real measured ms on load
       row.appendChild(time);
 
       root.appendChild(row);

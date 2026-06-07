@@ -1,5 +1,5 @@
 [
-  { "method": "LMSCNet",                              "mod": "L-SF", "mIoU": 17.6, "note": "test, 3D CNN",                                  "best": false, "ours": false },
+  { "method": "LMSCNet",                              "mod": "L-SF", "mIoU": 17.6, "note": "test, 2D CNN (dense)",                          "best": false, "ours": false },
   { "method": "SSA-SC",                               "mod": "L-SF", "mIoU": 23.5, "note": "test, joint seg-completion",                    "best": false, "ours": false },
   { "method": "JS3C-Net",                             "mod": "L-SF", "mIoU": 23.8, "note": "test, joint seg+SSC",                           "best": false, "ours": false },
   { "method": "SCPNet (base)",                        "mod": "L-SF", "mIoU": 36.7, "note": "test, our spconv-v2 port matches paper",        "best": false, "ours": false },

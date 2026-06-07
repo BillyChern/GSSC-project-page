@@ -78,12 +78,28 @@
   // Flag any table-card whose inner scroller overflows so the CSS
   // right-edge fade + scroll hint appear only when content is clipped.
   const tableCards = document.querySelectorAll('.table-card');
+  // Overflow-aware right-edge fade: hide the scrim once the inner scroller
+  // is at (or within 2px of) its right end, so it never scrims fully-
+  // revealed NOTE text. Re-evaluated on scroll and on overflow recompute.
+  function updateScrollEnd(card, sc) {
+    const atEnd = sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 2;
+    card.setAttribute('data-scroll-end', atEnd ? 'true' : 'false');
+  }
   function updateTableOverflow() {
     tableCards.forEach((card) => {
       const sc = card.querySelector('.table-card__scroll');
       if (!sc) return;
       const overflows = sc.scrollWidth > sc.clientWidth + 1;
       card.setAttribute('data-overflow', overflows ? 'true' : 'false');
+      if (overflows) {
+        updateScrollEnd(card, sc);
+        if (!sc.dataset.scrollBound) {
+          sc.addEventListener('scroll', () => updateScrollEnd(card, sc), { passive: true });
+          sc.dataset.scrollBound = 'true';
+        }
+      } else {
+        card.removeAttribute('data-scroll-end');
+      }
       // Inject a one-time "scroll →" hint into the card head.
       if (overflows && !card.querySelector('.table-card__scroll-hint')) {
         const head = card.querySelector('.table-card__head p')

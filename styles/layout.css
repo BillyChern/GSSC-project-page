@@ -96,6 +96,20 @@
 .section--bleed  { max-width: none; padding-left: 0; padding-right: 0; }
 .section--bleed > * { padding-left: var(--s-6); padding-right: var(--s-6); }
 
+/* (R3-major) Constrain the full-bleed section header to the same centred
+   content column as the viewer card below it. Without this the header
+   (eyebrow + heading + lede) renders full-bleed (left-flush at the bleed
+   padding) while .viewer3d is capped at --container-wide and centred, so
+   on wide screens the header floats far left of the card it introduces.
+   box-sizing:border-box keeps the inner text edge aligned with the card
+   edge once the shared 32px bleed padding is applied. No-op below
+   --container-wide where the band is already narrower than the cap. */
+.section--bleed > .section__header {
+  max-width: calc(var(--container-wide) + 2 * var(--s-6));
+  margin-inline: auto;
+  width: 100%;
+}
+
 .section__eyebrow {
   display: inline-block;
   font-family: var(--ff-mono);
@@ -398,7 +412,12 @@ a.metric__label--link:focus-visible {
   color: var(--c-ink-mute);
   font-size: var(--fs-md);
   line-height: 1.7;
-  max-width: 68ch;
+  /* (R3) Tighten the body measure to ~70ch (~680px). The 68ch cap was
+     resolving to ~82ch (748px) at desktop because the IBM Plex `0` glyph
+     is wide; a px cap pins it to the readable band. The serif lead
+     (.abstract-lede) keeps its own wider measure. No-op below ~768px
+     where the narrow container is already tighter than this cap. */
+  max-width: 680px;
 }
 .abstract-body p { margin-bottom: var(--s-4); }
 
@@ -879,4 +898,50 @@ a.metric__label--link:focus-visible {
   }
   .hero__cta { margin-bottom: var(--s-5); }
   .hero__subtitle { margin-bottom: var(--s-5); }
+}
+
+/* =============================================================
+   ROUND-3 AUDIT FIXES
+   ============================================================= */
+
+/* ---- (R3) Per-class table width rhythm at >=1280 ----
+   The per-class IoU table was pinned to 600px while its sibling Results
+   cards (main comparison, cross-base, from-noise) span the full ~1116px
+   content column, so it read as orphaned with large empty side margins.
+   Widen it toward the sibling column at >=1280 and let the four columns
+   breathe (wider class column + roomier numeric columns). The width:600px
+   declaration in components.css carries !important, so we must match that
+   here to override it. Stays inside the scoped .table-card__scroll, and the
+   override is gated to >=1280 so 375/768 keep the compact 600px layout with
+   no new horizontal pressure. */
+@media (min-width: 1280px) {
+  #perclass-table {
+    width: 900px !important;
+  }
+  #perclass-table th:nth-child(1),
+  #perclass-table td:nth-child(1) { width: 420px; }
+  #perclass-table th:nth-child(n+2),
+  #perclass-table td:nth-child(n+2) { width: 160px; }
+}
+
+/* ---- (R3) Dense-figure horizontal-scroll affordance (overflow-aware) ----
+   The dense pipeline figures (fig2/fig3/fig4_da) scroll horizontally inside
+   their media box at <=480px (R2-7). The thin scrollbar is a weak affordance,
+   so add an explicit "scroll ->" caption hint above each scrolling diagram.
+   A static right-edge mask was deliberately rejected: a mask on the scroll
+   container moves with content and would clip the diagram's right edge even
+   when fully scrolled. The label is overflow-safe and never hides content. */
+@media (max-width: 480px) {
+  .figure-wide--dense .figure-wide__media::before {
+    content: "scroll \2192  for full diagram";
+    display: block;
+    margin: 0 0 var(--s-2);
+    font-family: var(--ff-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--c-ink-dim);
+    position: sticky;
+    left: 0;       /* pin the hint to the left edge while the diagram scrolls */
+  }
 }
