@@ -12,7 +12,7 @@ on the discrete probability simplex.
 - **39.2 %** mIoU with $D_4$ test-time augmentation — **the new state of the art**, +1.3 % over the previous best (TALoS, 37.9 %), which had held the leaderboard for ~2 years.
 - **39.0 %** mIoU without TTA — beats TALoS (37.9 %) without using any test-time tricks.
 - **38.8 %** mIoU at the **1-step real-time** configuration (107 ms / 9.34 FPS marginal cost on H100), still +0.9 % over TALoS at no TTA cost.
-- **+2.5 %** mIoU added by S²D² on top of the frozen SCPNet base — S²D² is base-agnostic (it likewise lifts JS3C-Net and LMSCNet); we report on the SCPNet base for an apples-to-apples comparison with TALoS.
+- **+2.37 pp** mIoU added by S²D² on top of the frozen SCPNet base — S²D² is base-agnostic (it likewise lifts JS3C-Net and LMSCNet); we report on the SCPNet base for an apples-to-apples comparison with TALoS.
 
 **Validation set:** 38.54 % mIoU (+2.37 over the SCPNet port at 36.17 %).
 **LiDAR-only BEV (secondary task):** 36.09 % mIoU, +9.06 over the previous best dedicated 2D method.

@@ -85,7 +85,7 @@
       </h1>
       <p class="hero__subtitle">
         One Euler step of generative refinement on a frozen SSC base reaches <em>39.2%</em> hidden-test mIoU — the new LiDAR single-frame state of the art (+1.3% over the previous best, TALoS).
-        <span class="hero__subtitle-detail">The framework adds two more components: <strong>PS<sup>3</sup></strong> (Paired Sparse–Dense Scene Synthesis), a pyramid discrete diffusion pipeline that synthesises a 51K-pair augmentation pool; and <strong>SGSC</strong> (Semantic-guided Generative Scene Completion), a from-noise variant that reaches <em>30.54%</em> val mIoU without any 3D SSC base.</span>
+        <span class="hero__subtitle-detail">A single discrete-diffusion operator serves <strong>three roles</strong>: <strong>PS<sup>3</sup></strong> (Paired Sparse–Dense Scene Synthesis), a pyramid discrete diffusion pipeline that synthesises a 51K-pair augmentation pool; <strong>SGSC</strong> (Semantic-guided Generative Scene Completion), a from-noise base-free variant that reaches <em>30.54%</em> val mIoU without any 3D SSC base; and <strong>S<sup>2</sup>D<sup>2</sup></strong>, the base-conditioned one-step refiner above.</span>
       </p>
 
       <div class="hero__authors">
@@ -171,7 +171,7 @@
         Standard diffusion generates from noise. S<sup>2</sup>D<sup>2</sup> instead starts from a supervised base model&rsquo;s prediction and learns the correction that carries it to the ground truth. The reverse update is closed-form, so a single step is enough at deployment — we do not iterate, and we do not distill a multi-step schedule. We pair this core with coarse-to-fine pyramid diffusion for synthetic data augmentation and a matching BEV conditioning stream.
       </p>
       <p>
-        On the SemanticKITTI hidden test leaderboard, S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> mIoU under D<sub>4</sub> test-time augmentation and <strong>39.0%</strong> without — both establish the new LiDAR single-frame state of the art (+1.3% over TALoS, the previous best at 37.9%). The framework is also base-agnostic: applied without architectural change to three structurally different frozen base models, the identical recipe lifts <strong>LMSCNet</strong> from 12.10% to <strong>16.59%</strong> (<strong>+4.49&nbsp;pp</strong>), the point-voxel hybrid <strong>JS3C-Net</strong> from 22.73% to <strong>26.72%</strong> (<strong>+3.99&nbsp;pp</strong>, official <span class="mono">semantic-kitti-api</span> evaluator), and SCPNet from 36.17% to <strong>38.54%</strong> (<strong>+2.37&nbsp;pp</strong>) — direct evidence the refinement is a property of the framework, not of any specific base. The from-noise variant of S<sup>2</sup>D<sup>2</sup> (uniform source, LiDAR-only conditioning) reaches <strong>30.54%</strong> val mIoU without any 3D SSC base &mdash; ahead of the strongest non-SCPNet baseline, PaSCo, whose 30.11% is a subsidiary mIoU under its panoptic-mode evaluator and so not a like-for-like comparison; stacked with one S<sup>2</sup>D<sup>2</sup> refinement step it reaches <strong>32.88%</strong>. Applied as a secondary task to LiDAR-only BEV perception, S<sup>2</sup>D<sup>2</sup> reaches <strong>36.09%</strong> mIoU, <strong>9.06 points</strong> above the previous best dedicated 2D method. The 1-step real-time configuration runs at <strong>9.33&nbsp;FPS</strong> marginal cost on a contention-free H100 and still hits <strong>38.8%</strong> on test — beating TALoS by +0.9% in real time without TTA.
+        On the SemanticKITTI hidden test leaderboard, S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> mIoU under D<sub>4</sub> test-time augmentation and <strong>39.0%</strong> without — both establish the new LiDAR single-frame state of the art (+1.3% over TALoS, the previous best at 37.9%). The framework is also base-agnostic: applied without architectural change to three structurally different frozen base models, the identical recipe lifts <strong>LMSCNet</strong> from 12.10% to <strong>16.59%</strong> (<strong>+4.49&nbsp;pp</strong>), the point-voxel hybrid <strong>JS3C-Net</strong> from 22.73% to <strong>26.05%</strong> (<strong>+3.32&nbsp;pp</strong>, official <span class="mono">semantic-kitti-api</span> evaluator), and SCPNet from 36.17% to <strong>38.54%</strong> (<strong>+2.37&nbsp;pp</strong>) — direct evidence the refinement is a property of the framework, not of any specific base. The from-noise variant of S<sup>2</sup>D<sup>2</sup> (SGSC, conditioned on two streams — a BEV semantic map and per-voxel LSK3D features) reaches <strong>30.54%</strong> val mIoU without any 3D SSC base &mdash; matching PaSCo&rsquo;s 30.11% (0.43&nbsp;pp, within run-to-run variance), and not a like-for-like comparison since PaSCo&rsquo;s 30.11% is a subsidiary mIoU reported under its panoptic-mode evaluator; stacked with one S<sup>2</sup>D<sup>2</sup> refinement step it reaches <strong>32.88%</strong>. Applied as a secondary task to LiDAR-only BEV perception, S<sup>2</sup>D<sup>2</sup> reaches <strong>36.09%</strong> mIoU, <strong>9.06 points</strong> above the previous best dedicated 2D method. The 1-step real-time configuration runs at <strong>9.33&nbsp;FPS</strong> marginal cost on a contention-free H100 and still hits <strong>38.8%</strong> on test — beating TALoS by +0.9% in real time without TTA.
       </p>
     </div>
   </div>
@@ -193,7 +193,7 @@
       </picture>
     </div>
     <figcaption>
-      Two rare-class frames from SemanticKITTI val (seq 08): bicyclist (frame&nbsp;003096) and motorcyclist (frame&nbsp;001417). On the bicyclist row S<sup>2</sup>D<sup>2</sup> reaches <strong>56.9%</strong> IoU vs. SCPNet&rsquo;s 31.3% and TALoS&rsquo;s 33.0% (+894 true-positive voxels, &minus;1053 false positives); on the motorcyclist row <strong>62.4%</strong> vs. 33.0% / 30.0% with &asymp;6.6&times; fewer phantom voxels. JS3C-Net collapses on both rare classes (0.7% bicyclist, 0.0% motorcyclist). S<sup>2</sup>D<sup>2</sup> here is the test-server SOTA configuration (31K-MF + <em>D</em><sub>4</sub> TTA, <em>N</em>=4). Source: paper Fig.&nbsp;4.
+      Two rare-class frames from SemanticKITTI val (seq 08): bicyclist (frame&nbsp;003096) and motorcyclist (frame&nbsp;001417). On the bicyclist row S<sup>2</sup>D<sup>2</sup> reaches <strong>56.9%</strong> IoU vs. SCPNet&rsquo;s 31.3% and TALoS&rsquo;s 33.0% (+894 true-positive voxels, &minus;1053 false positives); on the motorcyclist row <strong>62.4%</strong> vs. 33.0% / 30.0% with &asymp;6.6&times; fewer phantom voxels. JS3C-Net collapses on both rare classes (0.7% bicyclist, 0.0% motorcyclist). S<sup>2</sup>D<sup>2</sup> here is the test-server SOTA configuration (PS<sup>3</sup>-augmented multi-frame + <em>D</em><sub>4</sub> TTA, <em>N</em>=4). Source: paper Fig.&nbsp;4.
     </figcaption>
   </figure>
 </section>
@@ -235,7 +235,7 @@
         The refiner reads in the frozen base model&rsquo;s output alongside a BEV semantic map and the raw LiDAR voxelization, then emits a corrected voxel grid.
       </p>
       <p>
-        Empirically base-agnostic across three structurally different frozen bases: <strong>LMSCNet</strong> (12.10 &rarr; <strong>16.59%</strong>, <strong>+4.49 pp</strong>), point-voxel hybrid <strong>JS3C-Net</strong> (22.73 &rarr; <strong>26.72%</strong>, <strong>+3.99 pp</strong>, under official <span class="mono">semantic-kitti-api</span>), and <strong>SCPNet</strong> (36.17 &rarr; <strong>38.54%</strong>, <strong>+2.37 pp</strong>) &mdash; same recipe, same hyperparameters, only the source changes.
+        Empirically base-agnostic across three structurally different frozen bases: <strong>LMSCNet</strong> (12.10 &rarr; <strong>16.59%</strong>, <strong>+4.49 pp</strong>), point-voxel hybrid <strong>JS3C-Net</strong> (22.73 &rarr; <strong>26.05%</strong>, <strong>+3.32 pp</strong>, under official <span class="mono">semantic-kitti-api</span>), and <strong>SCPNet</strong> (36.17 &rarr; <strong>38.54%</strong>, <strong>+2.37 pp</strong>) &mdash; same recipe, same hyperparameters, only the source changes.
       </p>
     </div>
   </div>
@@ -541,7 +541,7 @@
   <div class="table-card" id="framework-card">
     <div class="table-card__head">
       <h3>Beyond the headline: framework properties</h3>
-      <p>Two evidence axes that the gain is a property of the <em>framework</em>, not of any single frozen base. Numbers are val seq~08 mIoU under the configurations stated in the paper.</p>
+      <p>Two lines of evidence that the gain is a property of the <em>framework</em>, not of any single frozen base. Numbers are val seq~08 mIoU under the configurations stated in the paper.</p>
     </div>
     <div class="table-card__scroll" role="region"
          aria-label="Cross-base framework results table, scroll horizontally to view all columns" tabindex="0">
@@ -566,12 +566,13 @@
             <td class="th--num mono"><strong>+4.49</strong></td>
             <td class="th--center"><span class="mono">semantic-kitti-api</span></td>
           </tr>
+          <!-- USER: confirm JS3C public headline number; paper uses official 26.05/+3.32 (official semantic-kitti-api). The internal SSCMetrics + GT-BEV number is 26.72/+3.99 (footnote only); the deployable derived-BEV number is 24.32. -->
           <tr>
             <th scope="row">JS3C-Net</th>
             <td class="th--center">Point&nbsp;+&nbsp;voxel hybrid</td>
             <td class="th--num mono">22.73</td>
-            <td class="th--num mono"><strong>26.72</strong></td>
-            <td class="th--num mono"><strong>+3.99</strong></td>
+            <td class="th--num mono"><strong>26.05</strong></td>
+            <td class="th--num mono"><strong>+3.32</strong></td>
             <td class="th--center"><span class="mono">semantic-kitti-api</span></td>
           </tr>
           <tr>
@@ -587,13 +588,14 @@
     </div>
     <div class="table-card__foot">
       Same recipe, same hyperparameters, only the frozen base changes &mdash; consistent positive Δ across three structurally different families (dense 2D CNN, point&ndash;voxel hybrid, sparse 3D CNN).
+      <span class="safety-card__note">The JS3C-Net row reports the official <span class="mono">semantic-kitti-api</span> result (22.73&nbsp;&rarr;&nbsp;26.05, +3.32&nbsp;pp). Under our internal SSCMetrics evaluator with GT-derived BEV the same model reaches 26.72 (+3.99&nbsp;pp); the deployable derived-BEV configuration reaches 24.32.</span>
     </div>
   </div>
 
   <div class="table-card safety-card" id="from-noise-card">
     <div class="table-card__head">
       <h3>SGSC &mdash; from-noise SSC without any 3D SSC base</h3>
-      <p>S<sup>2</sup>D<sup>2</sup> with a <strong>uniform source</strong> (no base predictor; conditioning is LiDAR-only) reduces to a discrete diffusion model trained from noise. It still produces a usable scene in a small number of steps.</p>
+      <p>S<sup>2</sup>D<sup>2</sup> with a <strong>uniform source</strong> (no base predictor) reduces to a discrete diffusion model trained from noise, conditioned on <strong>two streams</strong> &mdash; a BEV semantic map (<em>B</em>) and per-voxel LSK3D features (<em>F</em>). It still produces a usable scene in a small number of steps.</p>
     </div>
     <div class="safety-card__grid">
       <div class="safety-stat"><span class="safety-stat__class">from-noise S<sup>2</sup>D<sup>2</sup> (standard SSC eval)</span><span class="safety-stat__delta">30.54</span></div>
@@ -601,8 +603,8 @@
       <div class="safety-stat"><span class="safety-stat__class">stacked: from-noise + S<sup>2</sup>D<sup>2</sup> refinement</span><span class="safety-stat__delta">32.88</span></div>
     </div>
     <div class="safety-card__foot">
-      Without using SCPNet or any of its three independently retrained reproductions, the from-noise variant reaches <strong>30.54%</strong> val mIoU; stacking one S<sup>2</sup>D<sup>2</sup> refinement step on top adds another <strong>+2.34&nbsp;pp</strong> to <strong>32.88%</strong> &mdash; a new SOTA among LiDAR SSC methods that do not depend on any SCPNet reproduction.
-      <span class="safety-card__note"><sup>†</sup> PaSCo&rsquo;s 30.11% is a subsidiary mIoU reported under its panoptic-mode (PSC) evaluator, not directly comparable to the standard SSC evaluator used for our 30.54%; we list it as the strongest non-SCPNet baseline rather than a like-for-like head-to-head.</span>
+      The from-noise variant reaches <strong>30.54%</strong> val mIoU, matching PaSCo&rsquo;s 30.11% (0.43&nbsp;pp, within run-to-run variance); stacking one S<sup>2</sup>D<sup>2</sup> refinement step on top adds another <strong>+2.34&nbsp;pp</strong> to <strong>32.88%</strong>.
+      <span class="safety-card__note"><sup>†</sup> PaSCo&rsquo;s 30.11% is a subsidiary mIoU reported under its panoptic-mode (PSC) evaluator, not directly comparable to the standard SSC evaluator used for our 30.54%, so this is not a like-for-like head-to-head.</span>
     </div>
   </div>
 
