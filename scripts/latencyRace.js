@@ -3,8 +3,8 @@
    SCPNet base | S²D² 1-step alone | SCPNet + S²D² (deployed)
                                    | 100-step diffusion alternative.
    Real contention-free H100 80GB measurements (Apr 2026 clean run):
-     SCPNet base full forward: 202.25 ms (4.94 FPS, std 7.57)
-     S²D² UNet 1 step:         107.09 ms (9.34 FPS, std 0.45)
+     SCPNet base full forward: 202.25 ms (4.95 FPS, std 7.57)
+     S²D² UNet 1 step:         107   ms (9.33 FPS marginal, std 0.45)
      S²D² 100-step:           10790    ms (~10.79 s, paper compute table)
    Bar width = LINEAR proportion to real latency; numeric readout =
    real measured ms. The PACING of the bar animation is log-warped

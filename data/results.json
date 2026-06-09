@@ -4,7 +4,6 @@
   { "method": "JS3C-Net",                             "mod": "L-SF", "mIoU": 23.8, "note": "test, joint seg+SSC",                           "best": false, "ours": false },
   { "method": "SCPNet (base)",                        "mod": "L-SF", "mIoU": 36.7, "note": "test, our spconv-v2 port matches paper",        "best": false, "ours": false },
   { "method": "TALoS (prior SOTA)",                   "mod": "L-SF", "mIoU": 37.9, "note": "test, line-of-sight TTA",                       "best": false, "ours": false, "note_inline": "TTA" },
-  { "method": "S²D² 1-step (real-time)",    "mod": "L-SF", "mIoU": 38.8, "note": "test, 9.33 FPS marginal, no TTA, no LoS",       "best": false, "ours": true,  "note_inline": "real-time" },
-  { "method": "S²D² plain N=4",             "mod": "L-SF", "mIoU": 39.0, "note": "test, no TTA — beats TALoS without TTA",        "best": false, "ours": true },
-  { "method": "S²D² + D₄ TTA (Ours)",  "mod": "L-SF", "mIoU": 39.2, "note": "test, +D₄ TTA — new SOTA (+1.3 over TALoS)", "best": true,  "ours": true,  "note_inline": "SOTA" }
+  { "method": "S²D² 1-step (real-time)",    "mod": "L-SF", "mIoU": 38.8, "note": "test, N=1 no TTA, 9.33 FPS marginal, no LoS — +0.9 over TALoS", "best": false, "ours": true,  "note_inline": "real-time" },
+  { "method": "S²D² + D₄ TTA (Ours)",  "mod": "L-SF", "mIoU": 39.2, "note": "test, +D₄ TTA — best to date (+1.3 over TALoS)", "best": true,  "ours": true,  "note_inline": "SOTA" }
 ]
