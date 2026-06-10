@@ -220,7 +220,7 @@ Then open <http://localhost:8000>. Any free port works; stop later with
 
 ```bibtex
 @article{chen2026gssc,
-  title   = {Generative Semantic Scene Completion},
+  title   = {Generative Semantic Scene Completion through Modeling the Underlying Geometry and Semantics in Point Clouds},
   author  = {Chen, Shi and Ge, Weifeng},
   journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence (under review)},
   year    = {2026}
