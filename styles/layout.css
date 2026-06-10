@@ -1206,9 +1206,9 @@ a.metric__label--link:focus-visible {
 }
 
 /* ---- (R7 minor) BibTeX long-line wrap ----
-   The journal line ("Submitted to IEEE Transactions on Pattern Analysis and
-   Machine Intelligence") overflows the code box (~772px line vs ~754px box at
-   desktop, worse on phones/tablets) and is only reachable by in-block
+   The journal line ("IEEE Transactions on Pattern Analysis and Machine
+   Intelligence (under review)") overflows the code box (~772px line vs ~754px
+   box at desktop, worse on phones/tablets) and is only reachable by in-block
    horizontal scroll. Switch to pre-wrap with overflow-wrap so that the one
    long value wraps while every other line keeps its canonical monospaced
    break. The Copy button still copies the unwrapped canonical textContent.

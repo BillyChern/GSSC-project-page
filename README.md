@@ -222,7 +222,7 @@ Then open <http://localhost:8000>. Any free port works; stop later with
 @article{chen2026gssc,
   title   = {Generative Semantic Scene Completion},
   author  = {Chen, Shi and Ge, Weifeng},
-  journal = {Submitted to IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence (under review)},
   year    = {2026}
 }
 ```
