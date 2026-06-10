@@ -881,6 +881,74 @@
   .check { min-height: 44px; }
 }
 
+/* =============================================================
+   NARROW-PHONE SEGMENTED-CONTROL FIXES (<=420px)
+   -------------------------------------------------------------
+   Two distinct defects collapse here on the smallest viewers:
+
+   (1) MAJOR — VIEW panel (.seg--stack). The base .seg__btn is a ROW
+       (align-items:center) with .seg__meta pushed to the far right via
+       margin-left:auto. The earlier mobile work only switched the
+       *scene* tabs (.seg:not(.seg--stack)) to a column; the stacked
+       VIEW rows kept the row intent and merely relied on flex-wrap +
+       margin-left:auto. Between 376-420px the long label
+       ('Sparse LiDAR input') and its meta ('~1% occupied') sit on one
+       cramped row — they overlap and the meta is clipped by the row's
+       bottom 1px divider (the <=375 clearance block doesn't reach here).
+       Fix: force a true column (dot+title on the first line, meta on its
+       own line below) with row spacing and bottom padding so the meta
+       always clears the divider. Overrides the <=880 margin-left:auto.
+
+   (2) MINOR — SCENE tabs (.seg:not(.seg--stack)). The frame-id hint
+       ('seq 08 · 003096') sits on its own line and, with only the flat
+       12px button padding next to the container's 8px rounded corner,
+       reads as flush against the card's right border with no gutter at
+       320-414px. Fix: widen the right padding so the hint keeps a clear
+       gutter from the rounded edge.
+
+   Both are scoped <=420px so the desktop / tablet layout is untouched. */
+@media (max-width: 420px) {
+  /* (1) Stacked VIEW rows: dot + title on the first line, meta below.
+     NOTE: components.css loads BEFORE layout.css, whose <=880px block sets
+     '.seg--stack .seg__meta { margin-left:auto }' (0,2,0). Media queries add
+     no specificity, so at equal specificity that later rule would win. We
+     chain '.seg.seg--stack ...' (0,3,0) here so these overrides beat the
+     layout.css row-era rules regardless of source order. */
+  .seg.seg--stack .seg__btn {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: center;
+    row-gap: 5px;
+    padding-top: 11px;
+    padding-bottom: 14px;   /* extra bottom pad so meta clears the 1px divider */
+    min-height: 64px;       /* floor only; long titles that wrap (<=375) grow past it */
+  }
+  /* Title takes the full first line (the colour dot keeps its inline flow
+     to the left of the text within that line). */
+  .seg.seg--stack .seg__main {
+    white-space: normal;
+    line-height: 1.3;
+    width: 100%;
+  }
+  /* Meta drops to its own line: cancel the row-era margin-left:auto and the
+     left padding so it left-aligns under the title with breathing room. */
+  .seg.seg--stack .seg__meta {
+    margin-left: 0;
+    padding-left: 0;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  /* (2) SCENE tabs: give the frame-id hint a right gutter so it never
+     touches the rounded container border (12px -> 16px). Chain both seg
+     classes negated for source-order safety vs. any later equal-specificity
+     rule. */
+  .seg:not(.seg--stack) .seg__btn {
+    padding-right: 16px;
+  }
+}
+
 /* NOTE: the mobile/tablet hamburger nav (.nav-toggle + .topnav__links
    dropdown panel) lives at the END of layout.css so its @media rules win
    over layout.css's base (non-media) .topnav__links display rule at equal
