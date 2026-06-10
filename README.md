@@ -36,7 +36,7 @@ A `.nojekyll` sentinel sits at the repo root so `assets/` is served as-is.
 | Method | Three plain-language cards + full pipeline figure + open-by-default "Architecture in detail" disclosure |
 | 3D Viewer | Interactive Three.js comparison across four views (sparse / SCPNet / S²D² / GT) on two rare-class frames |
 | Efficiency | Four-lane latency race with explicit log-warp disclosure (real H100 80 GB measurements) |
-| Results | Sortable test-set leaderboard table (LMSCNet → SSA-SC → JS3C-Net → SCPNet → TALoS → S²D² 1-step / plain N=4 / +D₄ TTA) plus per-class IoU table |
+| Results | Sortable test-set leaderboard table (LMSCNet → SSA-SC → JS3C-Net → SCPNet → TALoS → S²D² 1-step / +D₄ TTA) plus per-class IoU table |
 | BibTeX | Copy-to-clipboard citation block |
 
 ## Local preview
@@ -105,14 +105,14 @@ Remove the `aria-disabled` attribute and the tooltip `title` once the URL is liv
 
 ## Editing numbers
 
-- **Main comparison (test set)**: `data/results.json` — 8 rows, ordered by mIoU,
-  with `best:true` on the `S²D² + D₄ TTA` row and `ours:true` on all three of
-  our deployment configurations.
+- **Main comparison (test set)**: `data/results.json` — 7 rows, ordered by mIoU,
+  with `best:true` on the `S²D² + D₄ TTA` row and `ours:true` on both of our
+  deployment configurations (`S²D² 1-step` and `S²D² + D₄ TTA`).
 - **Per-class table (val set)**: `data/perclass.json` — SCPNet → S²D² val
   per-class IoUs with safety-class flags.
 - **Inference-race latencies**: the `LANES` object at the top of
   `scripts/latencyRace.js`. Real Apr-2026 contention-free H100 measurements:
-  SCPNet base 202 ms · S²D² 1-step 107 ms · 100-step 10 784 ms.
+  SCPNet base 202 ms · S²D² 1-step 107 ms · 100-step 10 790 ms.
 
 ## Speed-race time-warp disclosure
 

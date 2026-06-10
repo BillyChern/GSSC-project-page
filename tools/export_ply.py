@@ -25,7 +25,7 @@ import numpy as np
 # ----------------------------------------------------------------------
 # Config: paths + semantic color map (SemanticKITTI learning-map colours)
 # ----------------------------------------------------------------------
-DATA_ROOT   = Path("/workspace/Semantic_Scene_Completion_LiDAR/datasets")
+DATA_ROOT   = Path(os.environ.get("GSSC_DATA_ROOT", "./datasets"))
 SCPNET_ROOT = DATA_ROOT / "scpnet_predictions"
 GT_ROOT     = DATA_ROOT / "dataset_SemanticKITTI_SSC" / "sequences"
 OUT_DIR     = Path(__file__).resolve().parent.parent / "assets" / "ply"
