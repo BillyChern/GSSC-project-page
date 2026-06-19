@@ -244,11 +244,11 @@
          aria-label="Figure — scroll horizontally to view full diagram">
       <picture>
         <source type="image/webp" srcset="assets/figures/fig2_pipeline.webp" />
-        <img src="assets/figures/fig2_pipeline.png" alt="Two-stage pipeline. Stage A — Offline Data Augmentation (run once, pooled with real training): real GT scenes feed pyramid multinomial diffusion at S1=32²·4, S2=64²·8, S3=256²·32; a Velodyne HDL-64E Bresenham3D ray-tracer with 64×2048 rays converts each synthetic complete scene to a matching sparse input; a 57,789-instance / 8-rare-class object bank pastes rare-class instances on ground-level voxels. Stage B — S²D² Deployment (one forward pass on any test scan): a real sparse LiDAR scan is voxelized, passed through a frozen base SSC model (e.g. SCPNet, LMSCNet) to produce x_src, then refined by the S²D² denoiser f_θ — a dense 3D U-Net (Conv3d) with additive L/B conditioning + time-AdaGN modulation at every level — emitting x̂_0 in one Euler step." loading="lazy" width="1800" height="1204" />
+        <img src="assets/figures/fig2_pipeline.png" alt="Two-stage pipeline. Stage A — Offline Data Augmentation (run once, pooled with real training): real GT scenes feed pyramid multinomial diffusion at S1=32²·4, S2=64²·8, S3=256²·32; a 57,789-instance / 8-rare-class object bank pastes rare-class instances on ground-level voxels of each synthetic complete scene; a Velodyne HDL-64E Bresenham3D ray-tracer with 64×2048 rays then converts each enriched scene to a matching sparse input. Stage B — S²D² Deployment (one forward pass on any test scan): a real sparse LiDAR scan is voxelized, passed through a frozen base SSC model (e.g. SCPNet, LMSCNet) to produce x_src, then refined by the S²D² denoiser f_θ — a dense 3D U-Net (Conv3d) with additive L/B conditioning + time-AdaGN modulation at every level — emitting x̂_0 in one Euler step." loading="lazy" width="1800" height="1204" />
       </picture>
     </div>
     <figcaption>
-      <strong>Stage&nbsp;A &mdash; Offline data augmentation (run once).</strong> Pyramid multinomial diffusion synthesises complete scenes; an HDL-64E Bresenham3D ray-tracer (64&times;2048 rays) makes them sparse; a 57,789-instance / 8-rare-class object bank (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) enriches each scene. <strong>Stage&nbsp;B &mdash; S<sup>2</sup>D<sup>2</sup> deployment (one forward pass).</strong> A frozen base SSC model produces x<sub>src</sub>; a dense 3D U-Net (Conv3d) with additive L/B conditioning + time-AdaGN modulation refines it into x&#770;<sub>0</sub> in a single Euler step. No distillation. Source: paper Fig.&nbsp;2.
+      <strong>Stage&nbsp;A &mdash; Offline data augmentation (run once).</strong> Pyramid multinomial diffusion synthesises complete scenes; a 57,789-instance / 8-rare-class object bank (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) enriches each scene; then an HDL-64E Bresenham3D ray-tracer (64&times;2048 rays) makes them sparse. <strong>Stage&nbsp;B &mdash; S<sup>2</sup>D<sup>2</sup> deployment (one forward pass).</strong> A frozen base SSC model produces x<sub>src</sub>; a dense 3D U-Net (Conv3d) with additive L/B conditioning + time-AdaGN modulation refines it into x&#770;<sub>0</sub> in a single Euler step. No distillation. Source: paper Fig.&nbsp;2.
     </figcaption>
   </figure>
 
@@ -281,7 +281,7 @@
   <p class="section__eyebrow">Data side · co-equal contribution</p>
   <h2 class="section__title">A pyramid pipeline that turns long-tail scarcity into supervised pairs.</h2>
   <p class="section__lede">
-    SemanticKITTI puts more than 7,000&times; as many vegetation voxels in the training set as motorcyclist voxels. The model side cannot reweight its way out of that &mdash; the rare classes simply are not there to learn from. The data side runs offline, once, on top of the existing supervised set: pyramid discrete diffusion synthesises full complete scenes; a quality filter keeps the in-distribution half; an HDL-64E ray-tracer pairs each with a sparse input; a rare-class object bank fills the residual gaps. The result is an extra <strong>32,039</strong> labelled pairs that the rest of the system can train against without any change to the SSC pipeline.
+    SemanticKITTI puts more than 7,000&times; as many vegetation voxels in the training set as motorcyclist voxels. The model side cannot reweight its way out of that &mdash; the rare classes simply are not there to learn from. The data side runs offline, once, on top of the existing supervised set: pyramid discrete diffusion synthesises full complete scenes; a quality filter keeps the in-distribution half; a rare-class object bank fills the residual gaps; an HDL-64E ray-tracer then pairs each with a sparse input. The result is an extra <strong>32,039</strong> labelled pairs that the rest of the system can train against without any change to the SSC pipeline.
   </p>
 
   <figure class="figure-wide figure-wide--tight figure-wide--dense">
@@ -290,14 +290,14 @@
       <picture>
         <source type="image/webp" srcset="assets/figures/fig4_da_pipeline.webp" />
         <img src="assets/figures/fig4_da_pipeline.png"
-             alt="Three-stage offline data-augmentation pipeline. Stage 1 — Pyramid Discrete Diffusion: three cascaded multinomial diffusions at 32²×4 → 64²×8 → 256²×32, each conditioning on the upsampled output of the previous scale; the S₃ stage tiles into overlapping 136²×32 patches merged by majority vote, then a Jensen–Shannon divergence filter keeps the top half by class-distribution similarity to real scenes. Stage 2 — LiDAR Ray-Trace Resampling: a simulated Velodyne HDL-64E (64 beams × 2,048 azimuth bins = 131,072 rays per sweep, up to 2 returns per beam, σ_r = 3 cm range noise) traverses each synthetic complete scene via Bresenham-3D to produce the matching sparse input; the highlighted beam shows the first and second returns. Stage 3 — Object Bank Paste: 57,789 rare-class instances across 8 safety-critical classes (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) are pasted onto ground-level voxels of every synthetic scene. The final synthetic pool is 19,130 real + 32,039 synthetic = 51,169 training pairs, a 2.67× pool expansion."
+             alt="Three-stage offline data-augmentation pipeline. Stage 1 — Pyramid Discrete Diffusion: three cascaded multinomial diffusions at 32²×4 → 64²×8 → 256²×32, each conditioning on the upsampled output of the previous scale; the S₃ stage tiles into overlapping 136²×32 patches merged by majority vote, then a Jensen–Shannon divergence filter keeps the top half by class-distribution similarity to real scenes. Stage 2 — Object Bank Paste: 57,789 rare-class instances across 8 safety-critical classes (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) are pasted onto ground-level voxels of every synthetic scene. Stage 3 — LiDAR Ray-Trace Resampling: a simulated Velodyne HDL-64E (64 beams × 2,048 azimuth bins = 131,072 rays per sweep, up to 2 returns per beam, σ_r = 3 cm range noise) traverses each enriched synthetic complete scene via Bresenham-3D to produce the matching sparse input; the highlighted beam shows the first and second returns. The final synthetic pool is 19,130 real + 32,039 synthetic = 51,169 training pairs, a 2.67× pool expansion."
              loading="lazy" width="2000" height="2791" />
       </picture>
     </div>
     <figcaption>
       <strong>Stage&nbsp;1 &mdash; Pyramid Discrete Diffusion.</strong> Three cascaded multinomial diffusions at 32<sup>2</sup>&times;4 &rarr; 64<sup>2</sup>&times;8 &rarr; 256<sup>2</sup>&times;32, each conditioned on the upsampled prior scale; the 256<sup>2</sup>&times;32 stage tiles into 136<sup>2</sup>&times;32 patches merged by majority vote, then a Jensen&ndash;Shannon filter keeps the top half by class-distribution similarity to real scenes.
-      <strong>Stage&nbsp;2 &mdash; LiDAR Ray-Trace Resampling.</strong> A simulated Velodyne HDL-64E (64&thinsp;&times;&thinsp;2,048 = <strong>131,072</strong> rays per sweep, up to 2 returns per beam, &sigma;<sub><em>r</em></sub>=3&thinsp;cm) traverses each synthetic scene via Bresenham-3D to produce a matching sparse input.
-      <strong>Stage&nbsp;3 &mdash; Object Bank Paste.</strong> <strong>57,789</strong> rare-class instances across 8 safety-critical classes pasted onto ground-level voxels.
+      <strong>Stage&nbsp;2 &mdash; Object Bank Paste.</strong> <strong>57,789</strong> rare-class instances across 8 safety-critical classes pasted onto ground-level voxels.
+      <strong>Stage&nbsp;3 &mdash; LiDAR Ray-Trace Resampling.</strong> A simulated Velodyne HDL-64E (64&thinsp;&times;&thinsp;2,048 = <strong>131,072</strong> rays per sweep, up to 2 returns per beam, &sigma;<sub><em>r</em></sub>=3&thinsp;cm) traverses each enriched synthetic scene via Bresenham-3D to produce a matching sparse input.
       The final pool is <strong>19,130 + 32,039 = 51,169</strong> pairs (<strong>2.67&times;</strong>). Source: paper Fig.&nbsp;4.
     </figcaption>
   </figure>
@@ -314,22 +314,22 @@
     </div>
 
     <div class="method-card">
-      <h3 class="method-card__title"><span class="method-card__num">02</span> Match it to a real sensor</h3>
-      <p>
-        A simulated <strong>Velodyne HDL-64E</strong> ray-tracer fires 64&thinsp;&times;&thinsp;2,048 = <strong>131,072</strong> rays per sweep across every synthetic scene, with up to two returns per beam and &sigma;<sub><em>r</em></sub>&thinsp;=&thinsp;3&thinsp;cm range noise.
-      </p>
-      <p>
-        Bresenham-3D voxel traversal produces the matching <em>sparse</em> input <span style="font-family:var(--ff-mono); color:var(--c-ink);">X&#770;</span> at the same density real LiDAR would &mdash; so the synthetic pairs train and fail like real ones.
-      </p>
-    </div>
-
-    <div class="method-card">
-      <h3 class="method-card__title"><span class="method-card__num">03</span> Fill the rare tail</h3>
+      <h3 class="method-card__title"><span class="method-card__num">02</span> Fill the rare tail</h3>
       <p>
         A pre-built bank of <strong>57,789</strong> instances across 8 safety-critical rare classes (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) pastes onto ground-level voxels of every synthetic scene.
       </p>
       <p>
         Placement passes three legality checks: in-bounds within the 256<sup>2</sup>&times;32 grid, no-collision with existing non-empty voxels of a different class, and grounded on road / sidewalk / parking / terrain.
+      </p>
+    </div>
+
+    <div class="method-card">
+      <h3 class="method-card__title"><span class="method-card__num">03</span> Match it to a real sensor</h3>
+      <p>
+        A simulated <strong>Velodyne HDL-64E</strong> ray-tracer fires 64&thinsp;&times;&thinsp;2,048 = <strong>131,072</strong> rays per sweep across every enriched synthetic scene, with up to two returns per beam and &sigma;<sub><em>r</em></sub>&thinsp;=&thinsp;3&thinsp;cm range noise.
+      </p>
+      <p>
+        Bresenham-3D voxel traversal produces the matching <em>sparse</em> input <span style="font-family:var(--ff-mono); color:var(--c-ink);">X&#770;</span> at the same density real LiDAR would &mdash; so the synthetic pairs train and fail like real ones.
       </p>
     </div>
   </div>
