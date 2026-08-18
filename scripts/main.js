@@ -148,6 +148,34 @@
     });
   }
 
+  /* viewer3d.js is an ES module importing three.js from a CDN. If that fetch
+     fails -- CDN down, offline, a firewall -- the module never executes, boot()
+     never runs, and the stage sits on "Loading scene..." indefinitely with no
+     explanation. viewer3d.js cannot report this itself, because it is the thing
+     that did not load. main.js is a classic script and always runs, so the
+     watchdog belongs here. */
+  function viewerWatchdog() {
+    var stage = document.getElementById('viewer3d-stage');
+    var note = document.getElementById('viewer3d-loading');
+    if (!stage || !note) return;
+    setTimeout(function () {
+      if (stage.querySelector('canvas')) return;          // the viewer booted
+      if (note.classList.contains('viewer3d__fallback')) return;  // already explained
+      note.classList.remove('is-hidden');
+      note.classList.add('viewer3d__fallback');
+      while (note.firstChild) note.removeChild(note.firstChild);
+      var p = document.createElement('p');
+      p.className = 'viewer3d__fallback-text';
+      p.append('The 3D viewer could not load its library, so nothing is drawn. ');
+      var a = document.createElement('a');
+      a.href = '#teaser';
+      a.textContent = 'The same comparison is in the figure above.';
+      p.appendChild(a);
+      note.appendChild(p);
+    }, 8000);
+  }
+  viewerWatchdog();
+
   load('data/results.json', mainResults);
   load('data/perclass.json', perClass);
   bibtex();
