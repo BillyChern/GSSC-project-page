@@ -181,10 +181,13 @@ p code, li code { background: var(--ground-sunk); padding: 1px 4px; border-radiu
 /* viewer3d.js toggles these classes; the rules used to live in the stylesheets
    this file replaced, so without them the "Loading scene..." note never hid and
    the failure note rendered unstyled. */
-#viewer3d-loading.is-hidden { display: none; }
 #viewer3d-loading.viewer3d__fallback {
   display: block; max-width: 46ch; padding: var(--s-4);
 }
+/* Must come AFTER .viewer3d__fallback: equal specificity, so source order decides.
+   Without this, a fired watchdog left display:block and .is-hidden did not hide --
+   a working viewer kept a "could not load" notice above it. */
+#viewer3d-loading.is-hidden { display: none; }
 .viewer3d__fallback-text { margin: 0; color: #C9CDD2; font-size: var(--fs-small); line-height: 1.55; }
 .viewer3d__fallback-text a { color: #E8A05C; }
 .viewer-bar {

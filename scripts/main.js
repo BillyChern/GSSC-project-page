@@ -189,6 +189,15 @@
       if (note.classList.contains('viewer3d__fallback')) return;  // already explained
       note.classList.remove('is-hidden');
       note.classList.add('viewer3d__fallback');
+      /* The stage is one labelled image to assistive tech, and its label promises a
+         comparison. When the library never arrives no module code runs, so this is
+         the only place that can stop the promise being announced. */
+      if (stage.getAttribute('aria-label')) {
+        /* Preserve the truthful label so a late-arriving viewer can restore it. */
+        if (!stage.dataset.labelReady) stage.dataset.labelReady = stage.getAttribute('aria-label');
+        stage.setAttribute('aria-label', '3D comparison unavailable: the viewer library did not load. '
+          + 'The same comparison is in the qualitative figure above.');
+      }
       while (note.firstChild) note.removeChild(note.firstChild);
       var p = document.createElement('p');
       p.className = 'viewer3d__fallback-text';

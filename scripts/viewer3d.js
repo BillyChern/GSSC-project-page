@@ -80,6 +80,24 @@ const stage = document.getElementById('viewer3d-stage');
 const loadingEl = document.getElementById('viewer3d-loading');
 if (stage) boot();
 
+// The stage is exposed to assistive tech as a single labelled image. That label
+// promises a comparison, so on any failure it must be corrected -- otherwise a
+// screen reader announces a comparison that is not there. Captured once so the
+// truthful label can be restored when a later load succeeds.
+// Captured on FIRST OVERWRITE, not at module init: this module only initialises once
+// three.js resolves, which can be after main.js's watchdog has already replaced the
+// label. Whoever overwrites preserves the original, so the reader needs no timing luck.
+const LOADING_TEXT = 'Loading scene\u2026';  // literal: reading the DOM here can
+                                            // capture a watchdog message as the default
+function setStageLabel(text) {
+  if (!stage) return;
+  if (!stage.dataset.labelReady) stage.dataset.labelReady = stage.getAttribute('aria-label') || '';
+  stage.setAttribute('aria-label', text);
+}
+function restoreStageLabel() {
+  if (stage && stage.dataset.labelReady) stage.setAttribute('aria-label', stage.dataset.labelReady);
+}
+
 // (R5) No-WebGL fallback: if the browser cannot create a WebGL context the
 // spinner would otherwise spin forever. Replace the loading element with a
 // visible in-stage note that links to the static qualitative figure (the
@@ -92,6 +110,7 @@ function showNoWebGLFallback() {
   const note = document.createElement('p');
   note.className = 'viewer3d__fallback-text';
   note.append('Your browser could not start WebGL, so the interactive 3D viewer is unavailable. ');
+  setStageLabel('3D comparison unavailable: this browser could not start WebGL. The same comparison is in the qualitative figure above.');
   const link = document.createElement('a');
   link.href = '#teaser';
   link.textContent = 'View the static qualitative comparison instead.';
@@ -110,6 +129,7 @@ function showLoadFailure() {
   const note = document.createElement('p');
   note.className = 'viewer3d__fallback-text';
   note.append('This scene could not be loaded, so nothing is drawn rather than a stand-in. ');
+  setStageLabel('3D comparison unavailable: this scene could not be loaded. The same comparison is in the qualitative figure above.');
   const link = document.createElement('a');
   link.href = '#abstract';
   link.textContent = 'The static qualitative comparison is above.';
@@ -357,6 +377,15 @@ function boot() {
 
   function showLoading(v) {
     if (!loadingEl) return;
+    /* main.js runs an 8s watchdog for a three.js that never arrives. If it fires
+       and the library then loads late, its "could not load" note is FALSE and must
+       be retracted -- hiding is not enough, since .viewer3d__fallback sets display.
+       Restore the neutral label too, so the next scene switch has something to say. */
+    if (!v && loadingEl.classList.contains('viewer3d__fallback')) {
+      loadingEl.classList.remove('viewer3d__fallback');
+      loadingEl.textContent = LOADING_TEXT;
+      restoreStageLabel();
+    }
     loadingEl.classList.toggle('is-hidden', !v);
   }
 
