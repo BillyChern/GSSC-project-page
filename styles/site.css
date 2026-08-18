@@ -68,7 +68,7 @@ body[data-anon="true"] .identity-inline { display: none; }
 body:not([data-anon="true"]) .anon-inline { display: none; }
 body:not([data-anon="true"]) .anon-note { display: none; }
 .anon-note { margin: 0; font-size: var(--fs-affil); color: var(--muted); }
-.anon-ctl { margin: var(--s-4) 0 0; }
+.anon-ctl { margin: 0 0 var(--s-4); }  /* lives in the footer, not the author block */
 .anon-ctl .btn { font-size: var(--fs-micro); padding: 4px 10px; cursor: pointer; }
 
 /* ---- link row: the only button group on the page ---- */
