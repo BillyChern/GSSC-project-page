@@ -239,8 +239,15 @@ function boot() {
     // header and hands back a geometry with no vertices. Without this check the
     // stage showed a blank canvas and the readout below still printed per-scene
     // IoU numbers -- asserting a result for a scene that was never drawn.
-    if (!geometry.attributes.position || geometry.attributes.position.count === 0) {
-      console.error(`PLY ${url} parsed to zero vertices; treating as a load failure.`);
+    // A file whose header lies about its vertex count parses to a handful of
+    // points rather than zero, so a strict ==0 test let a two-voxel remnant render
+    // under the scene's real IoU numbers. The floor is set far below any genuine
+    // view: the sparsest shipped cloud (traffic_sparse) carries 1,767 vertices,
+    // so 64 cannot reject real data and cannot accept a corrupt remnant.
+    const MIN_VERTICES = 64;
+    const vertexCount = geometry.attributes.position ? geometry.attributes.position.count : 0;
+    if (vertexCount < MIN_VERTICES) {
+      console.error(`PLY ${url} parsed to ${vertexCount} vertices (floor ${MIN_VERTICES}); treating as a load failure.`);
       showLoadFailure();
       return;
     }
