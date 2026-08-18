@@ -68,6 +68,15 @@ assets/**/*.bak
 # dotdirs verbatim, so tracked .audit screenshots of superseded versions of the
 # page stay publicly fetchable long after the page itself has been corrected.
 .audit/
+# Anything appended AFTER an asset's real extension is scratch by construction
+# (fig4_da_pipeline.png.prePS3bak, *.webp.preOrderNeutral, *.svg.bak2, *.pdf.dybak).
+# A served asset's name ends at its extension, so this can never match one.
+assets/**/*.png.*
+assets/**/*.webp.*
+assets/**/*.jpg.*
+assets/**/*.svg.*
+assets/**/*.ply.*
+assets/**/*.pdf.*
 EOF
 fi
 
@@ -77,11 +86,31 @@ git rm -r --cached --ignore-unmatch \
   'assets/**/*_backup_*.png' 'assets/**/*_backup_*.pdf' \
   'assets/figures/*.pdf' 'assets/**/*.pdf' \
   'assets/**/*.prepatch.bak' 'assets/**/*.bak' \
+  'assets/**/*.png.*' 'assets/**/*.webp.*' 'assets/**/*.jpg.*' \
+  'assets/**/*.svg.*' 'assets/**/*.ply.*' 'assets/**/*.pdf.*' \
   '.audit' >/dev/null 2>&1 || true
 
 git add .
-git commit -m "${COMMIT_MSG:-Update project page}" || true
-git branch -M main
+# Distinguish "nothing staged" from a genuine commit failure: `|| true` hid both,
+# and then pushed whatever HEAD happened to be.
+if git diff --cached --quiet; then
+  echo "Nothing staged; pushing the existing HEAD."
+else
+  git commit -m "${COMMIT_MSG:-Update project page}"
+fi
+
+# `git branch -M main` force-renames, so running this from a feature branch in an
+# already-initialised repo would DISCARD the existing main. Refuse instead.
+current="$(git symbolic-ref --quiet --short HEAD || echo '')"
+if [[ "$current" != "main" ]]; then
+  if git show-ref --verify --quiet refs/heads/main; then
+    echo "On branch '$current' while 'main' already exists." >&2
+    echo "Refusing to force-rename onto it (that would discard main)." >&2
+    echo "Switch to main, or merge this branch into it, then re-run." >&2
+    exit 1
+  fi
+  git branch -m main
+fi
 
 if git remote | grep -q '^origin$'; then
   git remote set-url origin "$REMOTE"

@@ -34,3 +34,13 @@ assets/**/*.bak
 # the paper's predicate excludes -- were publicly fetchable at /.audit/*.png
 # after those claims had been removed from the page itself.
 .audit/
+
+# Anything appended AFTER an asset's real extension is scratch by construction
+# (fig4_da_pipeline.png.prePS3bak, *.webp.preOrderNeutral, *.svg.bak2, *.pdf.dybak).
+# A served asset's name ends at its extension, so this can never match one.
+assets/**/*.png.*
+assets/**/*.webp.*
+assets/**/*.jpg.*
+assets/**/*.svg.*
+assets/**/*.ply.*
+assets/**/*.pdf.*
