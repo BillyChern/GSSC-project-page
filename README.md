@@ -35,14 +35,22 @@ than recover it.
 **Zero-shot transfer:** the frozen SemanticKITTI checkpoint lifts the base on two unseen domains
 with no fine-tuning — SemanticPOSS mIoU 1.0 → 6.5 % and SSCBench-KITTI360 on completion IoU.
 
-## Live site
+## Publication status — read before deploying
 
-Served from GitHub Pages:
+**GitHub Pages is deliberately NOT enabled.** `tools/push_to_github.sh` carries the
+standing instruction: *"Do NOT enable GitHub Pages until the patents are filed."*
+The repository is private and `https://billychern.github.io/GSSC-project-page/`
+returns 404 by design, not by accident. The paper is also under review.
 
-- Production URL: <https://billychern.github.io/GSSC-project-page/>
-- Repository: <https://github.com/BillyChern/GSSC-project-page>
+Do not follow the deploy steps below until that hold is lifted by the author.
 
-A `.nojekyll` sentinel sits at the repo root so `assets/` is served as-is.
+- Repository: <https://github.com/BillyChern/GSSC-project-page> (private)
+- Intended URL once released: <https://billychern.github.io/GSSC-project-page/>
+
+A `.nojekyll` sentinel sits at the repo root so `assets/` is served as-is. Note the
+consequence: with Jekyll disabled, Pages serves dotdirs verbatim, so anything like
+`.audit/` that gets committed becomes publicly fetchable. It is gitignored for
+exactly that reason.
 
 ## What's on the page
 
@@ -137,6 +145,9 @@ returns 404, and the honest inert state is deliberate.
   motorcyclist, whose released +8.3 does not reproduce (retrain recovers +0.3).
 
 ## Deploying to GitHub Pages
+
+> **Gated.** See *Publication status* above: do not perform these steps
+> until the patent filing is complete and the author lifts the hold.
 
 1. Push this directory to the repo's default branch (`main`).
 2. Settings → Pages → Source = **Deploy from a branch**, branch = `main`, folder = `/ (root)`.

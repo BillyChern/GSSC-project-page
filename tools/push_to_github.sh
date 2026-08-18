@@ -15,6 +15,8 @@ if [[ $# -ne 1 ]]; then
   exit 1
 fi
 REMOTE="$1"
+# Override the commit subject for anything past the first push:
+#   COMMIT_MSG="..." ./tools/push_to_github.sh <remote>
 
 if [[ ! -f index.html ]]; then
   echo "Must be run from the s2d2_website/ root (index.html not found)" >&2
@@ -61,6 +63,11 @@ assets/figures/*.pdf
 assets/**/*.pdf
 assets/**/*.prepatch.bak
 assets/**/*.bak
+
+# Development render/audit scratch. Never deploy: .nojekyll makes Pages serve
+# dotdirs verbatim, so tracked .audit screenshots of superseded versions of the
+# page stay publicly fetchable long after the page itself has been corrected.
+.audit/
 EOF
 fi
 
@@ -69,10 +76,11 @@ fi
 git rm -r --cached --ignore-unmatch \
   'assets/**/*_backup_*.png' 'assets/**/*_backup_*.pdf' \
   'assets/figures/*.pdf' 'assets/**/*.pdf' \
-  'assets/**/*.prepatch.bak' 'assets/**/*.bak' >/dev/null 2>&1 || true
+  'assets/**/*.prepatch.bak' 'assets/**/*.bak' \
+  '.audit' >/dev/null 2>&1 || true
 
 git add .
-git commit -m "Initial project page scaffold with interactive 3D viewer" || true
+git commit -m "${COMMIT_MSG:-Update project page}" || true
 git branch -M main
 
 if git remote | grep -q '^origin$'; then
