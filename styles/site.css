@@ -81,6 +81,7 @@ a.btn:hover { border-color: var(--accent); color: var(--accent); text-decoration
 .btn[aria-disabled="true"] {
   color: var(--faint); border-style: dashed; cursor: default;
 }
+.btn[aria-disabled="true"]:hover { border-color: var(--rule-strong); }
 .links-note {
   margin: var(--s-3) 0 0; text-align: center;
   font-size: var(--fs-small); color: var(--muted);
