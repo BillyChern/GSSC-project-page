@@ -146,7 +146,10 @@ thead th {
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tbody tr.ours td { background: rgba(184, 92, 0, 0.045); }
 tbody tr.split th { background: var(--ground-sunk); font-weight: 600; padding-top: 10px; }
-tbody tr.excluded td { color: var(--muted); }
+/* Italic as well as grey: in forced-colors mode the muted colour is replaced by
+   the system foreground, and "outside the predicate" would otherwise be carried
+   by the Note text alone. Font style survives the override. */
+tbody tr.excluded td { color: var(--muted); font-style: italic; }
 td .best { font-weight: 600; }
 .pos { color: var(--pos); }
 .neg { color: var(--neg); }
@@ -234,4 +237,36 @@ footer p { margin: 0 0 var(--s-2); }
 /* No page motion by design. This only guards the viewer + native scroll. */
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+
+/* ---- print ----------------------------------------------------------------
+   An academic reader prints this. Without these rules the viewer printed as a
+   520px block of dark ink with its controls beside it, the UI-only buttons came
+   along, and external links lost their URLs. */
+@media print {
+  :root { --ground: #fff; }
+  body { color: #000; }
+
+  /* Interactive-only chrome: meaningless on paper. */
+  .viewer-shell, .viewer-legend, .anon-ctl, #bibtex-copy, .skip-link { display: none !important; }
+
+  /* Say why the viewer is absent rather than leaving a silent gap. */
+  #viewer::after {
+    content: "The interactive 3D comparison is not printable. The same comparison appears in the qualitative figure above.";
+    display: block; font-size: 10pt; font-style: italic; color: #444;
+  }
+
+  /* A printed link a reader cannot follow is a dead end. */
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; word-break: break-all; }
+
+  /* Keep tables and figures whole across page breaks. */
+  table, figure, .triptych { break-inside: avoid; page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  h2 { break-after: avoid; page-break-after: avoid; }
+
+  /* Ink economy and legibility on paper. */
+  .btn { border: 1px solid #999; }
+  tbody tr.ours td { background: transparent; box-shadow: inset 3px 0 0 #000; }
+  pre { border: 1px solid #999; background: transparent; }
 }
