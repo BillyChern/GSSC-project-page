@@ -283,6 +283,19 @@ function boot() {
     // completions, so the four views were not spatially comparable — which is the
     // whole point of holding the camera still across a switch.
     geometry.computeBoundingBox();
+    // A single NaN coordinate makes the bounding box non-finite, the centre NaN,
+    // and every vertex NaN once centred -- so the stage renders nothing while the
+    // readout below still prints the scene's real IoU numbers. Reject the geometry
+    // instead: an unusable extent is a load failure, not a scene.
+    const bb = geometry.boundingBox;
+    const finite = bb && [bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z]
+      .every(Number.isFinite);
+    if (!finite) {
+      console.error(`PLY ${url} has a non-finite bounding box (NaN or Infinity in the positions).`);
+      showLoadFailure();
+      return;
+    }
+
     let center = sceneCenters.get(sceneId);
     if (!center) {
       center = new THREE.Vector3();
