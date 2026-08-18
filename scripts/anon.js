@@ -16,7 +16,13 @@
     label.textContent = anon ? 'Show authors' : 'Hide authors';
   };
 
-  // Persist preference across reloads; default: anonymous.
+  // Persist preference across reloads. The DEFAULT IS REVEALED: index.html ships
+  // <body data-anon="false">, and this only overrides it when a preference is stored.
+  //
+  // SCOPE, so nobody mistakes this for blinding: it hides on-page text only. It cannot
+  // reach <meta og:url>/<meta og:image>, which hardcode billychern.github.io and are what
+  // a shared link previews, and it cannot change the hosting URL itself. A double-anonymous
+  // submission needs anonymous HOSTING, not this toggle.
   try {
     const stored = localStorage.getItem('s2d2-anon');
     if (stored !== null) setMode(stored === 'true');

@@ -245,12 +245,9 @@ def main() -> None:
             if pts.size == 0:
                 print(f"  [skip] {view}: empty grid")
                 continue
-            out_name = f"{friendly if friendly != 'traffic' else 'traffic'}_{view}.ply"
-            # Keep the file name scheme used in scripts/viewer3d.js
-            if friendly == "traffic":
-                out_name = f"traffic_{view}.ply"
-            elif friendly == "bicyclist":
-                out_name = f"bicyclist_{view}.ply"
+            # Name scheme used by scripts/viewer3d.js. (This was three branches that all
+            # produced the same string, one of them for a 'traffic' scene no longer in FRAMES.)
+            out_name = f"{friendly}_{view}.ply"
             write_ply(OUT_DIR / out_name, pts, cols)
 
 

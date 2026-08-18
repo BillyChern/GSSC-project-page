@@ -262,7 +262,7 @@ function boot() {
     // A file whose header lies about its vertex count parses to a handful of
     // points rather than zero, so a strict ==0 test let a two-voxel remnant render
     // under the scene's real IoU numbers. The floor is set far below any genuine
-    // view: the sparsest shipped cloud (traffic_sparse) carries 1,767 vertices,
+    // view: the sparsest shipped cloud (motorcyclist_sparse) carries 1,821 vertices,
     // so 64 cannot reject real data and cannot accept a corrupt remnant.
     const MIN_VERTICES = 64;
     const vertexCount = geometry.attributes.position ? geometry.attributes.position.count : 0;
