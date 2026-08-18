@@ -205,8 +205,13 @@ function boot() {
   const loader = new PLYLoader();
 
   const sceneCenters = new Map();
+  /* Every load takes a ticket. A switch made while a fetch is in flight bumps the
+     counter, so the slower request discards its own result instead of painting a
+     scene the controls no longer claim. */
+  let loadGeneration = 0;
 
   async function loadAndShow(sceneId, viewId) {
+    const myGeneration = ++loadGeneration;
     currentScene = sceneId;
     currentView  = viewId;
     const url = SCENES[sceneId].plys[viewId];
@@ -227,6 +232,8 @@ function boot() {
       showLoadFailure();
       return;   // draw nothing; rethrowing left an unhandled rejection
     }
+
+    if (myGeneration !== loadGeneration) return;   // superseded while fetching
 
     // A truncated or empty PLY does NOT make the loader reject: it parses the
     // header and hands back a geometry with no vertices. Without this check the

@@ -43,7 +43,12 @@
     rows.forEach(function (r) {
       /* The paper bolds best-per-column WITHIN a split, so the splits are
          separated and each carries its own maximum. */
-      if (r.eval !== split) {
+      /* Only emit a split header for a split the data actually declares. A row
+         missing `eval` used to fall through to the else-branch and get stamped
+         "Validation (sequence 08)", labelling rows with a split they never
+         claimed. */
+      var known = (r.eval === 'test' || r.eval === 'val');
+      if (known && r.eval !== split) {
         split = r.eval;
         var sep = el('tr', 'split');
         var sth = el('th', null, split === 'test' ? 'SemanticKITTI hidden test' : 'Validation (sequence 08)');
