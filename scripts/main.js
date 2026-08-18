@@ -139,6 +139,7 @@
     /* Hide the control where the API does not exist rather than leaving a button
        that silently does nothing. */
     if (!navigator.clipboard) { btn.hidden = true; return; }
+    btn.hidden = false;   // ships hidden so JS-off readers are not offered a dead control
     btn.addEventListener('click', function () {
       navigator.clipboard.writeText(code.textContent).then(function () {
         label.textContent = 'Copied';

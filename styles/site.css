@@ -188,6 +188,12 @@ p code, li code { background: var(--ground-sunk); padding: 1px 4px; border-radiu
    Without this, a fired watchdog left display:block and .is-hidden did not hide --
    a working viewer kept a "could not load" notice above it. */
 #viewer3d-loading.is-hidden { display: none; }
+/* No JS means no watchdog to retract a stale "Loading scene..."; the .nojs-note
+   beside it carries the truth. `.js` is set by an inline script in <head>, so this
+   never flashes when JS is on. Specificity (1,1,1) deliberately outranks the
+   .viewer3d__fallback rule above. */
+html:not(.js) #viewer3d-loading { display: none; }
+#bibtex-copy[hidden] { display: none; }  /* .btn's display would otherwise win */
 .viewer3d__fallback-text { margin: 0; color: #C9CDD2; font-size: var(--fs-small); line-height: 1.55; }
 .viewer3d__fallback-text a { color: #E8A05C; }
 .viewer-bar {
@@ -200,7 +206,10 @@ p code, li code { background: var(--ground-sunk); padding: 1px 4px; border-radiu
 /* The readout ships with empty placeholder spans; show it only once filled, so a
    degraded path renders nothing rather than stray punctuation. */
 #viewer3d-stat-row:not([data-ready]) { display: none; }
-.seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 3px; }
+/* wrap: the four-button View control is wider than a 375px bar once a reader sets a
+   large minimum font size, and it was the one child of .viewer-bar that could not
+   break -- "Ground truth" fell off the edge. Inert at normal sizes. */
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule-strong); border-radius: 3px; }
 /* No overflow:hidden here: it clipped the 2px-offset focus ring on every button
    inside, leaving keyboard users with no visible focus. Round the ends instead. */
 .seg button:first-child { border-radius: 2px 0 0 2px; }
