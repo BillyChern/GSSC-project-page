@@ -11,7 +11,7 @@ import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 // SemanticKITTI palette — must stay in lockstep with tools/export_ply.py
 // CLASS_RGB. Key = class_id, value = RGB triplet in [0, 255].
 const CLASS_RGB_LUT = {
-   1: [100, 150, 245],   2: [100, 230, 245],   3: [255,   0, 255],
+   1: [100, 150, 245],   2: [100, 230, 245],   3: [ 30,  60, 150],
    4: [ 80,  30, 180],   5: [  0,   0, 255],   6: [255,  30,  30],
    7: [255,  40, 200],   8: [150,  30,  90],   9: [255,   0, 255],
   10: [255, 150, 255],  11: [ 75,   0,  75],  12: [175,   0,  75],
@@ -30,12 +30,20 @@ const RARE_CLASSES = new Set([2, 3, 5, 6, 7, 8, 18, 19]);
 
 // Walk a float32 [n*3] colour buffer and produce a Uint8Array flag per
 // instance: 1 if the voxel's colour maps to a rare class, else 0.
+/* three's PLYLoader calls convertSRGBToLinear() on vertex colours, so the buffer
+   is linear-light while CLASS_RGB_LUT is sRGB 0-255. Without undoing the transfer
+   the reverse lookup matched only the classes whose channels are all 0 or 255 --
+   17 of 19 missed, which is why "Highlight rare classes" appeared to do nothing. */
+function linearToSRGB(c) {
+  return c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+}
+
 function computeRareMask(colors, n) {
   const mask = new Uint8Array(n);
   for (let i = 0; i < n; i++) {
-    const r = Math.round(colors[3 * i    ] * 255);
-    const g = Math.round(colors[3 * i + 1] * 255);
-    const b = Math.round(colors[3 * i + 2] * 255);
+    const r = Math.round(linearToSRGB(colors[3 * i    ]) * 255);
+    const g = Math.round(linearToSRGB(colors[3 * i + 1]) * 255);
+    const b = Math.round(linearToSRGB(colors[3 * i + 2]) * 255);
     const cls = RGB_TO_CLASS[r + ',' + g + ',' + b];
     mask[i] = cls !== undefined && RARE_CLASSES.has(cls) ? 1 : 0;
   }

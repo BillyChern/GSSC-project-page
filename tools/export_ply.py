@@ -36,7 +36,9 @@ CLASS_RGB: dict[int, tuple[int, int, int]] = {
     0:  (  0,   0,   0),   # unlabeled (skipped)
     1:  (100, 150, 245),   # car
     2:  (100, 230, 245),   # bicycle
-    3:  (255,   0, 255),   # motorcycle
+    3:  ( 30,  60, 150),   # motorcycle  (official semantic-kitti.yaml; previously
+                          #  duplicated road's magenta, making the two classes
+                          #  indistinguishable in every exported PLY)
     4:  ( 80,  30, 180),   # truck
     5:  (  0,   0, 255),   # other-vehicle
     6:  (255,  30,  30),   # person
