@@ -1,88 +1,67 @@
 /* =============================================================
-   DESIGN TOKENS — dark editorial science
-   Deep ink background, orange accent from the paper, serif display,
-   technical monospace for code and numerals.
+   DESIGN TOKENS
+
+   Calibrated against 30 accepted-paper project pages (Nerfies,
+   Zip-NeRF, mip-NeRF 360, 3DGS, instant-ngp, DreamFusion) and 11
+   from this subfield (PaSCo, MonoScene, SceneRF, LiDPM, SemCity,
+   TPVFormer, OccWorld, SelfOcc, SurroundOcc, Occ3D, XCube).
+
+   Measured norms those pages share, which this file encodes:
+     ground   #ffffff on 19 of 19
+     text     dark grey, never black (#4a4a4a / #333 / #2f2f2f)
+     accent   exactly ONE, links only; 3-9 total colours per page
+     type     one humanist sans, 15-17px, weights 300-600, never 700+
+     measure  prose 636-768px, media 960-1140px -- width IS the hierarchy
+     motion   zero @keyframes across all 30; motion is result video only
+
+   The accent is the paper's own figure orange (#C05A00) darkened to
+   #B85C00 to clear AA on white, so page and PDF share one hue.
    ============================================================= */
 
 :root {
-  /* Color — backgrounds */
-  --c-bg:            #0B0E14;   /* deep ink */
-  --c-bg-elev:       #141A24;   /* cards, table rows */
-  --c-bg-elev-2:     #1C2431;   /* raised controls */
-  --c-bg-faint:      rgba(234, 237, 243, 0.04);
+  /* Ground. One surface. No tinted bands, no alternating sections. */
+  --ground:        #FFFFFF;
+  --ground-sunk:   #F7F7F6;   /* BibTeX block and table head only */
 
-  /* Color — ink (text on dark) */
-  --c-ink:           #EAEDF3;
-  --c-ink-mute:      #A9B1BE;
-  /* WCAG: lifted from #6B7487 (4.07:1) to #828B9D (~5.0:1 vs #0B0E14)
-     so the eyebrow / metric-label / footer-ack microtype passes AA
-     for normal text instead of only AA-large. */
-  --c-ink-dim:       #828B9D;
+  /* Ink */
+  --text:          #2E3338;
+  --muted:         #6B7280;
+  --faint:         #9AA1AB;
 
-  /* Color — accents */
-  --c-accent:        #F19340;   /* S²D² signature orange, brighter for dark */
-  --c-accent-deep:   #C05A00;   /* paper's PDF orange */
-  --c-accent-bg:     rgba(241, 147, 64, 0.08);
+  /* The single accent. Links, and nothing else. */
+  --accent:        #B85C00;
+  --accent-hover:  #8C4600;
 
-  --c-navy:          #6BA8FF;   /* cool complement */
-  --c-navy-bg:       rgba(107, 168, 255, 0.08);
+  /* Rules */
+  --rule:          #E3E5E8;
+  --rule-strong:   #C9CDD2;
 
-  --c-green:         #8BCFA8;
-  --c-red:           #E87A7A;
-  --c-gold:          #E6C67A;
+  /* Semantic. Tables and the viewer legend only. */
+  --pos:           #1F7A4D;
+  --neg:           #A33A3A;
 
-  /* Lines, rules */
-  --c-line:          rgba(234, 237, 243, 0.08);
-  --c-line-strong:   rgba(234, 237, 243, 0.16);
+  /* Type: one family, three weights. Mono from the system stack. */
+  --ff-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+             Helvetica, Arial, sans-serif;
+  --ff-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* Typography */
-  --ff-display:      'Instrument Serif', 'Iowan Old Style', 'Palatino', Georgia, serif;
-  --ff-sans:         'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif;
-  --ff-mono:         'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  /* Fixed sizes -- the corpus uses fixed sizes and two breakpoints, no clamp() */
+  --fs-micro:   0.844rem;   /* 13.5px  footer, bibtex */
+  --fs-small:   0.906rem;   /* 14.5px  captions, notes, table cells */
+  --fs-affil:   0.938rem;   /* 15px    affiliation */
+  --fs-body:    1rem;       /* 16px    body */
+  --fs-venue:   1.063rem;   /* 17px    venue line */
+  --fs-author:  1.125rem;   /* 18px    author run */
+  --fs-h3:      1.25rem;    /* 20px */
+  --fs-h2:      1.75rem;    /* 28px */
+  --fs-h1:      2.5rem;     /* 40px */
 
-  /* Type scale */
-  --fs-xs:       0.78rem;
-  --fs-sm:       0.88rem;
-  --fs-base:     1.00rem;
-  --fs-md:       1.14rem;
-  --fs-lg:       1.35rem;
-  --fs-xl:       1.75rem;
-  --fs-2xl:      2.4rem;
-  --fs-3xl:      3.6rem;
-  --fs-4xl:      5.6rem;
+  /* Measure. Two widths do all the layout work. */
+  --w-prose:   760px;
+  --w-media:  1040px;
+  --w-page:   1180px;
 
-  /* Spacing scale (4px base) */
-  --s-1:   4px;
-  --s-2:   8px;
-  --s-3:   12px;
-  --s-4:   16px;
-  --s-5:   24px;
-  --s-6:   32px;
-  --s-7:   48px;
-  --s-8:   64px;
-  --s-9:   96px;
-  --s-10:  128px;
-
-  /* Layout */
-  --container:           1180px;
-  --container-narrow:    820px;
-  --container-wide:      1400px;
-  --radius-sm:           4px;
-  --radius:              8px;
-  --radius-lg:           14px;
-
-  /* Motion */
-  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-fast:      160ms;
-  --dur:           320ms;
-  --dur-slow:      620ms;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --dur-fast: 0ms;
-    --dur: 0ms;
-    --dur-slow: 0ms;
-  }
+  /* Spacing */
+  --s-1:  4px;  --s-2:  8px;  --s-3: 12px;  --s-4: 16px;
+  --s-5: 24px;  --s-6: 32px;  --s-7: 48px;  --s-8: 72px;
 }

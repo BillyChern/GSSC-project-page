@@ -58,7 +58,7 @@ const SCENES = {
   },
   'motorcyclist': {
     label: 'Motorcyclist — SemanticKITTI seq 08 · frame 001417',
-    stats: { scp: 33.0, ours: 62.4, delta: '+29.4', klass: 'motorcyclist IoU' },
+    stats: { scp: 33.0, ours: 62.3, delta: '+29.3', klass: 'motorcyclist IoU' },
     plys: {
       'sparse': 'assets/ply/motorcyclist_sparse.ply',
       'scpnet': 'assets/ply/motorcyclist_scpnet.ply',

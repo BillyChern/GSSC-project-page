@@ -1,0 +1,211 @@
+/* =============================================================
+   S2D2 project page.
+   One centred column. Two measures. No motion.
+   Replaces base.css + layout.css + components.css.
+   ============================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-size: 100%; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--ff-body);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---- links: the only accent on the page ---- */
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { color: var(--accent-hover); text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.skip-link {
+  position: absolute; left: -9999px; top: 0;
+  background: var(--ground); color: var(--accent);
+  padding: var(--s-3) var(--s-4); z-index: 10;
+}
+.skip-link:focus { left: 0; }
+
+/* ---- the two measures ---- */
+.prose { max-width: var(--w-prose); margin-inline: auto; padding-inline: var(--s-5); }
+/* A lede sitting above a table aligns with that table's left edge rather than
+   being centred, so the eye reads one column. The Abstract keeps the centred
+   narrow measure, which is what the corpus does for the abstract specifically. */
+.media > .lede { max-width: var(--w-prose); margin: 0 0 var(--s-4); }
+.media { max-width: var(--w-media); margin-inline: auto; padding-inline: var(--s-5); }
+
+/* ---- header block ---- */
+.head { padding: var(--s-8) 0 var(--s-6); text-align: center; }
+.head h1 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--fs-h1); font-weight: 500; line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.head .venue {
+  margin: 0 0 var(--s-5);
+  font-size: var(--fs-venue); color: var(--muted); font-weight: 400;
+}
+.head .authors {
+  margin: 0 0 var(--s-2);
+  font-size: var(--fs-author); line-height: 1.5;
+}
+.head .affil, .head .corr {
+  margin: 0; font-size: var(--fs-affil); color: var(--muted); line-height: 1.5;
+}
+.head sup { font-size: 0.72em; }
+
+/* Anonymity for double-blind review. anon.js flips body[data-anon];
+   the page ships ANONYMOUS by default, matching the prior site's behaviour. */
+body[data-anon="true"] .identity { display: none; }
+body:not([data-anon="true"]) .anon-note { display: none; }
+.anon-note { margin: 0; font-size: var(--fs-affil); color: var(--muted); }
+.anon-ctl { margin: var(--s-4) 0 0; }
+.anon-ctl .btn { font-size: var(--fs-micro); padding: 4px 10px; cursor: pointer; }
+
+/* ---- link row: the only button group on the page ---- */
+.links {
+  display: flex; flex-wrap: wrap; gap: var(--s-3);
+  justify-content: center; margin: var(--s-6) 0 var(--s-2);
+}
+.btn {
+  display: inline-block; padding: 7px 16px;
+  border: 1px solid var(--rule-strong); border-radius: 3px;
+  font-size: var(--fs-small); color: var(--text); background: var(--ground);
+}
+a.btn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.btn[aria-disabled="true"] {
+  color: var(--faint); border-style: dashed; cursor: default;
+}
+.links-note {
+  margin: var(--s-3) 0 0; text-align: center;
+  font-size: var(--fs-small); color: var(--muted);
+}
+
+/* ---- sections: one plain noun heading, no eyebrow, no rule ---- */
+section { padding: var(--s-7) 0; }
+h2 {
+  margin: 0 0 var(--s-4);
+  font-size: var(--fs-h2); font-weight: 500; line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+h3 {
+  margin: var(--s-6) 0 var(--s-3);
+  font-size: var(--fs-h3); font-weight: 500; line-height: 1.3;
+}
+p { margin: 0 0 var(--s-4); }
+.abstract p { text-align: justify; hyphens: auto; line-height: 1.65; }
+.note { font-size: var(--fs-small); color: var(--muted); line-height: 1.55; }
+
+/* ---- figures: media measure, caption at prose size ---- */
+figure { margin: 0 0 var(--s-6); }
+figure img { display: block; width: 100%; height: auto; }
+figcaption {
+  margin-top: var(--s-3);
+  font-size: var(--fs-small); color: var(--muted); line-height: 1.55;
+}
+figcaption strong { color: var(--text); font-weight: 600; }
+
+.triptych { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
+.triptych .panel { margin: var(--s-2) 0 0; font-size: var(--fs-small); color: var(--muted); text-align: center; }
+@media (max-width: 700px) { .triptych { grid-template-columns: 1fr; } }
+
+/* wide diagrams scroll rather than shrink below the legibility floor */
+.scrollable { overflow-x: auto; }
+.scrollable img { min-width: 680px; }
+
+/* ---- tables: the paper's tables, not a dashboard ---- */
+.table-wrap { overflow-x: auto; margin-bottom: var(--s-3); }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: var(--fs-small); font-variant-numeric: tabular-nums;
+}
+caption { text-align: left; }
+th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--rule); }
+thead th {
+  font-weight: 600; background: var(--ground-sunk);
+  border-bottom: 1px solid var(--rule-strong); white-space: nowrap;
+}
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr.ours td { background: rgba(184, 92, 0, 0.045); }
+tbody tr.excluded td { color: var(--muted); }
+td .best { font-weight: 600; }
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+.disclaimed { text-decoration: line-through; text-decoration-thickness: 1px; }
+
+/* ---- BibTeX ---- */
+pre {
+  margin: 0; padding: var(--s-4);
+  background: var(--ground-sunk); border: 1px solid var(--rule);
+  border-radius: 3px; overflow-x: auto;
+}
+code { font-family: var(--ff-mono); font-size: var(--fs-micro); line-height: 1.5; }
+p code, li code { background: var(--ground-sunk); padding: 1px 4px; border-radius: 2px; }
+
+/* ---- viewer ---- */
+.viewer-shell {
+  border: 1px solid var(--rule); border-radius: 3px; overflow: hidden;
+  background: #101216;
+}
+/* viewer3d.js injects its own canvas and calls renderer.setSize(stage.clientWidth,
+   stage.clientHeight), so the STAGE must carry a fixed height. Leaving it
+   content-sized makes canvas and stage grow off each other without bound. */
+#viewer3d-stage { position: relative; height: 520px; }
+#viewer3d-stage canvas { display: block; width: 100%; height: 100%; }
+#viewer3d-loading { position: absolute; left: 0; top: 0; color: #C9CDD2; }
+.viewer-bar {
+  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4);
+  align-items: center; padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--rule); background: var(--ground);
+}
+.viewer-bar .group { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; }
+.viewer-bar label { font-size: var(--fs-small); color: var(--muted); }
+.seg {
+  display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 3px;
+  overflow: hidden;
+}
+.seg button {
+  font: inherit; font-size: var(--fs-small); padding: 5px 12px;
+  background: var(--ground); color: var(--text);
+  border: 0; border-right: 1px solid var(--rule-strong); cursor: pointer;
+}
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--text); color: var(--ground); }
+.viewer-legend {
+  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4);
+  font-size: var(--fs-micro); color: var(--muted); margin-top: var(--s-3);
+}
+.swatch {
+  display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  margin-right: 5px; vertical-align: baseline;
+}
+
+/* ---- footer ---- */
+footer {
+  margin-top: var(--s-7); padding: var(--s-6) 0 var(--s-8);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-micro); color: var(--muted);
+}
+footer p { margin: 0 0 var(--s-2); }
+
+/* ---- two breakpoints, as the corpus does ---- */
+@media (max-width: 900px) {
+  :root { --fs-h1: 2rem; --fs-h2: 1.5rem; }
+  .head { padding-top: var(--s-7); }
+  #viewer3d-stage { height: 400px; }
+}
+@media (max-width: 560px) {
+  :root { --fs-h1: 1.75rem; }
+  .prose, .media { padding-inline: var(--s-4); }
+  #viewer3d-stage { height: 320px; }
+}
+
+/* No page motion by design. This only guards the viewer + native scroll. */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

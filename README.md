@@ -7,15 +7,30 @@ The page is centred on **S²D²** (Structured Source Discrete Diffusion),
 a one-step refiner that lifts any base SSC model by learning a correction
 on the discrete probability simplex.
 
-**Headline numbers (SemanticKITTI hidden test leaderboard, single-frame single-sample):**
+**Headline numbers (SemanticKITTI hidden test).** Every number below is indexed on the
+paper's predicate — *causal, single-sweep, single-sample*: one sweep, no future moments, no
+ensembling.
 
-- **39.2 %** mIoU with $D_4$ test-time augmentation — to our knowledge **the best single-frame single-sample result on the leaderboard to date**, +1.3 % over the previous best (TALoS, 37.9 %), which had held the leaderboard for ~2 years.
-- **38.8 %** mIoU at the **1-step real-time** configuration ($N{=}1$, no TTA; 107 ms / 9.33 FPS marginal cost on H100), still +0.9 % over TALoS at no test-time-augmentation cost.
-- **+2.37 pp** mIoU added by S²D² on top of the frozen SCPNet base — S²D² is base-agnostic (it likewise lifts JS3C-Net by +3.3 and LMSCNet by +1.8); we report on the SCPNet base for an apples-to-apples comparison with TALoS.
+- **38.8 %** mIoU at one step ($N{=}1$) with **no test-time augmentation** — to our knowledge the
+  best *causal, single-sweep, single-sample* result on the SemanticKITTI hidden test, **+2.1 pp**
+  over the previous best published score (SCPNet, 36.7 %).
+- **39.2 %** with four correction steps and an eight-view $D_4$ ensemble. This row is **excluded
+  by the predicate** and is not the headline.
+- Excluded for the same reason, and not comparable to ours: TALoS (37.9 %, test-time adaptation)
+  and SCPNet at four sweeps (47.5 %).
+- **+2.36 pp** added on top of the frozen SCPNet base on validation (36.17 → 38.54 %). The
+  operator is base-agnostic: it also lifts JS3C-Net (22.7 → 24.3, +1.6) and LMSCNet (+1.8).
 
-**Validation set:** 38.54 % mIoU (+2.37 over the SCPNet port at 36.17 %).
-**LiDAR-only BEV (secondary task):** 36.1 % mIoU, +9.1 over the previous best dedicated 2D method.
-**Zero-shot transfer:** the frozen SemanticKITTI checkpoint also lifts the base on two unseen domains (no fine-tuning) — SemanticPOSS +5.5 mIoU and SSCBench-KITTI360 +1.4 completion-IoU.
+**Honesty notes carried from the paper.** We do not lead on safety — S3CNet, not us, takes the
+vulnerable-road-user column (VRU-IoU 32.6 against our 21.6). The largest single-class gain
+(motorcyclist, +8.3) **does not reproduce**: an independent from-scratch retrain recovers +0.3, so
+the paper does not claim it and neither does this page. Latency is not repaid: the correction pass
+costs 107 ms, dropping the deployed base-plus-refiner pipeline to 3.23 FPS end-to-end on an idle
+H100 against the frozen base's 4.95. On a weaker base the refiner can *erase* a rare class rather
+than recover it.
+
+**Zero-shot transfer:** the frozen SemanticKITTI checkpoint lifts the base on two unseen domains
+with no fine-tuning — SemanticPOSS mIoU 1.0 → 6.5 % and SSCBench-KITTI360 on completion IoU.
 
 ## Live site
 
@@ -28,16 +43,27 @@ A `.nojekyll` sentinel sits at the repo root so `assets/` is served as-is.
 
 ## What's on the page
 
+Structure and styling follow the conventions measured across 30 accepted-paper project pages,
+including 11 from this subfield (PaSCo, MonoScene, SceneRF, LiDPM, SemCity, TPVFormer, OccWorld,
+SelfOcc, SurroundOcc, Occ3D, XCube): white ground, one accent used only for links, a single
+humanist sans at 16 px, one centred column with prose at 760 px inside media at 1040 px, plain
+noun headings, and no page animation — motion belongs to results, not to chrome.
+
 | Section | What it shows |
 |---|---|
-| Hero | Title, abstract lede, four headline metrics (39.2 %, +1.3 over TALoS, 107 ms, 1 step), live 3D preview of an S²D² prediction (seq 08 frame 003096) |
-| Abstract | Two-paragraph summary leading with the test SOTA story and the real-time 1-step result |
-| Teaser (Fig 4) | Qualitative rare-class recovery on SemanticKITTI val |
-| Method | Three plain-language cards + full pipeline figure + open-by-default "Architecture in detail" disclosure |
-| 3D Viewer | Interactive Three.js comparison across four views (sparse / SCPNet / S²D² / GT) on two rare-class frames |
-| Efficiency | Four-lane latency race with explicit log-warp disclosure (real H100 80 GB measurements) |
-| Results | Sortable test-set leaderboard table (LMSCNet → SSA-SC → JS3C-Net → SCPNet → TALoS → S²D² 1-step / +D₄ TTA) plus per-class IoU table |
+| Header | Title, venue, authors (withheld by default while under review), four resource links |
+| Teaser | Qualitative comparison, paper Fig. 6, immediately after the header |
+| Abstract | The paper's abstract verbatim, plus the predicate that scopes every number |
+| Method | One paragraph and the S²D² diagram, paper Fig. 5 |
+| Data augmentation | One paragraph and the PS³ pipeline, paper Fig. 2 |
+| Results | The paper's Table I in full, with rows outside the predicate greyed and named; per-class Table II with both Released and Retrain deltas |
+| Interactive comparison | Three.js viewer over four views (input / base / ours / ground truth) on three rare-class frames |
+| Limitations | The failure case, paper Fig. 12, and the paper's own limitations paragraph |
 | BibTeX | Copy-to-clipboard citation block |
+
+Author names are hidden by default (`body[data-anon="true"]`) and revealed by the toggle in the
+header; the preference persists in `localStorage`. Flip the default in `index.html` if the venue
+turns out not to require it.
 
 ## Local preview
 
@@ -110,23 +136,6 @@ Remove the `aria-disabled` attribute and the tooltip `title` once the URL is liv
   deployment configurations (`S²D² 1-step` and `S²D² + D₄ TTA`).
 - **Per-class table (val set)**: `data/perclass.json` — SCPNet → S²D² val
   per-class IoUs with safety-class flags.
-- **Inference-race latencies**: the `LANES` object at the top of
-  `scripts/latencyRace.js`. Real Apr-2026 contention-free H100 measurements:
-  SCPNet base 202 ms · S²D² 1-step 107 ms · 100-step 10 790 ms.
-
-## Speed-race time-warp disclosure
-
-The four-lane latency race in §Efficiency uses **log-warped UI pacing** so
-the 100-step lane completes its bar in ~6 s of UI time instead of the
-actual ~11 s — without the warp the contrast across lanes would not be
-visible in a single viewing.
-
-- **Bar widths** are linearly proportional to the real measured latency.
-- **Numeric readouts** beside each bar are the real measured ms.
-- Only the **per-pixel animation pacing** is compressed.
-
-The disclosure is rendered directly under the race widget in
-`index.html`, so visitors can see the caveat without reading source.
 
 ## Deploying to GitHub Pages
 
@@ -178,17 +187,12 @@ s2d2_website/
 ├── .nojekyll
 ├── README.md
 ├── styles/
-│   ├── tokens.css       design tokens (colours, fonts, spacing)
-│   ├── base.css         reset + typography
-│   ├── layout.css       nav, hero, section grids
-│   └── components.css   buttons, tables, cards, controls
+│   ├── tokens.css       design tokens (palette, type, measures)
+│   └── site.css         everything else (replaces base/layout/components)
 ├── scripts/
-│   ├── main.js          reveal, smooth scroll, table hydration
-│   ├── anon.js          orphaned (no longer referenced; can delete)
-│   ├── tableSort.js     click-to-sort
-│   ├── latencyRace.js   4-lane latency visualisation (log-warp pacing)
-│   ├── viewer3d.js      main interactive point cloud viewer
-│   └── heroCanvas.js    autorotating hero preview
+│   ├── main.js          renders both paper tables from data/*.json; BibTeX copy
+│   ├── anon.js          author-anonymity toggle (default: revealed)
+│   └── viewer3d.js      interactive voxel comparison
 ├── data/
 │   ├── results.json     test-set leaderboard table
 │   └── perclass.json    val per-class IoU table

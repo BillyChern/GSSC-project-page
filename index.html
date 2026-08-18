@@ -1,722 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="description" content="Generative Semantic Scene Completion — a generative LiDAR SSC framework introducing S²D² structured-source discrete diffusion, a three-stage pyramid data augmentation pipeline, and an application to LiDAR-only BEV semantic segmentation." />
-<meta name="theme-color" content="#0B0E14" />
-<meta property="og:title" content="Generative Semantic Scene Completion" />
-<meta property="og:description" content="Generative LiDAR scene completion via structured-source discrete diffusion. 39.2% SemanticKITTI test mIoU, +1.3% over TALoS. 38.54% on val. Single forward pass, no distillation." />
-<meta property="og:type" content="article" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Generative Semantic Scene Completion</title>
-
-<!-- Fonts: Instrument Serif display · IBM Plex Sans body · JetBrains Mono code -->
+<meta name="description" content="Generative semantic scene completion for outdoor LiDAR: one discrete-diffusion formulation in three roles — PS3 paired sparse-dense synthesis, SGSC from-noise completion, and S2D2 one-step refinement of a frozen base." />
+<meta property="og:title" content="Generative Semantic Scene Completion" />
+<meta property="og:description" content="One discrete-diffusion formulation in three roles. 38.8% SemanticKITTI hidden-test mIoU at one step with no test-time augmentation — the best causal, single-sweep, single-sample result to date, +2.1 pp over the previous best published score." />
+<meta property="og:type" content="website" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-<!-- Set an html.js flag before first paint so the scroll-reveal hidden
-     state (.js .reveal { opacity:0 }) only applies when JS is running.
-     With JS disabled/failed the class is never set and all content stays
-     fully visible; with JS on, gating before paint avoids a flash of
-     visible-then-hidden content. -->
-<script>document.documentElement.classList.add('js');</script>
-
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css" />
-<link rel="stylesheet" href="styles/base.css" />
-<link rel="stylesheet" href="styles/components.css" />
-<link rel="stylesheet" href="styles/layout.css" />
-
+<link rel="stylesheet" href="styles/site.css" />
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
-  }
-}
-</script>
 </head>
-<body>
+<body data-anon="false">
+<a class="skip-link" href="#abstract">Skip to content</a>
 
-<!-- Skip-to-content: first focusable element so keyboard/SR users can bypass
-     the sticky nav and jump straight to <main id="main">. -->
-<a class="skip-link" href="#main">Skip to content</a>
-
-<!-- ============================================================
-     TOP NAV
-============================================================ -->
-<nav class="topnav" aria-label="Primary">
-  <a class="logo" href="#top">GSSC</a>
-  <ul class="topnav__links" id="topnav-links">
-    <li><a href="#abstract">Abstract</a></li>
-    <li><a href="#method">Method</a></li>
-    <li><a href="#data-aug">Data</a></li>
-    <li><a href="#viewer">3D Viewer</a></li>
-    <li><a href="#speed">Speed</a></li>
-    <li><a href="#results">Results</a></li>
-    <li><a href="#bibtex">BibTeX</a></li>
-  </ul>
-  <div class="topnav__meta">
-    <span class="topnav__badge">Under review</span>
-    <button class="nav-toggle" id="nav-toggle" type="button"
-            aria-label="Open navigation menu" aria-expanded="false"
-            aria-controls="topnav-links">
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-    </button>
+<header class="head prose">
+  <h1>Generative Semantic Scene Completion</h1>
+  <p class="venue">Under review, IEEE Transactions on Pattern Analysis and Machine Intelligence</p>
+  <div class="identity">
+    <p class="authors">Shi Chen<sup>1</sup> &nbsp;&middot;&nbsp; Weifeng Ge<sup>1,*</sup></p>
+    <p class="affil"><sup>1</sup>College of Computer Science and Artificial Intelligence, Fudan University</p>
+    <p class="corr"><sup>*</sup>Corresponding author</p>
   </div>
-</nav>
+  <p class="anon-note">Author names withheld while the paper is under review.</p>
+  <p class="anon-ctl"><button class="btn" type="button" id="anon-toggle" aria-pressed="false"><span id="anon-label">Hide authors</span></button></p>
 
-<main id="main">
-
-<!-- ============================================================
-     HERO
-============================================================ -->
-<header class="hero" id="top">
-  <div class="hero__grid">
-    <div class="hero__lede">
-      <p class="hero__eyebrow">Under Review</p>
-      <h1 class="hero__title">
-        <span class="hero__title-line hero__title-line--accent">Generative</span>
-        <span class="hero__title-line">Semantic Scene Completion</span>
-      </h1>
-      <p class="hero__subtitle">
-        One Euler step of generative refinement on a frozen SSC base reaches <em>39.2%</em> hidden-test mIoU, the best LiDAR single-frame single-sample result on the leaderboard to date (+1.3% over the previous best, TALoS).
-        <span class="hero__subtitle-detail">A single discrete-diffusion operator serves <strong>three roles</strong>: <strong>PS<sup>3</sup></strong> (Paired Sparse–Dense Scene Synthesis), a pyramid discrete diffusion pipeline that synthesises a 51K-pair augmentation pool; <strong>SGSC</strong> (Semantic-guided Generative Scene Completion), a from-noise base-free variant that reaches <em>30.5%</em> val mIoU without any 3D SSC base; and <strong>S<sup>2</sup>D<sup>2</sup></strong>, the base-conditioned one-step refiner above.</span>
-      </p>
-
-      <div class="hero__authors">
-        <span class="hero__author"><span class="author-name">Shi Chen</span><sup>1,&dagger;</sup></span>
-        <span class="hero__author"><span class="author-name">Weifeng Ge</span><sup>1,*</sup></span>
-      </div>
-      <div class="hero__affiliations">
-        <span><sup>1</sup>College of Computer Science and Artificial Intelligence, Fudan University</span>
-        <span class="affil-note"><sup>&dagger;</sup>Project lead and first author &middot; <sup>*</sup>Corresponding author</span>
-      </div>
-
-      <div class="hero__cta">
-        <!-- Release links. Paper is under review (no arXiv yet): rendered as a
-             clearly non-clickable, dimmed "Paper (under review)" state with
-             aria-disabled. Code, Model + Dataset are not public yet: rendered
-             as dimmed "coming soon" states. None of these point at a dead
-             href="#"; the disabled ones carry a visible "soon"/"under review"
-             badge so the absence reads as deliberate, not broken. The
-             Leaderboard link is live and opens in a new tab. -->
-        <a class="btn btn--disabled" role="link" aria-disabled="true"
-           aria-label="Paper, under review, preprint not yet available"
-           title="Paper is under peer review; preprint not yet public."><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/></svg>Paper <span class="btn__tag">under review</span></a>
-        <!-- TODO restore href=https://github.com/BillyChern/GSSC-S2D2 + target/rel when the repo is made public -->
-        <a class="btn btn--disabled" role="link" aria-disabled="true" data-link="code"
-           aria-label="Code, released upon publication, repository not yet public"
-           title="Source code released upon publication; repository not yet public."><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code <span class="btn__tag">soon</span></a>
-        <a class="btn btn--disabled" role="link" aria-disabled="true"
-           aria-label="Pretrained model, released upon publication, not yet available"
-           title="Pretrained model released upon publication."><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Model <span class="btn__tag">soon</span></a>
-        <a class="btn btn--disabled" role="link" aria-disabled="true"
-           aria-label="Synthetic dataset, released upon publication, not yet available"
-           title="Synthetic dataset released upon publication."><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 11v6c0 1.7 4 3 9 3s9-1.3 9-3v-6"/></svg>Dataset <span class="btn__tag">soon</span></a>
-        <a class="btn" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener" data-link="leaderboard"
-           title="Live SemanticKITTI Codabench leaderboard"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 4h3v3a3 3 0 0 1-3 3"/><path d="M7 4H4v3a3 3 0 0 0 3 3"/></svg>Leaderboard</a>
-        <a class="btn btn--primary" href="#viewer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Interactive 3D Viewer</a>
-      </div>
-
-      <div class="hero__metrics">
-        <div class="metric">
-          <span class="metric__value">39.2<small>%</small></span>
-          <a class="metric__label metric__label--link" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener" title="Verify on the live SemanticKITTI Codabench leaderboard">SemanticKITTI hidden test mIoU · verify on leaderboard &rarr;</a>
-        </div>
-        <div class="metric">
-          <span class="metric__value">+1.3<small>%</small></span>
-          <span class="metric__label">over TALoS (37.9%) — previous best</span>
-        </div>
-        <div class="metric">
-          <span class="metric__value">107<small>ms</small></span>
-          <span class="metric__label">marginal cost on H100 · 9.33 FPS</span>
-        </div>
-        <div class="metric">
-          <span class="metric__value">1<small>&nbsp;step</small></span>
-          <span class="metric__label">no distillation, no TTA</span>
-        </div>
-      </div>
-    </div>
-
-    <aside class="hero__art" aria-label="Live preview of an S²D² prediction">
-      <!-- Canvas is populated by scripts/heroCanvas.js with a real S²D² PLY. -->
-      <div class="hero-canvas" id="hero-canvas" role="img"
-           aria-label="Slowly rotating 3D point cloud of the S²D² semantic scene completion prediction on SemanticKITTI sequence 08 frame 003096."></div>
-    </aside>
-  </div>
-
+  <nav class="links" aria-label="Resources">
+    <span class="btn" role="link" aria-disabled="true" title="Under peer review; preprint not yet public.">Paper &mdash; under review</span>
+    <span class="btn" role="link" aria-disabled="true" title="Released upon publication.">Code &mdash; on publication</span>
+    <span class="btn" role="link" aria-disabled="true" title="Released upon publication.">Models &amp; PS&sup3; data &mdash; on publication</span>
+    <a class="btn" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">SemanticKITTI leaderboard</a>
+  </nav>
+  <p class="links-note">The leaderboard entry is live and independently verifiable. Code, models and the PS&sup3; corpus are released on publication.</p>
 </header>
 
-<!-- ============================================================
-     ABSTRACT
-============================================================ -->
-<section id="abstract" class="section section--narrow" aria-labelledby="abstract-heading">
-  <p class="section__eyebrow" aria-hidden="true">Abstract</p>
-  <h2 id="abstract-heading" class="visually-hidden">Abstract</h2>
-  <div class="abstract-grid">
-    <p class="abstract-lede">
-      We propose <em>Generative Semantic Scene Completion</em> (GSSC), a single discrete-diffusion operator that takes on three roles. Its base-conditioned role, <em>Structured Source Discrete Diffusion</em> (S<sup>2</sup>D<sup>2</sup>), learns to refine the output of a frozen base model toward the ground-truth distribution on the discrete probability simplex.
-    </p>
-    <div class="abstract-body">
-      <p>
-        Semantic Scene Completion (SSC) predicts dense 3D geometry and semantics from sparse LiDAR observations. Existing methods treat SSC as a discriminative regression problem, and their predictions degrade sharply under extreme sparsity (~1% voxel occupancy) and class imbalance (over 7,000× between the most and least common classes on SemanticKITTI).
-      </p>
-      <p>
-        Standard diffusion generates from noise. S<sup>2</sup>D<sup>2</sup> instead starts from a supervised base model&rsquo;s prediction and learns the correction that carries it to the ground truth. The reverse update is closed-form, so a single step is enough at deployment — we do not iterate, and we do not distill a multi-step schedule. We pair this core with coarse-to-fine pyramid diffusion for synthetic data augmentation and a matching BEV conditioning stream.
-      </p>
-      <p>
-        On the SemanticKITTI hidden test leaderboard, S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> mIoU under D<sub>4</sub> test-time augmentation and <strong>38.8%</strong> without, a +1.3% margin over TALoS, the previous best at 37.9%. The framework is also base-agnostic: applied without architectural change to three structurally different frozen base models, the identical recipe lifts <strong>LMSCNet</strong> from 14.8% to <strong>16.6%</strong> (<strong>+1.8&nbsp;pp</strong>), the point-voxel hybrid <strong>JS3C-Net</strong> from 22.7% to <strong>26.1%</strong> (<strong>+3.3&nbsp;pp</strong>, official <span class="mono">semantic-kitti-api</span> evaluator), and SCPNet from 36.17% to <strong>38.54%</strong> (<strong>+2.37&nbsp;pp</strong>). This is direct evidence that the refinement is a property of the framework, not of any specific base. The from-noise variant SGSC conditions on two streams, a BEV semantic map and per-voxel LSK3D features, and reaches <strong>30.5%</strong> val mIoU without any 3D SSC base. That is comparable to PaSCo&rsquo;s 30.1% (0.4&nbsp;pp, within run-to-run variance), though not a like-for-like comparison, since PaSCo&rsquo;s 30.1% is a subsidiary mIoU reported under its panoptic-mode evaluator. Stacked with one S<sup>2</sup>D<sup>2</sup> refinement step it reaches <strong>32.8%</strong>. Applied as a secondary task to LiDAR-only BEV perception, S<sup>2</sup>D<sup>2</sup> reaches <strong>36.1%</strong> mIoU, <strong>+9.1 points</strong> above the previous best dedicated 2D method. The 1-step real-time configuration runs at <strong>9.33&nbsp;FPS</strong> marginal cost on a contention-free H100 and still hits <strong>38.8%</strong> on test, beating TALoS by +0.9% in real time without TTA. The frozen SemanticKITTI checkpoint also transfers zero-shot, without fine-tuning, to two unseen domains (SemanticPOSS, SSCBench-KITTI360).
-      </p>
-    </div>
-  </div>
+<figure class="media">
+  <picture>
+    <source srcset="assets/figures/fig4_qualitative.webp" type="image/webp">
+    <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI validation: sparse input, the frozen SCPNet base, our refinement, and ground truth, on scenes containing a bicyclist, a motorcyclist and traffic signs." width="1355" height="882" />
+  </picture>
+  <figcaption><strong>One correction step on a frozen base.</strong> Sparse input, the frozen base&rsquo;s prediction, our refined output, and ground truth. The refiner does not regenerate the scene; it corrects the base it is given. Source: paper Fig. 6.</figcaption>
+</figure>
+
+<main>
+
+<section id="abstract" class="prose abstract">
+  <h2>Abstract</h2>
+  <p>Outdoor LiDAR semantic scene completion (SSC) recovers a dense semantic voxel grid from a scan observing 1% of the target volume, under class imbalance beyond 7,000&times;. We recast SSC as generative semantic scene completion (GSSC): a single discrete-diffusion formulation in three roles. First, paired sparse&ndash;dense scene synthesis (PS<sup>3</sup>) generates matched sparse LiDAR observations with their dense semantic completions, addressing the long tail at its source and yielding the PS<sup>3</sup>-SemanticKITTI corpus we train on alongside SemanticKITTI. Second, semantic-guided generative scene completion (SGSC) completes the scene from sparse voxels with a multinomial discrete diffusion model conditioned on a bird&rsquo;s-eye-view semantic map and a sparse 3D feature stream. Third, the same framework refines that output in a single flow-matching step: structured source discrete diffusion (S<sup>2</sup>D<sup>2</sup>). SGSC needs no completion base, and refining its own output improves it further. The same refinement improves the mIoU of every SSC base we test. On the strongest it sets, to our knowledge, the best <em>causal, single-sweep, single-sample</em> result on the SemanticKITTI hidden test: <strong>38.8%</strong> mIoU at one step without test-time augmentation, +2.1&nbsp;pp over the previous best published score. Four correction steps with eight-view test-time augmentation reach 39.2%. S<sup>2</sup>D<sup>2</sup> needs neither base retraining nor test-time adaptation.</p>
+  <p class="note">Every headline number on this page is indexed on one predicate: <em>causal, single-sweep, single-sample</em> &mdash; one sweep, no future moments, no ensembling. It excludes multi-sweep entries, test-time adaptation, and our own eight-view ensemble row.</p>
 </section>
 
-<!-- ============================================================
-     TEASER: Qualitative rare-class panel
-============================================================ -->
-<section id="teaser" class="section section--wide">
-  <p class="section__eyebrow">What changes at the voxel level</p>
-  <h2 class="section__title">Rare-class recovery on SemanticKITTI validation</h2>
-  <figure class="figure-wide figure-wide--dense">
-    <div class="figure-wide__media" tabindex="0" role="group"
-         aria-label="Figure — scroll horizontally to view full diagram">
-      <picture>
-        <source type="image/webp" srcset="assets/figures/fig4_qualitative.webp" />
-        <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI val: JS3C-Net, SCPNet, TALoS, S²D² (ours), and Ground truth on a bicyclist frame (seq 08, frame 003096) and a motorcyclist frame (seq 08, frame 001417). Per-sample IoU and TP/FP voxel counts shown under each panel. S²D² lifts bicyclist IoU from 31.3% (SCPNet) and 33.0% (TALoS) to 56.9%, and motorcyclist from 33.0% (SCPNet) and 30.0% (TALoS) to 62.4%; JS3C-Net collapses to 0.7% and 0.0% respectively."
-             loading="lazy" width="1355" height="882" />
-      </picture>
-    </div>
-    <figcaption>
-      Two rare-class frames from SemanticKITTI val (seq 08): bicyclist (frame&nbsp;003096) and motorcyclist (frame&nbsp;001417). On the bicyclist row S<sup>2</sup>D<sup>2</sup> reaches <strong>56.9%</strong> IoU vs. SCPNet&rsquo;s 31.3% and TALoS&rsquo;s 33.0% (+894 true-positive voxels, &minus;1053 false positives); on the motorcyclist row <strong>62.4%</strong> vs. 33.0% / 30.0% with &asymp;6.6&times; fewer phantom voxels. JS3C-Net collapses on both rare classes (0.7% bicyclist, 0.0% motorcyclist). S<sup>2</sup>D<sup>2</sup> here is the test-server configuration (PS<sup>3</sup>-augmented multi-frame + <em>D</em><sub>4</sub> TTA, <em>N</em>=4). Source: paper Fig.&nbsp;2.
-    </figcaption>
+<section id="method" class="media">
+  <h2>Method</h2>
+  <div class="lede">
+    <p>A diffusion model normally starts from noise. S<sup>2</sup>D<sup>2</sup> starts from a frozen base model&rsquo;s own prediction and learns the correction to ground truth. Because the terminal state of the forward process is that prediction rather than noise, training over all timesteps already predicts the target from a single source input, and one Euler step deploys. Nothing about the base changes: no retraining, no distillation, no access to its weights. SGSC is the same denoiser and forward process run from pure categorical noise instead, so one formulation covers both the base-free and the base-conditioned setting: from noise, with no completion base at all, it reaches 30.5% val mIoU, and refining its own output with the same operator takes it to 32.8%.</p>
+  </div>
+  <figure class="scrollable">
+    <picture>
+      <source srcset="assets/figures/fig3_s2d2.webp" type="image/webp">
+      <img src="assets/figures/fig3_s2d2.png" alt="The S2D2 denoiser: a frozen base prediction is used as the structured source of the forward process, and a four-level dense 3D U-Net predicts the correction in one flow-matching step." width="1356" height="1377" />
+    </picture>
+    <figcaption><strong>Structured source discrete diffusion.</strong> The forward process terminates at the base&rsquo;s prediction, not at noise, so a single reverse step recovers the target. Source: paper Fig. 5.</figcaption>
   </figure>
 </section>
 
-<!-- ============================================================
-     METHOD
-============================================================ -->
-<section id="method" class="section">
-  <p class="section__eyebrow">Method</p>
-  <h2 class="section__title">Refine a base model&rsquo;s prediction, don&rsquo;t regenerate the scene from noise.</h2>
-  <p class="section__lede">
-    Standard diffusion turns pure noise into data across many steps. S<sup>2</sup>D<sup>2</sup> instead starts from a pretrained SSC model&rsquo;s output and learns the correction that carries it to the ground truth. That change &mdash; what it starts from, and how many steps it takes &mdash; is the whole idea.
-  </p>
-
-  <div class="method-grid method-grid--three">
-    <div class="method-card">
-      <h3 class="method-card__title"><span class="method-card__num">01</span> Start from a real prediction, not noise</h3>
-      <p>
-        Classical diffusion denoises random noise until it looks like the data. S<sup>2</sup>D<sup>2</sup> denoises <em>another model&rsquo;s prediction</em> toward ground truth.
-      </p>
-      <p>
-        The base model already captures the coarse scene (road, buildings, vegetation), so the correction task is much smaller and much more forgiving of noisy conditioning.
-      </p>
-    </div>
-
-    <div class="method-card">
-      <h3 class="method-card__title"><span class="method-card__num">02</span> Correct once, then stop</h3>
-      <p>
-        The reverse update has a closed form: the direction from the base prediction to ground truth is exact. We integrate it in a single Euler step.
-      </p>
-      <p>
-        No iterative rollout, no teacher/student distillation. On SemanticKITTI val, one step matches a 100-step schedule within 0.1 mIoU while adding only 107&nbsp;ms on an H100.
-      </p>
-    </div>
-
-    <div class="method-card">
-      <h3 class="method-card__title"><span class="method-card__num">03</span> Drop in on top of any SSC model</h3>
-      <p>
-        The refiner reads in the frozen base model&rsquo;s output alongside a BEV semantic map and the raw LiDAR voxelization, then emits a corrected voxel grid.
-      </p>
-      <p>
-        Empirically base-agnostic across three structurally different frozen bases: <strong>LMSCNet</strong> (14.8 &rarr; <strong>16.6%</strong>, <strong>+1.8 pp</strong>), point-voxel hybrid <strong>JS3C-Net</strong> (22.7 &rarr; <strong>26.1%</strong>, <strong>+3.3 pp</strong>, under official <span class="mono">semantic-kitti-api</span>), and <strong>SCPNet</strong> (36.17 &rarr; <strong>38.54%</strong>, <strong>+2.37 pp</strong>) &mdash; same recipe, same hyperparameters, only the source changes.
-      </p>
-    </div>
+<section id="data" class="media">
+  <h2>Data augmentation</h2>
+  <div class="lede">
+    <p>SemanticKITTI&rsquo;s rarest classes are outnumbered beyond 7,000 to one, so the tail is addressed at its source. Pyramid discrete diffusion synthesises complete labelled scenes; a Jensen&ndash;Shannon filter keeps the in-distribution half; a rare-class object bank fills the tail; and an HDL-64E ray-tracer pairs each synthetic scene with the sparse scan a sensor would have returned. The result is the PS<sup>3</sup>-SemanticKITTI corpus, trained on alongside the real data.</p>
   </div>
-
-  <figure class="figure-wide figure-wide--tight figure-wide--dense">
-    <div class="figure-wide__media" tabindex="0" role="group"
-         aria-label="Figure — scroll horizontally to view full diagram">
-      <picture>
-        <source type="image/webp" srcset="assets/figures/fig2_pipeline.webp" />
-        <img src="assets/figures/fig2_pipeline.png" alt="Two-stage pipeline. Stage A — Offline Data Augmentation (run once, pooled with real training): real GT scenes feed pyramid multinomial diffusion at S1=32²·4, S2=64²·8, S3=256²·32; a 57,789-instance / 8-rare-class object bank pastes rare-class instances on ground-level voxels of each synthetic complete scene; a Velodyne HDL-64E Bresenham3D ray-tracer with 64×2048 rays then converts each enriched scene to a matching sparse input. Stage B — S²D² Deployment (one forward pass on any test scan): a real sparse LiDAR scan is voxelized, passed through a frozen base SSC model (e.g. SCPNet, LMSCNet) to produce x_src, then refined by the S²D² denoiser f_θ — a dense 3D U-Net (Conv3d) with additive L/B conditioning + time-AdaGN modulation at every level — emitting x̂_0 in one Euler step." loading="lazy" width="1800" height="1204" />
-      </picture>
-    </div>
-    <figcaption>
-      <strong>Stage&nbsp;A &mdash; Offline data augmentation (run once).</strong> Pyramid multinomial diffusion synthesises complete scenes; a 57,789-instance / 8-rare-class object bank (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) enriches each scene; then an HDL-64E Bresenham3D ray-tracer (64&times;2048 rays) makes them sparse. <strong>Stage&nbsp;B &mdash; S<sup>2</sup>D<sup>2</sup> deployment (one forward pass).</strong> A frozen base SSC model produces x<sub>src</sub>; a dense 3D U-Net (Conv3d) with additive L/B conditioning + time-AdaGN modulation refines it into x&#770;<sub>0</sub> in a single Euler step. No distillation. Source: paper Fig.&nbsp;2.
-    </figcaption>
+  <figure class="scrollable">
+    <picture>
+      <source srcset="assets/figures/fig4_da_pipeline.webp" type="image/webp">
+      <img src="assets/figures/fig4_da_pipeline.png" alt="The PS3 pipeline: pyramid discrete diffusion synthesises complete scenes, a Jensen-Shannon filter and a rare-class object bank shape the distribution, and a LiDAR ray-tracer produces the matched sparse observation." width="1355" height="1890" />
+    </picture>
+    <figcaption><strong>PS<sup>3</sup>: paired sparse&ndash;dense scene synthesis.</strong> Each synthetic scene is paired with the sparse scan an HDL-64E would have returned, so the pairs train the same way real ones do. Source: paper Fig. 2.</figcaption>
   </figure>
-
-  <!-- Architecture in detail (open by default; reader can collapse) -->
-  <details class="details-card" open>
-    <summary>
-      <span class="details-card__label">Architecture in detail</span>
-      <span class="details-card__hint">3-layer breakdown: transport intuition · dense UNet · rare-class recovery</span>
-    </summary>
-    <figure class="figure-wide figure-wide--tight figure-wide--dense">
-      <div class="figure-wide__media" tabindex="0" role="group"
-           aria-label="Figure — scroll horizontally to view full diagram">
-        <picture>
-          <source type="image/webp" srcset="assets/figures/fig3_s2d2.webp" />
-          <img src="assets/figures/fig3_s2d2.png" alt="S²D² in three layers. Intuition (top): the learned velocity field v_θ = f_θ(x_t, t, c) − x_src transports samples from the base prediction x_src (gray cluster) toward the ground truth x_0 (orange cluster) in one Euler step on the per-voxel simplex. Architecture (middle): 4-level dense 3D U-Net (Conv3d) with stages 256²×32 → 128²×16 → 64²×8 → 32²×4, channels 32/64/128/256, a 16²×2 bottleneck with two Residual Blocks, mirror decoder, and additive L/B conditioning + time-AdaGN modulation at every E/D/bottleneck level. Qualitative example (bottom): val seq 08 frame 001390 — base model motorcyclist IoU 27.3%, S²D² (N=1, single Euler step) 41.5%, GT 322 motorcyclist voxels, a +14.2 point jump." loading="eager" width="2000" height="2187" />
-        </picture>
-      </div>
-      <figcaption>
-        <strong>Top &mdash; intuition.</strong> The learned velocity field <em>v</em><sub>&theta;</sub> = <em>f</em><sub>&theta;</sub>(<em>x</em><sub><em>t</em></sub>, <em>t</em>, <em>c</em>) &minus; <em>x</em><sub>src</sub> transports samples from the base prediction (gray) to ground truth (orange) on the per-voxel simplex in a single Euler step at deployment. <strong>Middle &mdash; architecture.</strong> A 4-level dense 3D U-Net (Conv3d) (stages 256<sup>2</sup>&times;32 &rarr; 32<sup>2</sup>&times;4, channels 32&rarr;256, 16<sup>2</sup>&times;2 bottleneck with two Residual Blocks, mirror decoder) with additive L/B conditioning + time-AdaGN modulation at every level. <strong>Bottom &mdash; qualitative example.</strong> Val seq 08 frame 001390: base model motorcyclist IoU <strong>27.3%</strong>, S<sup>2</sup>D<sup>2</sup> (<em>N</em>=1, single Euler step) <strong>41.5%</strong> &mdash; a +14.2-point jump representative of the per-class gains in <a href="#results">Results</a>. This is a single-base <em>N</em>=1 example on frame&nbsp;001390 &mdash; distinct from the test-server D<sub>4</sub>-TTA, <em>N</em>=4 configuration shown in the teaser and 3D viewer (motorcyclist frame&nbsp;001417, 62.4%). Source: paper Fig.&nbsp;3.
-      </figcaption>
-    </figure>
-  </details>
-
 </section>
 
-<!-- ============================================================
-     DATA AUGMENTATION — co-equal first contribution
-============================================================ -->
-<section id="data-aug" class="section section--wide">
-  <p class="section__eyebrow">Data side · co-equal contribution</p>
-  <h2 class="section__title">A pyramid pipeline that turns long-tail scarcity into supervised pairs.</h2>
-  <p class="section__lede">
-    SemanticKITTI puts more than 7,000&times; as many vegetation voxels in the training set as motorcyclist voxels. The model side cannot reweight its way out of that &mdash; the rare classes simply are not there to learn from. The data side runs offline, once, on top of the existing supervised set: pyramid discrete diffusion synthesises full complete scenes; a quality filter keeps the in-distribution half; a rare-class object bank fills the residual gaps; an HDL-64E ray-tracer then pairs each with a sparse input. The result is an extra <strong>32,039</strong> labelled pairs that the rest of the system can train against without any change to the SSC pipeline.
-  </p>
+<section id="results" class="media">
+  <h2>Results</h2>
+  <div class="lede">
+    <p>SemanticKITTI hidden test, official evaluator. Under the predicate &mdash; causal, single-sweep, single-sample &mdash; one correction step reaches <strong>38.8%</strong> mIoU, +2.1&nbsp;pp over SCPNet&rsquo;s published 36.7%. Rows outside the predicate are shown in grey and are not comparable to ours: test-time adaptation, our own eight-view ensemble, and the four-sweep entry.</p>
+  </div>
+  <div class="table-wrap">
+    <table id="main-results">
+      <caption class="note">Main results on SemanticKITTI hidden test. Source: paper Table&nbsp;I.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Method</th>
+          <th scope="col" class="num">mIoU</th>
+          <th scope="col" class="num">Comp</th>
+          <th scope="col" class="num">SC-m</th>
+          <th scope="col" class="num">VRU</th>
+          <th scope="col">Note</th>
+        </tr>
+      </thead>
+      <tbody id="main-results-body"></tbody>
+    </table>
+  </div>
+  <p class="note">S3CNet, not us, takes the vulnerable-road-user column. We do not lead on safety: among single-sweep rows S3CNet leads every VRU class, at VRU-IoU 32.6 against our 21.6.</p>
+  <p class="note">The frozen SemanticKITTI checkpoint also transfers zero-shot, with no fine-tuning: on SemanticPOSS &mdash; a different sensor &mdash; mIoU rises 1.0&nbsp;&rarr;&nbsp;6.5% and completion IoU 31.8&nbsp;&rarr;&nbsp;54.9%; on SSCBench-KITTI360 the gain is in completion IoU, with the mIoU delta small relative to single-seed run-to-run variance.</p>
 
-  <figure class="figure-wide figure-wide--tight figure-wide--dense">
-    <div class="figure-wide__media" tabindex="0" role="group"
-         aria-label="Figure — scroll horizontally to view full diagram">
-      <picture>
-        <source type="image/webp" srcset="assets/figures/fig4_da_pipeline.webp" />
-        <img src="assets/figures/fig4_da_pipeline.png"
-             alt="Offline data-augmentation pipeline. Pyramid: three cascaded multinomial diffusions at 32²×4 → 64²×8 → 256²×32, each conditioning on the upsampled output of the previous scale; the S₃ stage tiles into overlapping 136²×32 patches merged by majority vote, then a Jensen–Shannon divergence filter keeps the top half by class-distribution similarity to real scenes. Object Bank + HALO (sensor-realistic pairing): a 57,789-instance rare-class object bank (8 safety-critical classes: bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk; pasted on ground-level voxels) and a simulated Velodyne HDL-64E ray-tracer (64 beams × 2,048 azimuth bins = 131,072 rays per sweep, up to 2 returns per beam, σ_r = 3 cm range noise; Bresenham-3D) together turn each synthetic complete scene into the pooled (sparse, dense) training pairs; the highlighted beam shows the first and second returns. The final synthetic pool is 19,130 real + 32,039 synthetic = 51,169 training pairs, a 2.67× pool expansion."
-             loading="lazy" width="2000" height="2791" />
-      </picture>
+  <h3>Per-class gain over the frozen base</h3>
+  <div class="lede">
+    <p class="note">Validation sequence 08, one correction step, against the frozen SCPNet base at 36.17% mIoU. Two columns are shown because only one of them reproduces: <em>Released</em> is the shipped checkpoint, <em>Retrain</em> an independent from-scratch run. The bulk delta reproduces; the largest single-class gain does not, and the paper does not claim it.</p>
+  </div>
+  <div class="table-wrap">
+    <table id="perclass">
+      <caption class="note">Per-class val IoU against the frozen base. Source: paper Table&nbsp;II.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Class</th>
+          <th scope="col" class="num">Base IoU</th>
+          <th scope="col" class="num">Released &Delta;</th>
+          <th scope="col" class="num">Retrain &Delta;</th>
+        </tr>
+      </thead>
+      <tbody id="perclass-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="viewer" class="media">
+  <h2>Interactive comparison</h2>
+  <div class="lede">
+    <p class="note">Real SemanticKITTI voxel grids, rendered as 0.2&nbsp;m cubes with the official class palette. The camera pose is held across view switches, so the four views are directly comparable.</p>
+  </div>
+  <div class="viewer-shell">
+    <div id="viewer3d-stage" role="application" aria-label="Interactive 3D comparison of sparse input, frozen base, our refinement, and ground truth">
+      <p id="viewer3d-loading" class="note" style="padding:var(--s-3) var(--s-4);margin:0">Loading scene&hellip;</p>
     </div>
-    <figcaption>
-      <strong>Pyramid.</strong> Three cascaded multinomial diffusions at 32<sup>2</sup>&times;4 &rarr; 64<sup>2</sup>&times;8 &rarr; 256<sup>2</sup>&times;32, each conditioned on the upsampled prior scale; the 256<sup>2</sup>&times;32 stage tiles into 136<sup>2</sup>&times;32 patches merged by majority vote, then a Jensen&ndash;Shannon filter keeps the top half by class-distribution similarity to real scenes.
-      <strong>Object Bank &amp; HALO.</strong> A <strong>57,789</strong>-instance rare-class object bank (8 safety-critical classes, pasted on ground-level voxels) and a simulated Velodyne HDL-64E ray-tracer (64&thinsp;&times;&thinsp;2,048 = <strong>131,072</strong> rays per sweep, up to 2 returns per beam, &sigma;<sub><em>r</em></sub>=3&thinsp;cm, Bresenham-3D) together turn each synthetic complete scene into the pooled (sparse, dense) pairs.
-      The final pool is <strong>19,130 + 32,039 = 51,169</strong> pairs (<strong>2.67&times;</strong>). Source: paper Fig.&nbsp;2.
-    </figcaption>
+    <div class="viewer-bar">
+      <div class="group">
+        <label for="scene-bicyclist">Scene</label>
+        <span class="seg">
+          <button class="seg__btn" id="scene-bicyclist" data-scene="bicyclist" aria-pressed="true">Bicyclist</button>
+          <button class="seg__btn" data-scene="motorcyclist" aria-pressed="false">Motorcyclist</button>
+          <button class="seg__btn" data-scene="traffic" aria-pressed="false">Traffic sign</button>
+        </span>
+      </div>
+      <div class="group">
+        <label>View</label>
+        <span class="seg">
+          <button class="seg__btn" data-view="sparse" aria-pressed="false">Input</button>
+          <button class="seg__btn" data-view="scpnet" aria-pressed="false">Base</button>
+          <button class="seg__btn" data-view="s2d2" aria-pressed="true">Ours</button>
+          <button class="seg__btn" data-view="gt" aria-pressed="false">Ground truth</button>
+        </span>
+      </div>
+      <div class="group">
+        <label><input type="checkbox" id="viewer3d-highlight" /> Highlight rare classes</label>
+        <label><input type="checkbox" id="viewer3d-autorotate" /> Auto-rotate</label>
+        <label><input type="checkbox" id="viewer3d-ego" checked /> Ego marker</label>
+      </div>
+    </div>
+  </div>
+  <p class="viewer-legend" id="viewer3d-stat-row"></p>
+  <noscript><p class="note">The 3D comparison needs JavaScript and WebGL. The same scenes appear in the figure above.</p></noscript>
+</section>
+
+<section id="limitations" class="media">
+  <h2>Limitations</h2>
+  <figure>
+    <div class="triptych">
+      <div><picture><source srcset="assets/figures/failure/base.webp" type="image/webp"><img src="assets/figures/failure/base.png" alt="The frozen JS3C-Net base recovers both pedestrians in the scene." width="720" height="540"></picture><p class="panel">(a) frozen JS3C-Net base</p></div>
+      <div><picture><source srcset="assets/figures/failure/ours.webp" type="image/webp"><img src="assets/figures/failure/ours.png" alt="After one correction step both pedestrians are all but eliminated." width="720" height="540"></picture><p class="panel">(b) after one correction step</p></div>
+      <div><picture><source srcset="assets/figures/failure/gt.webp" type="image/webp"><img src="assets/figures/failure/gt.png" alt="Ground truth, showing both pedestrians present." width="720" height="540"></picture><p class="panel">(c) ground truth</p></div>
+    </div>
+    <figcaption><strong>Where it fails: the refiner erases pedestrians on a weaker base.</strong> Validation sequence 08, frame 001810, JS3C-Net base. Person and bicyclist voxels keep their semantic colour; the rest is muted to grey. Both pedestrians present in the ground truth are recovered by the frozen base and all but eliminated after refinement, taking person IoU from 36.6% to 0.7%. Within the evaluated volume the failure mode is not hallucination but erasure. Source: paper Fig. 12.</figcaption>
   </figure>
-
-  <div class="method-grid method-grid--three">
-    <div class="method-card">
-      <h3 class="method-card__title"><span class="method-card__num">01</span> Generate the dense scene</h3>
-      <p>
-        Pyramid multinomial diffusion synthesises full <em>256<sup>2</sup>&times;32</em> labelled scenes from coarse to fine. Each scale conditions on the upsampled prior; the top scale tiles into overlapping 136<sup>2</sup>&times;32 patches merged by majority vote.
-      </p>
-      <p>
-        A Jensen&ndash;Shannon divergence filter then drops samples whose class distribution drifts away from real KITTI scenes &mdash; only the top half survives.
-      </p>
-    </div>
-
-    <div class="method-card">
-      <h3 class="method-card__title"><span class="method-card__num">02</span> Fill the rare tail</h3>
-      <p>
-        A pre-built bank of <strong>57,789</strong> instances across 8 safety-critical rare classes (bicycle, motorcycle, truck, other-vehicle, person, bicyclist, motorcyclist, trunk) pastes onto ground-level voxels of every synthetic scene.
-      </p>
-      <p>
-        Placement passes three legality checks: in-bounds within the 256<sup>2</sup>&times;32 grid, no-collision with existing non-empty voxels of a different class, and grounded on road / sidewalk / parking / terrain.
-      </p>
-    </div>
-
-    <div class="method-card">
-      <h3 class="method-card__title"><span class="method-card__num">03</span> Match it to a real sensor</h3>
-      <p>
-        A simulated <strong>Velodyne HDL-64E</strong> ray-tracer fires 64&thinsp;&times;&thinsp;2,048 = <strong>131,072</strong> rays per sweep across every enriched synthetic scene, with up to two returns per beam and &sigma;<sub><em>r</em></sub>&thinsp;=&thinsp;3&thinsp;cm range noise.
-      </p>
-      <p>
-        Bresenham-3D voxel traversal produces the matching <em>sparse</em> input <span style="font-family:var(--ff-mono); color:var(--c-ink);">X&#770;</span> at the same density real LiDAR would &mdash; so the synthetic pairs train and fail like real ones.
-      </p>
-    </div>
-  </div>
-
-  <div class="da-stats">
-    <div class="da-stat">
-      <span class="da-stat__value">32,039</span>
-      <span class="da-stat__label">extra labelled pairs synthesised offline</span>
-    </div>
-    <div class="da-stat">
-      <span class="da-stat__value">2.67<small>&times;</small></span>
-      <span class="da-stat__label">training-pool expansion (19,130&rarr;51,169)</span>
-    </div>
-    <div class="da-stat">
-      <span class="da-stat__value">57,789</span>
-      <span class="da-stat__label">rare-class instances across 8 safety classes</span>
-    </div>
-    <div class="da-stat da-stat--accent">
-      <span class="da-stat__value">+0.79<small>%</small></span>
-      <span class="da-stat__label">val&nbsp;mIoU contribution &mdash; paper S<sup>2</sup>D<sup>2</sup> component ablation</span>
-    </div>
-  </div>
-
-  <p class="da-tagline">
-    The pipeline is decoupled from the SSC model: any voxel-grid LiDAR perception task that shares the long-tail pathology can reuse it. We release the 32K synthetic pool alongside the headline checkpoint.
-  </p>
-</section>
-
-<!-- ============================================================
-     INTERACTIVE 3D VIEWER
-============================================================ -->
-<section id="viewer" class="section section--bleed">
-  <div class="section__header">
-    <p class="section__eyebrow">Interactive</p>
-    <h2 class="section__title">Compare predictions in 3D. Orbit, zoom, fly through.</h2>
-    <p class="section__lede">
-      Two rare-class frames from SemanticKITTI validation. Toggle between the sparse LiDAR input, the SCPNet base prediction, the S<sup>2</sup>D<sup>2</sup> refinement, and the ground truth.
-      The camera stays put between views so you can see exactly which voxels changed.
-    </p>
-  </div>
-
-  <div class="viewer3d">
-    <div class="viewer3d__stage" id="viewer3d-stage" role="application" aria-label="Interactive 3D point-cloud comparison of the sparse LiDAR input, the SCPNet base prediction, the S2D2 refinement, and the ground truth on two SemanticKITTI validation frames. Use the controls to switch scene and view; drag or touch to rotate, scroll or pinch to zoom. The adjacent qualitative figure is a static accessible fallback.">
-      <div class="viewer3d__loading" id="viewer3d-loading">
-        <div class="viewer3d__spinner"></div>
-        <span>Loading voxel grid&hellip;</span>
-      </div>
-    </div>
-
-    <aside class="viewer3d__controls" aria-label="Viewer controls">
-      <div class="control-group">
-        <span class="control-group__label">Scene</span>
-        <div class="seg" role="tablist">
-          <button class="seg__btn is-active" data-scene="bicyclist" role="tab" aria-selected="true" title="seq 08 · 003096">
-            <span class="seg__main">Bicyclist</span>
-            <span class="seg__hint">seq 08 · 003096</span>
-          </button>
-          <button class="seg__btn" data-scene="motorcyclist" role="tab" title="seq 08 · 001417">
-            <span class="seg__main">Motorcyclist</span>
-            <span class="seg__hint">seq 08 · 001417</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <span class="control-group__label">View</span>
-        <div class="seg seg--stack" role="radiogroup">
-          <button class="seg__btn" data-view="sparse" role="radio" aria-checked="false">
-            <span class="seg__dot" style="--dot:#89A3B5"></span>
-            <span class="seg__main">Sparse LiDAR input</span>
-            <span class="seg__meta">~1% occupied</span>
-          </button>
-          <button class="seg__btn" data-view="scpnet" role="radio" aria-checked="false">
-            <span class="seg__dot" style="--dot:#6BA8FF"></span>
-            <span class="seg__main">SCPNet (base)</span>
-            <span class="seg__meta">36.17% mIoU</span>
-          </button>
-          <button class="seg__btn is-active" data-view="s2d2" role="radio" aria-checked="true">
-            <span class="seg__dot" style="--dot:#F19340"></span>
-            <span class="seg__main">S<sup>2</sup>D<sup>2</sup> (ours)</span>
-            <span class="seg__meta">38.54% mIoU</span>
-          </button>
-          <button class="seg__btn" data-view="gt" role="radio" aria-checked="false">
-            <span class="seg__dot" style="--dot:#8BCFA8"></span>
-            <span class="seg__main">Ground truth</span>
-            <span class="seg__meta">reference</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <span class="control-group__label">Display</span>
-        <label class="check">
-          <input type="checkbox" id="viewer3d-ego" checked>
-          <span>Show ego-vehicle marker</span>
-        </label>
-        <label class="check">
-          <input type="checkbox" id="viewer3d-highlight">
-          <span>Highlight rare classes</span>
-        </label>
-        <label class="check">
-          <input type="checkbox" id="viewer3d-autorotate">
-          <span>Auto-rotate (pauses on drag)</span>
-        </label>
-      </div>
-
-      <div class="control-group control-group--info">
-        <span class="control-group__label">Rare class in this scene</span>
-        <div class="stat-row" id="viewer3d-stat-row">
-          <div class="stat">
-            <span class="stat__label">SCPNet</span>
-            <span class="stat__value" data-stat="scp">31.3%</span>
-          </div>
-          <div class="stat stat--accent">
-            <span class="stat__label">S²D²</span>
-            <span class="stat__value" data-stat="ours">56.9%</span>
-          </div>
-          <div class="stat">
-            <span class="stat__label">Δ</span>
-            <span class="stat__value" data-stat="delta">+25.6</span>
-          </div>
-        </div>
-      </div>
-
-      <p class="viewer3d__tip">
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Drag to orbit, scroll or pinch to zoom. Double-click to re-frame.
-      </p>
-    </aside>
+  <div class="lede">
+  <p>The refiner cannot exceed its source: on a weaker base it can <em>erase</em> a rare class rather than recover it, costing two of the three vulnerable-road-user classes on the JS3C-Net base. Its correction pass does not pay for its latency inside a one-second window &mdash; the pass costs 107&nbsp;ms, dropping the deployed base-plus-refiner pipeline to 3.23&nbsp;FPS end-to-end on an idle H100 against the frozen base&rsquo;s 4.95. Our evidence for generality is two dense categorical tasks, 3D completion and BEV segmentation. Whether the correction reaches any output that is a per-element categorical simplex is untested rather than shown.</p>
+  <p class="note">Restricted to frames where the base recovers the class at all, one step lowers person IoU on 74.7% of them and bicyclist IoU on 92.5% for the JS3C-Net base. On the SCPNet base the same two rates are 24.0% and 23.5%, which is why the transfer claim is scoped to voxel-grid-native sources.</p>
   </div>
 </section>
 
-<!-- ============================================================
-     SPEED / LATENCY RACE
-============================================================ -->
-<section id="speed" class="section">
-  <p class="section__eyebrow">Efficiency</p>
-  <h2 class="section__title">A single UNet forward pass on top of the base model.</h2>
-  <p class="section__lede">
-    The multi-step diffusion schedule is a <em>training</em> device; deployment runs exactly one correction step.
-    The race below is a real measurement on a contention-free H100 80GB.
-  </p>
-
-  <div class="race" id="race-widget">
-    <button class="btn btn--primary btn--lg" id="race-start" aria-label="Start the latency race">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-      Start the race
-    </button>
-    <div class="race__lanes" id="race-lanes" aria-live="polite"></div>
-    <p class="race__note">
-      All four lanes use the same validation frame at 256×256×32 voxels and were measured on a contention-free NVIDIA H100&nbsp;80GB. The numeric readouts beside each bar show the <strong>real measured latency</strong> (in ms); the bar widths are linearly proportional to that latency.
-      <strong>The wall-clock animation is <em>log-warped</em></strong> so that the 100-step lane finishes the bar in roughly 6&nbsp;s of UI time instead of the actual ~11&nbsp;s, otherwise the contrast across the four lanes would not be visible in a single viewing. The widths and readouts are real; only the per-pixel <em>animation pacing</em> is compressed.
-    </p>
-  </div>
-</section>
-
-<!-- ============================================================
-     RESULTS
-============================================================ -->
-<section id="results" class="section">
-  <p class="section__eyebrow">Results</p>
-  <h2 class="section__title">SemanticKITTI hidden test set · single-frame single-sample</h2>
-  <p class="section__lede">
-    All numbers are <a href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">Codabench leaderboard</a> mIoU on the official hidden test split. S<sup>2</sup>D<sup>2</sup> reaches <strong>39.2%</strong> with D<sub>4</sub> test-time augmentation, +1.3% over the previous best, TALoS at 37.9%. Even the real-time 1-step configuration at <strong>9.33&nbsp;FPS</strong> reaches <strong>38.8%</strong>, beating TALoS by +0.9% with no TTA and no line-of-sight test-time adaptation (the LoS adaptation TALoS relies on).
-  </p>
-
-  <div class="table-card" id="main-results-card">
-    <div class="table-card__head">
-      <h3>Main comparison</h3>
-      <p>Click a column to sort. C = camera-only · L-SF = LiDAR single-frame.</p>
-    </div>
-    <div class="table-card__scroll" role="region"
-         aria-label="Main comparison table, scroll horizontally to view all columns" tabindex="0">
-      <table class="datatable" id="main-results-table" aria-describedby="main-results-card">
-        <caption class="visually-hidden">SemanticKITTI hidden-test single-frame single-sample comparison: method, modality, mIoU, and note.</caption>
-        <thead>
-          <tr>
-            <th scope="col" data-sort="string">Method</th>
-            <th scope="col" data-sort="string" class="th--center">Modality</th>
-            <th scope="col" data-sort="number" class="th--num" aria-sort="descending">mIoU</th>
-            <th scope="col" class="th--center">Note</th>
-          </tr>
-        </thead>
-        <tbody id="main-results-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="table-card safety-card">
-    <div class="table-card__head">
-      <h3>Where the gains concentrate</h3>
-      <p>The improvements land on the safety-critical long-tail. On the SemanticKITTI hidden test set, S<sup>2</sup>D<sup>2</sup> with D<sub>4</sub> TTA holds the column-wise maximum on <strong>7 of the 8 safety-critical classes</strong> (bicycle, truck, other-vehicle, person, bicyclist, motorcyclist, traffic-sign). Only motorcycle goes to TALoS, by 2.7 points.</p>
-    </div>
-    <p class="card-scope-note">The six largest per-class Δ vs SCPNet on the <strong>hidden test set</strong> (D<sub>4</sub> TTA) — other-vehicle is the seventh winning safety class (see the parenthetical above). These are test-split deltas, not the validation numbers in the per-class table below.</p>
-    <div class="safety-card__grid">
-      <div class="safety-stat"><span class="safety-stat__class">bicyclist</span><span class="safety-stat__delta">+7.3</span></div>
-      <div class="safety-stat"><span class="safety-stat__class">traffic-sign</span><span class="safety-stat__delta">+6.5</span></div>
-      <div class="safety-stat"><span class="safety-stat__class">truck</span><span class="safety-stat__delta">+5.8</span></div>
-      <div class="safety-stat"><span class="safety-stat__class">person</span><span class="safety-stat__delta">+3.5</span></div>
-      <div class="safety-stat"><span class="safety-stat__class">bicycle</span><span class="safety-stat__delta">+1.7</span></div>
-      <div class="safety-stat"><span class="safety-stat__class">motorcyclist</span><span class="safety-stat__delta">+1.5</span></div>
-    </div>
-    <div class="safety-card__foot">
-      The per-class gains concentrate on the rare, safety-critical object-bank classes (see the six cards above and the per-class table below), while common-class regressions stay tiny and outside the safety set (motorcycle &minus;0.7, trunk &minus;0.2, pole &minus;1.3). This pattern drives our safety-aware metrics in the paper: SC-mIoU rises <strong>32.5&nbsp;&rarr;&nbsp;35.2</strong> (<strong>+2.7</strong>) and VRU-IoU (person, bicyclist, motorcyclist) rises <strong>14.7&nbsp;&rarr;&nbsp;19.6</strong> (<strong>+4.9</strong>).
-    </div>
-  </div>
-
-  <div class="table-card" id="framework-card">
-    <div class="table-card__head">
-      <h3>Beyond the headline: framework properties</h3>
-      <p>Two lines of evidence that the gain is a property of the <em>framework</em>, not of any single frozen base. Numbers are val seq~08 mIoU under the configurations stated in the paper.</p>
-    </div>
-    <div class="table-card__scroll" role="region"
-         aria-label="Cross-base framework results table, scroll horizontally to view all columns" tabindex="0">
-      <table class="datatable" id="crossbase-table">
-        <caption class="visually-hidden">Cross-base framework results on SemanticKITTI val seq 08: frozen base, architecture family, base mIoU, base plus S²D² mIoU, delta, and evaluator.</caption>
-        <thead>
-          <tr>
-            <th scope="col">Frozen base</th>
-            <th scope="col" class="th--center">Architecture family</th>
-            <th scope="col" data-sort="number" class="th--num">Base mIoU</th>
-            <th scope="col" data-sort="number" class="th--num">Base + S<sup>2</sup>D<sup>2</sup></th>
-            <th scope="col" data-sort="number" class="th--num" aria-sort="descending">Δ&nbsp;mIoU</th>
-            <th scope="col" class="th--center">Evaluator</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">LMSCNet</th>
-            <td class="th--center">2D&nbsp;CNN (dense)</td>
-            <td class="th--num mono">14.8</td>
-            <td class="th--num mono"><strong>16.6</strong></td>
-            <td class="th--num mono"><strong>+1.8</strong></td>
-            <td class="th--center"><span class="mono">semantic-kitti-api</span></td>
-          </tr>
-          <!-- JS3C public headline: paper uses official 22.7 -> 26.1 (+3.3, official semantic-kitti-api). The internal SSCMetrics continuity number is 26.7/+4.0 (continuity row only); the deployable derived-BEV number is 24.3. -->
-          <tr>
-            <th scope="row">JS3C-Net</th>
-            <td class="th--center">Point&nbsp;+&nbsp;voxel hybrid</td>
-            <td class="th--num mono">22.7</td>
-            <td class="th--num mono"><strong>26.1</strong></td>
-            <td class="th--num mono"><strong>+3.3</strong></td>
-            <td class="th--center"><span class="mono">semantic-kitti-api</span></td>
-          </tr>
-          <tr>
-            <th scope="row">SCPNet</th>
-            <td class="th--center">Sparse&nbsp;3D CNN</td>
-            <td class="th--num mono">36.17</td>
-            <td class="th--num mono"><strong>38.54</strong></td>
-            <td class="th--num mono"><strong>+2.37</strong></td>
-            <td class="th--center"><span class="mono">semantic-kitti-api</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="table-card__foot">
-      Same recipe, same hyperparameters, only the frozen base changes &mdash; consistent positive Δ across three structurally different families (dense 2D CNN, point&ndash;voxel hybrid, sparse 3D CNN).
-      <span class="safety-card__note">The JS3C-Net row reports the official <span class="mono">semantic-kitti-api</span> result (22.7&nbsp;&rarr;&nbsp;26.1, +3.3&nbsp;pp). The LMSCNet base mIoU is re-scored from on-disk predictions through the same official <span class="mono">semantic-kitti-api</span> on val seq~08. (Under an internal training-time evaluator the JS3C-Net model reaches 26.7, +4.0&nbsp;pp.)</span>
-    </div>
-  </div>
-
-  <div class="table-card" id="crossdataset-card">
-    <div class="table-card__head">
-      <h3>Zero-shot transfer to unseen domains</h3>
-      <p>SemanticKITTI is the primary benchmark the framework is built and trained on. The <em>frozen</em> SemanticKITTI checkpoint is then evaluated &mdash; with no fine-tuning and no target-domain labels &mdash; on two domains it has never seen, refining the same frozen SCPNet base. The positive Δ, not the absolute, carries the generalization claim.</p>
-    </div>
-    <div class="table-card__scroll" role="region"
-         aria-label="Cross-dataset zero-shot transfer table, scroll horizontally to view all columns" tabindex="0">
-      <table class="datatable" id="crossdataset-table">
-        <caption class="visually-hidden">Zero-shot transfer of the frozen SemanticKITTI checkpoint to SemanticPOSS and SSCBench-KITTI360: dataset, base mIoU, base plus S²D² mIoU, mIoU delta, and completion-IoU delta.</caption>
-        <thead>
-          <tr>
-            <th scope="col">Unseen domain</th>
-            <th scope="col" data-sort="number" class="th--num">SCPNet base mIoU</th>
-            <th scope="col" data-sort="number" class="th--num">Base + S<sup>2</sup>D<sup>2</sup></th>
-            <th scope="col" data-sort="number" class="th--num">Δ&nbsp;mIoU</th>
-            <th scope="col" data-sort="number" class="th--num">Δ&nbsp;Comp.&nbsp;IoU</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">SemanticPOSS <span class="card-scope-note" style="display:inline;font-style:normal">(cross-sensor)</span></th>
-            <td class="th--num mono">1.0</td>
-            <td class="th--num mono"><strong>6.6</strong></td>
-            <td class="th--num mono"><strong>+5.5</strong></td>
-            <td class="th--num mono"><strong>+23.1</strong></td>
-          </tr>
-          <tr>
-            <th scope="row">SSCBench-KITTI360 <span class="card-scope-note" style="display:inline;font-style:normal">(same-sensor)</span></th>
-            <td class="th--num mono">5.8</td>
-            <td class="th--num mono"><strong>6.2</strong></td>
-            <td class="th--num mono"><strong>+0.4</strong></td>
-            <td class="th--num mono"><strong>+1.4</strong></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="table-card__foot">
-      The same one-step refinement that lifts the in-domain SemanticKITTI base also lifts a <em>frozen</em> checkpoint on two domains it was never trained on. On <strong>SemanticPOSS</strong> (a different LiDAR &mdash; a cross-sensor stress test) the base mIoU rises <strong>1.0&nbsp;&rarr;&nbsp;6.6</strong> (<strong>+5.5&nbsp;pp</strong>) and completion IoU <strong>31.8&nbsp;&rarr;&nbsp;54.9</strong> (<strong>+23.1&nbsp;pp</strong>). On <strong>SSCBench-KITTI360</strong> (same Velodyne HDL-64E sensor) mIoU rises <strong>5.8&nbsp;&rarr;&nbsp;6.2</strong> (<strong>+0.4&nbsp;pp</strong>) and completion IoU <strong>18.1&nbsp;&rarr;&nbsp;19.5</strong> (<strong>+1.4&nbsp;pp</strong>).
-      <span class="safety-card__note">Fully zero-shot (evaluation-only, no fine-tuning, no target-domain labels), so the absolutes are low; the gain, not the absolute, is the generalization signal. SemanticPOSS is scored over the 11-class TALoS Tab.&nbsp;4 map (val seq~02, &asymp;500 frames); SSCBench-KITTI360 over the 16 classes it shares with SemanticKITTI (val seq~06, 1,812 frames). On KITTI360 the +0.4&nbsp;pp mIoU delta is small relative to single-seed run-to-run variance, so the claim there leans on the clearly-above-noise +1.4&nbsp;pp completion-IoU gain.</span>
-    </div>
-  </div>
-
-  <div class="table-card safety-card" id="from-noise-card">
-    <div class="table-card__head">
-      <h3>SGSC &mdash; from-noise SSC without any 3D SSC base</h3>
-      <p>S<sup>2</sup>D<sup>2</sup> with a <strong>uniform source</strong> (no base predictor) reduces to a discrete diffusion model trained from noise, conditioned on <strong>two streams</strong> &mdash; a BEV semantic map (<em>B</em>) and per-voxel LSK3D features (<em>F</em>). It still produces a usable scene in a small number of steps.</p>
-    </div>
-    <div class="safety-card__grid">
-      <div class="safety-stat"><span class="safety-stat__class">from-noise S<sup>2</sup>D<sup>2</sup> (standard SSC eval)</span><span class="safety-stat__delta">30.5</span></div>
-      <div class="safety-stat"><span class="safety-stat__class">PaSCo (panoptic-mode eval)<sup>†</sup></span><span class="safety-stat__delta">30.1</span></div>
-      <div class="safety-stat"><span class="safety-stat__class">stacked: from-noise + S<sup>2</sup>D<sup>2</sup> refinement</span><span class="safety-stat__delta">32.8</span></div>
-    </div>
-    <div class="safety-card__foot">
-      The from-noise variant reaches <strong>30.5%</strong> val mIoU, comparable to PaSCo&rsquo;s 30.1% (0.4&nbsp;pp, within run-to-run variance); stacking one S<sup>2</sup>D<sup>2</sup> refinement step on top adds another <strong>+2.3&nbsp;pp</strong> to <strong>32.8%</strong>.
-      <span class="safety-card__note"><sup>†</sup> PaSCo&rsquo;s 30.1% is a subsidiary mIoU reported under its panoptic-mode (PSC) evaluator, not directly comparable to the standard SSC evaluator used for our 30.5%, so this is not a like-for-like head-to-head.</span>
-    </div>
-  </div>
-
-  <div class="table-card">
-    <div class="table-card__head">
-      <h3>Per-class IoU on val (SCPNet → S<sup>2</sup>D<sup>2</sup>)</h3>
-      <p>Sorted by gain Δ. Safety-critical classes marked with †. Numbers are SemanticKITTI seq-08 validation; per-class test IoUs are in the paper's main results table.</p>
-    </div>
-    <div class="table-card__scroll" role="region"
-         aria-label="Per-class IoU table, scroll horizontally to view all columns" tabindex="0">
-      <table class="datatable" id="perclass-table">
-        <caption class="visually-hidden">Per-class IoU on SemanticKITTI seq 08 validation, SCPNet versus S²D², sorted by gain delta.</caption>
-        <thead>
-          <tr>
-            <th scope="col" data-sort="string">Class</th>
-            <th scope="col" data-sort="number" class="th--num">SCPNet</th>
-            <th scope="col" data-sort="number" class="th--num">S<sup>2</sup>D<sup>2</sup></th>
-            <th scope="col" data-sort="number" class="th--num" aria-sort="descending">Δ</th>
-          </tr>
-        </thead>
-        <tbody id="perclass-body"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================
-     BIBTEX
-============================================================ -->
-<section id="bibtex" class="section section--narrow">
-  <p class="section__eyebrow">Cite</p>
-  <h2 class="section__title">BibTeX</h2>
-  <div class="code-card">
-    <button class="btn-ghost code-card__copy" id="bibtex-copy">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      <span id="bibtex-copy-label">Copy</span>
-    </button>
-    <pre class="code-card__pre" tabindex="0" role="region" aria-label="BibTeX citation, scrollable code block"><code id="bibtex-code">@article{chen2026gssc,
-  title   = {Generative Semantic Scene Completion through Modeling the Underlying Geometry and Semantics in Point Clouds},
+<section id="bibtex" class="prose">
+  <h2>BibTeX</h2>
+  <pre><code id="bibtex-code">@article{chen2026gssc,
+  title   = {Generative Semantic Scene Completion through Modeling the
+             Underlying Geometry and Semantics in Point Clouds},
   author  = {Chen, Shi and Ge, Weifeng},
-  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence (under review)},
+  journal = {Under review, IEEE Transactions on Pattern Analysis and
+             Machine Intelligence},
   year    = {2026}
 }</code></pre>
-  </div>
+  <p class="links-note" style="text-align:left"><button class="btn" id="bibtex-copy" type="button"><span id="bibtex-copy-label">Copy</span></button></p>
 </section>
 
 </main>
 
-<!-- ============================================================
-     FOOTER
-============================================================ -->
-<footer class="footer">
-  <div class="footer__grid">
-    <p class="footer__title">S<sup>2</sup>D<sup>2</sup></p>
-    <p class="footer__note">
-      Page rendered statically · no tracking · no cookies. <br/>
-      Built with Three.js, vanilla JS, and a lot of voxels.
-    </p>
-    <p class="footer__ack">
-      Supported by NSFC Grant No.&nbsp;624B1006. Thanks to SemanticKITTI authors for public data.
-    </p>
-  </div>
+<footer class="prose">
+  <p>This page is static: no analytics, no cookies, no third-party scripts beyond the webfont.</p>
+  <p>Figures and numbers on this page are taken from the manuscript under review. Where the manuscript hedges a result, this page hedges it too.</p>
 </footer>
 
-<!-- ============================================================
-     Scripts
-============================================================ -->
-<script src="scripts/tableSort.js" defer></script>
-<script src="scripts/latencyRace.js" defer></script>
-<script src="scripts/main.js" defer></script>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+               "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
+<script src="scripts/anon.js"></script>
+<script src="scripts/main.js"></script>
 <script type="module" src="scripts/viewer3d.js"></script>
-<script type="module" src="scripts/heroCanvas.js"></script>
-
 </body>
 </html>

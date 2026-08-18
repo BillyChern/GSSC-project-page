@@ -1,21 +1,27 @@
-[
-  { "klass": "motorcyclist", "scp": 4.1,  "ours": 12.3, "safety": true  },
-  { "klass": "other-veh.",   "scp": 42.0, "ours": 44.5, "safety": false },
-  { "klass": "truck",        "scp": 54.7, "ours": 60.1, "safety": false },
-  { "klass": "bicyclist",    "scp": 18.0, "ours": 23.3, "safety": true  },
-  { "klass": "road",         "scp": 70.0, "ours": 74.6, "safety": false },
-  { "klass": "other-grnd.",  "scp": 13.6, "ours": 13.9, "safety": false },
-  { "klass": "traffic-sign", "scp": 18.8, "ours": 23.0, "safety": false },
-  { "klass": "person",       "scp": 22.0, "ours": 23.2, "safety": true  },
-  { "klass": "building",     "scp": 33.3, "ours": 34.7, "safety": false },
-  { "klass": "vegetation",   "scp": 38.5, "ours": 40.7, "safety": false },
-  { "klass": "terrain",      "scp": 51.9, "ours": 54.6, "safety": false },
-  { "klass": "fence",        "scp": 29.9, "ours": 30.2, "safety": false },
-  { "klass": "sidewalk",     "scp": 51.9, "ours": 53.9, "safety": false },
-  { "klass": "car",          "scp": 50.3, "ours": 51.4, "safety": false },
-  { "klass": "trunk",        "scp": 32.0, "ours": 32.4, "safety": false },
-  { "klass": "pole",         "scp": 37.7, "ours": 37.8, "safety": false },
-  { "klass": "parking",      "scp": 59.3, "ours": 61.6, "safety": false },
-  { "klass": "motorcycle",   "scp": 35.6, "ours": 35.5, "safety": false },
-  { "klass": "bicycle",      "scp": 23.7, "ours": 24.3, "safety": false }
-]
+{
+  "note": "Per-class val IoU against the frozen base (SemanticKITTI seq. 08, N=1). Source: paper Table II. 'Released' is the shipped checkpoint (38.54% mIoU); 'Retrain' is an independent from-scratch run (38.05%). The paper does not claim motorcyclist's released +8.3: it fails to reproduce, recovering only +0.3 on retrain.",
+  "base_miou": 36.17,
+  "released_delta": 2.36,
+  "retrain_delta": 1.9,
+  "classes": [
+    { "klass": "car",           "base": 50.3, "released": 1.1,  "retrain": 1.0,  "vru": false },
+    { "klass": "bicycle",       "base": 23.7, "released": 0.6,  "retrain": -0.1, "vru": false },
+    { "klass": "motorcycle",    "base": 35.6, "released": -0.1, "retrain": 0.2,  "vru": false },
+    { "klass": "truck",         "base": 54.7, "released": 5.3,  "retrain": 5.4,  "vru": false },
+    { "klass": "other-vehicle", "base": 42.0, "released": 2.5,  "retrain": 2.3,  "vru": false },
+    { "klass": "person",        "base": 22.0, "released": 1.2,  "retrain": 1.9,  "vru": true  },
+    { "klass": "bicyclist",     "base": 18.0, "released": 5.3,  "retrain": 5.2,  "vru": true  },
+    { "klass": "motorcyclist",  "base": 4.1,  "released": 8.3,  "retrain": 0.3,  "vru": true, "disclaimed": true },
+    { "klass": "road",          "base": 70.0, "released": 4.6,  "retrain": 4.3,  "vru": false },
+    { "klass": "parking",       "base": 59.3, "released": 2.4,  "retrain": 2.3,  "vru": false },
+    { "klass": "sidewalk",      "base": 51.9, "released": 2.1,  "retrain": 1.9,  "vru": false },
+    { "klass": "other-ground",  "base": 13.6, "released": 0.4,  "retrain": 0.1,  "vru": false },
+    { "klass": "building",      "base": 33.3, "released": 1.5,  "retrain": 0.7,  "vru": false },
+    { "klass": "fence",         "base": 29.9, "released": 0.3,  "retrain": 0.1,  "vru": false },
+    { "klass": "vegetation",    "base": 38.5, "released": 2.2,  "retrain": 1.9,  "vru": false },
+    { "klass": "trunk",         "base": 32.0, "released": 0.4,  "retrain": 0.2,  "vru": false },
+    { "klass": "terrain",       "base": 51.9, "released": 2.6,  "retrain": 2.0,  "vru": false },
+    { "klass": "pole",          "base": 37.7, "released": 0.1,  "retrain": 0.1,  "vru": false },
+    { "klass": "traffic-sign",  "base": 18.8, "released": 4.2,  "retrain": 5.8,  "vru": false }
+  ]
+}
