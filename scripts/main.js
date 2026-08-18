@@ -19,20 +19,37 @@
     return td;
   };
 
-  var num = function (v) {
-    return el('td', 'num', v === null || v === undefined ? '—' : v.toFixed(1));
+  /* Render at the precision the paper prints. Forcing toFixed(1) would turn
+     Table I's 50.24 and 59.25 into 50.2 / 59.3 and silently disagree with it. */
+  var fmt = function (v) {
+    if (v === null || v === undefined) return '—';
+    return Number.isInteger(v * 10) ? v.toFixed(1) : String(v);
   };
+  var num = function (v) { return el('td', 'num', fmt(v)); };
 
   function mainResults(rows) {
     var body = document.getElementById('main-results-body');
     if (!body) return;
     /* The best eligible cell is computed, never hard-coded, so the table
        cannot drift from the predicate it claims to apply. */
-    var best = rows.reduce(function (m, r) {
-      return (!r.excluded && r.mIoU > m) ? r.mIoU : m;
-    }, -Infinity);
+    var bestIn = function (split) {
+      return rows.reduce(function (m, r) {
+        return (r.eval === split && !r.excluded && r.mIoU > m) ? r.mIoU : m;
+      }, -Infinity);
+    };
+    var best = { test: bestIn('test'), val: bestIn('val') };
+    var split = null;
 
     rows.forEach(function (r) {
+      /* The paper bolds best-per-column WITHIN a split, so the splits are
+         separated and each carries its own maximum. */
+      if (r.eval !== split) {
+        split = r.eval;
+        var sep = el('tr', 'split');
+        var sth = el('th', null, split === 'test' ? 'SemanticKITTI hidden test' : 'Validation (sequence 08)');
+        sth.setAttribute('colspan', '6'); sth.setAttribute('scope', 'colgroup');
+        sep.appendChild(sth); body.appendChild(sep);
+      }
       var tr = el('tr', (r.ours ? 'ours ' : '') + (r.excluded ? 'excluded' : ''));
       var th = el('th', null, r.method);
       th.setAttribute('scope', 'row');
@@ -40,7 +57,7 @@
       tr.appendChild(th);
 
       var m = el('td', 'num');
-      var mv = el('span', (!r.excluded && r.mIoU === best) ? 'best' : '', r.mIoU.toFixed(1));
+      var mv = el('span', (!r.excluded && r.mIoU === best[r.eval]) ? 'best' : '', fmt(r.mIoU));
       m.appendChild(mv);
       tr.appendChild(m);
 

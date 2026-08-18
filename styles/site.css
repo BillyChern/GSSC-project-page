@@ -132,6 +132,7 @@ thead th {
 }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tbody tr.ours td { background: rgba(184, 92, 0, 0.045); }
+tbody tr.split th { background: var(--ground-sunk); font-weight: 600; padding-top: 10px; }
 tbody tr.excluded td { color: var(--muted); }
 td .best { font-weight: 600; }
 .pos { color: var(--pos); }

@@ -6,13 +6,26 @@
    from this subfield (PaSCo, MonoScene, SceneRF, LiDPM, SemCity,
    TPVFormer, OccWorld, SelfOcc, SurroundOcc, Occ3D, XCube).
 
-   Measured norms those pages share, which this file encodes:
-     ground   #ffffff on 19 of 19
+   Norms those pages share, with the caveats an adversarial re-check found:
+     ground   #ffffff on every page checked. Note n is smaller than the page
+              count: Zip-NeRF and mip-NeRF 360 ship a byte-identical stylesheet
+              (same md5), so several "19 of 19" style counts over-count authors.
      text     dark grey, never black (#4a4a4a / #333 / #2f2f2f)
-     accent   exactly ONE, links only; 3-9 total colours per page
-     type     one humanist sans, 15-17px, weights 300-600, never 700+
-     measure  prose 636-768px, media 960-1140px -- width IS the hierarchy
-     motion   zero @keyframes across all 30; motion is result video only
+     accent   one link colour on most pages, but NOT universal: PaSCo uses a
+              saturated purple and green for panel labels, and Zip-NeRF ships a
+              pale-yellow highlight ground. One accent is our CHOICE, not a law.
+     type     humanist sans, 14-17px. The claim "nobody uses weight 700+" is
+              FALSE -- Zip-NeRF's app.css declares 700 five times and instant-ngp
+              uses bold classes. Our 400/500/600 range is a choice, not a finding.
+              (Zip-NeRF is Lato 14px, not the Source Sans Pro 15px often quoted.)
+     measure  prose 636-768px, media 960-1140px -- width IS the hierarchy. Solid.
+     motion   zero @keyframes on every page whose CSS was actually retrieved.
+              This is the best-evidenced norm of the set.
+     voice    plain noun headings, near-closed vocabulary. Also well evidenced.
+
+   One honest divergence: none of the exemplars use CSS custom properties, a type
+   scale, or IBM Plex Sans. This file uses all three. That is a maintainability
+   choice invisible in the render, and the render is what the norms describe.
 
    The accent is the paper's own figure orange (#C05A00) darkened to
    #B85C00 to clear AA on white, so page and PDF share one hue.

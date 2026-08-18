@@ -91,6 +91,24 @@ function showNoWebGLFallback() {
   loadingEl.appendChild(note);
 }
 
+// A scene file that cannot be fetched or parsed shows this instead of geometry.
+// Mirrors showNoWebGLFallback: say what happened, and point at the static figure
+// that carries the same comparison.
+function showLoadFailure() {
+  if (!loadingEl) return;
+  loadingEl.classList.remove('is-hidden');
+  while (loadingEl.firstChild) loadingEl.removeChild(loadingEl.firstChild);
+  loadingEl.classList.add('viewer3d__fallback');
+  const note = document.createElement('p');
+  note.className = 'viewer3d__fallback-text';
+  note.append('This scene could not be loaded, so nothing is drawn rather than a stand-in. ');
+  const link = document.createElement('a');
+  link.href = '#abstract';
+  link.textContent = 'The static qualitative comparison is above.';
+  note.appendChild(link);
+  loadingEl.appendChild(note);
+}
+
 function boot() {
   let renderer;
   try {
@@ -174,9 +192,14 @@ function boot() {
         loader.load(url, res, undefined, rej);
       });
     } catch (e) {
-      // Fallback: synthetic cloud so the viewer always shows something.
-      console.warn(`PLY ${url} missing, falling back to synthetic cloud`, e);
-      geometry = makeSyntheticCloud(sceneId, viewId);
+      // A scene that will not load must FAIL VISIBLY. The previous behaviour here
+      // was to synthesise a seeded lattice "so the viewer always shows something" —
+      // which renders fabricated geometry inside the panel labelled with our method
+      // name, where a reader has every reason to read it as model output. Showing
+      // nothing is strictly better than showing something invented.
+      console.error(`PLY ${url} failed to load; not substituting synthetic geometry.`, e);
+      showLoadFailure();
+      throw e;
     }
 
     // Normalize colour: our exporter writes red/green/blue uchar; we
@@ -277,50 +300,6 @@ function boot() {
       if (map[k] !== undefined) cell.textContent = map[k];
     });
   }
-
-  function makeSyntheticCloud(sceneId, viewId) {
-    // Build a 60x60x10 lattice with some holes + palette tied to view.
-    const geom = new THREE.BufferGeometry();
-    const pos = [];
-    const col = [];
-    const palette = viewPalette(viewId);
-    const dim = 60, h = 10;
-    const rng = mulberry32(hash(sceneId + viewId));
-    for (let z = 0; z < h; z++) {
-      for (let x = -dim; x < dim; x++) {
-        for (let y = -dim; y < dim; y++) {
-          // thin plane + scattered obstacles
-          const isGround = (z < 2);
-          const isObstacle = rng() < (isGround ? 0.35 : 0.012);
-          if (!isObstacle) continue;
-          // Sparse view drops 80% of points
-          if (viewId === 'sparse' && rng() > 0.18) continue;
-          pos.push(x, z * 2 - 5, y);
-          const c = palette[Math.floor(rng() * palette.length)];
-          col.push(c[0], c[1], c[2]);
-        }
-      }
-    }
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    geom.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-    return geom;
-  }
-
-  function viewPalette(viewId) {
-    const base = [
-      [0.55, 0.72, 0.88],  // road blue-grey
-      [0.80, 0.82, 0.34],  // vegetation
-      [0.78, 0.35, 0.19],  // building
-      [0.46, 0.40, 0.55],  // sidewalk
-    ];
-    if (viewId === 'sparse') return [[0.7, 0.75, 0.82]];
-    if (viewId === 's2d2')   return [...base, [0.95, 0.58, 0.25]]; // orange accent
-    if (viewId === 'gt')     return [...base, [0.55, 0.81, 0.66]];
-    return base;
-  }
-
-  function hash(s) { let h = 0; for (const c of s) h = ((h<<5) - h + c.charCodeAt(0)) | 0; return h; }
-  function mulberry32(a) { return function() { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
   function makeEgoMarker() {
     // A small glowing ring at the origin to indicate sensor position.
