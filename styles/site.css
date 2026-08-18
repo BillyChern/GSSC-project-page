@@ -62,6 +62,10 @@ a:hover, a:focus-visible { color: var(--accent-hover); text-decoration: underlin
 /* Anonymity for double-blind review. anon.js flips body[data-anon];
    the page ships ANONYMOUS by default, matching the prior site's behaviour. */
 body[data-anon="true"] .identity { display: none; }
+/* The toggle must anonymise every occurrence, not only the header block; the
+   BibTeX author field named them regardless. */
+body[data-anon="true"] .identity-inline { display: none; }
+body:not([data-anon="true"]) .anon-inline { display: none; }
 body:not([data-anon="true"]) .anon-note { display: none; }
 .anon-note { margin: 0; font-size: var(--fs-affil); color: var(--muted); }
 .anon-ctl { margin: var(--s-4) 0 0; }
@@ -140,6 +144,9 @@ td .best { font-weight: 600; }
 .pos { color: var(--pos); }
 .neg { color: var(--neg); }
 .disclaimed { text-decoration: line-through; text-decoration-thickness: 1px; }
+
+/* Shown only when scripting is off: the two tables hydrate from JSON. */
+.js .nojs-note { display: none; }
 
 /* ---- BibTeX ---- */
 pre {

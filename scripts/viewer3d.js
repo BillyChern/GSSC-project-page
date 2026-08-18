@@ -180,6 +180,8 @@ function boot() {
 
   const loader = new PLYLoader();
 
+  const sceneCenters = new Map();
+
   async function loadAndShow(sceneId, viewId) {
     currentScene = sceneId;
     currentView  = viewId;
@@ -199,7 +201,7 @@ function boot() {
       // nothing is strictly better than showing something invented.
       console.error(`PLY ${url} failed to load; not substituting synthetic geometry.`, e);
       showLoadFailure();
-      throw e;
+      return;   // draw nothing; rethrowing left an unhandled rejection
     }
 
     // Normalize colour: our exporter writes red/green/blue uchar; we
@@ -228,10 +230,17 @@ function boot() {
     // CLASS_RGB in tools/export_ply.py and RARE_CLASS_BOOST below.
     const isRare = computeRareMask(cols, n);
 
-    // Center the cloud around origin for consistent camera framing.
+    // Centre on ONE reference per scene, not per view. Re-centring each cloud on
+    // its own bounding box shifted the sparse scan relative to the dense
+    // completions, so the four views were not spatially comparable — which is the
+    // whole point of holding the camera still across a switch.
     geometry.computeBoundingBox();
-    const center = new THREE.Vector3();
-    geometry.boundingBox.getCenter(center);
+    let center = sceneCenters.get(sceneId);
+    if (!center) {
+      center = new THREE.Vector3();
+      geometry.boundingBox.getCenter(center);
+      sceneCenters.set(sceneId, center);
+    }
     const pos = geometry.attributes.position.array;
 
     // Instanced solid cubes at 0.2 m each — matches the voxel size used

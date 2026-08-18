@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>document.documentElement.classList.add('js');</script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Generative Semantic Scene Completion</title>
@@ -102,6 +103,7 @@
         </tr>
       </thead>
       <tbody id="main-results-body"></tbody>
+      <tbody class="nojs-note"><tr><td colspan="6" class="note">This table is loaded from <code>data/results.json</code> and needs JavaScript. The same table is Table I of the paper.</td></tr></tbody>
     </table>
   </div>
   <p class="note">S3CNet, not us, takes the vulnerable-road-user column. We do not lead on safety: among single-sweep rows S3CNet leads every VRU class, at VRU-IoU 32.6 against our 21.6.</p>
@@ -109,7 +111,7 @@
 
   <h3>Per-class gain over the frozen base</h3>
   <div class="lede">
-    <p class="note">Validation sequence 08, one correction step, against the frozen SCPNet base at 36.17% mIoU. Two columns are shown because only one of them reproduces: <em>Released</em> is the shipped checkpoint, <em>Retrain</em> an independent from-scratch run. The bulk delta reproduces; the largest single-class gain does not, and the paper does not claim it.</p>
+    <p class="note">Validation sequence 08, one correction step, against the frozen SCPNet base at 36.17% mIoU. Two columns are shown because only one of them reproduces: <em>Released</em> is the shipped checkpoint, <em>Retrain</em> an independent from-scratch run. The bulk delta reproduces; the largest single-class gain does not, and the paper does not claim it. The safety metrics inherit the same discount: VRU-IoU&rsquo;s +4.9 becomes +2.5 on retrain, and the safety claim should be read against that.</p>
   </div>
   <div class="table-wrap">
     <table id="perclass">
@@ -123,6 +125,7 @@
         </tr>
       </thead>
       <tbody id="perclass-body"></tbody>
+      <tbody class="nojs-note"><tr><td colspan="4" class="note">This table is loaded from <code>data/perclass.json</code> and needs JavaScript. The same table is Table II of the paper.</td></tr></tbody>
     </table>
   </div>
 </section>
@@ -187,7 +190,7 @@
   <h2>BibTeX</h2>
   <pre><code id="bibtex-code">@article{chen2026gssc,
   title   = {Generative Semantic Scene Completion},
-  author  = {Chen, Shi and Ge, Weifeng},
+  author  = {<span class="identity-inline">Chen, Shi and Ge, Weifeng</span><span class="anon-inline">Author names withheld</span>},
   journal = {Under review, IEEE Transactions on Pattern Analysis and
              Machine Intelligence},
   year    = {2026}
