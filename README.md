@@ -37,30 +37,24 @@ with no fine-tuning — SemanticPOSS mIoU 1.0 → 6.5 % and SSCBench-KITTI360 on
 
 ## Publication status — read before deploying
 
-**GitHub Pages is deliberately NOT enabled.** `tools/push_to_github.sh` carries the
-standing instruction: *"Do NOT enable GitHub Pages until the patents are filed."*
-The repository is private and `https://billychern.github.io/GSSC-project-page/`
-returns 404 by design, not by accident. The paper is also under review.
+**The patent hold is LIFTED.** The patent was approved (author, 2026-08-18), so the
+release gate that governed this repo no longer applies. Earlier revisions of this file
+and of `tools/push_to_github.sh` said *"Do NOT enable GitHub Pages until the patents are
+filed"* — that instruction is now spent, and it is recorded here rather than silently
+deleted so nobody re-applies it from an old checkout.
 
-Do not follow the deploy steps below until that hold is lifted by the author.
+**TPAMI review is single-anonymous** (author, 2026-08-18): reviewers are anonymous to
+the authors, authors are not anonymous to reviewers. Nothing about the submission
+requires this page to hide author identity, so the revealed default is correct and no
+blinding step is needed before release. See *Author visibility*.
 
-> **This repository's HISTORY carries material the checkout does not.** `.git` is
-> ~153 MB against a small working tree, because history retains 69 `.audit/`
-> screenshots — full-page renders of an earlier, over-claiming version of this page,
-> including one of the author-revealed state — plus two copies of
-> `fig4_qualitative.pdf` at 18.2 MB and 16.6 MB. All were removed from tracking; none
-> were removed from history, so anyone who clones a public copy can recover them.
-> No credentials are present (the remote is SSH with no embedded token, and a scan of
-> 200 commits for GitHub/AWS/private-key patterns found nothing).
->
-> Two ways to handle it, both the author's call:
-> 1. **Publish a clean snapshot** (recommended, non-destructive): create the public
->    repo, copy the working tree in, and make one initial commit. This private repo
->    keeps the full development history.
-> 2. **Rewrite history** (`git filter-repo --path .audit --path-glob 'assets/**/*.pdf'
->    --invert-paths`), then force-push. This rewrites every commit hash and is
->    irreversible — do it only if you want the development history published minus
->    those paths.
+What remains before going public is a judgement call, not a hold:
+
+- `github.com/BillyChern/GSSC-S2D2` (code) and the model/data releases are still 404.
+  The page presents them as inert "on publication" labels rather than dead links, which
+  is honest either way — but a reader arriving from the paper will look for them.
+- This repository's **history** still carries material the checkout does not (see below).
+  Decide the snapshot-vs-rewrite question before the repo becomes public.
 
 - Repository: <https://github.com/BillyChern/GSSC-project-page> (private)
 - Intended URL once released: <https://billychern.github.io/GSSC-project-page/>
@@ -175,14 +169,13 @@ notice, and the preference persists in `localStorage`. Verified: in anonymous mo
 no author identifier survives the rendered page, and the BibTeX author field
 becomes "Author names withheld".
 
-> **The toggle is NOT blinding, and must not be relied on for a double-anonymous
-> submission.** It hides on-page text only. `og:url` and `og:image` hardcode
-> `billychern.github.io`; CSS cannot reach meta tags, crawlers need them absolute
-> and ignore JS-set metadata, and the hosting URL itself carries the username — so
-> a shared link still previews the author's account, and the address bar always
-> did. If the venue is double-anonymous, host the page under a non-identifying
-> account or an anonymising service. Setting `data-anon="true"` is the text layer,
-> not the requirement.
+> **TPAMI is single-anonymous** (author, 2026-08-18), so no blinding is required and the
+> revealed default is correct. Keep the toggle anyway — it costs nothing and a future
+> venue may differ — but know its limit before relying on it anywhere else: it hides
+> on-page text only. `og:url` and `og:image` hardcode `billychern.github.io`, CSS cannot
+> reach meta tags, crawlers need them absolute and ignore JS-set metadata, and the
+> hosting URL itself carries the username. For a genuinely double-anonymous venue you
+> would need anonymous *hosting*, not this control.
 
 ## Release links
 
@@ -211,8 +204,10 @@ returns 404, and the honest inert state is deliberate.
 
 ## Deploying to GitHub Pages
 
-> **Gated.** See *Publication status* above: do not perform these steps
-> until the patent filing is complete and the author lifts the hold.
+> **Ungated as of 2026-08-18** — the patent is approved. Before running these steps,
+> settle the git-history question in *Publication status*: enabling Pages on a repo
+> whose history holds 69 screenshots of an earlier, over-claiming version of this page
+> publishes that history to anyone who clones.
 
 1. Push this directory to the repo's default branch (`main`).
 2. Settings → Pages → Source = **Deploy from a branch**, branch = `main`, folder = `/ (root)`.

@@ -123,5 +123,6 @@ echo
 echo "----------------------------------------------------------------"
 echo "Pushed to $REMOTE (main)."
 echo "Verify on github.com that the repo visibility is 'Private'."
-echo "Do NOT enable GitHub Pages until the patents are filed."
+echo "Patent approved 2026-08-18: the Pages hold is lifted."
+echo "Before enabling Pages, settle the git-history question in README.md."
 echo "----------------------------------------------------------------"
