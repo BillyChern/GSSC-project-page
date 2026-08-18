@@ -209,7 +209,18 @@ function boot() {
 
   // Controls
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+
+  /* prefers-reduced-motion. The CSS rule in site.css cannot reach any of this:
+     damping and auto-rotate are driven from requestAnimationFrame, which no
+     animation-duration override touches. Damping is AMBIENT motion the reader did
+     not ask for, so honour the preference by switching it off. Auto-rotate stays
+     available -- ticking that box is itself an explicit request for motion -- but it
+     no longer starts on its own. data-reduced-motion is a test hook: the gate cannot
+     otherwise see a value that lives only on the controls object. */
+  const reduceMotion = window.matchMedia
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (stage) stage.dataset.reducedMotion = reduceMotion ? 'true' : 'false';
+  controls.enableDamping = !reduceMotion;
   controls.dampingFactor = 0.08;
   controls.rotateSpeed = 0.9;
   controls.zoomSpeed = 0.8;

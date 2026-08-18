@@ -113,15 +113,15 @@ requires it to trip. A check never seen failing is not evidence of anything.
 
 ```bash
 python3 -m http.server 8099 &          # check_page.py needs the site served
-python tools/check_page.py             # 39 behaviour assertions; exit 1 on failure
-python tools/check_page.py --selftest   # ~2 min: proves all 14 arms can fail
+python tools/check_page.py             # 47 behaviour assertions; exit 1 on failure
+python tools/check_page.py --selftest   # ~3 min: proves all 17 arms can fail
 
 python tools/check_content.py           # site claims vs the built paper
 python tools/check_content.py --selftest
 ```
 
-`check_page.py` covers three viewports plus the print, no-JS and slow-load
-contexts, and deliberately pins earlier fixes: the viewer legend still discloses
+`check_page.py` covers three viewports plus the print, no-JS, slow-load and
+reduced-motion contexts, and deliberately pins earlier fixes: the viewer legend still discloses
 its configuration, excluded table rows stay italic so the distinction survives
 forced-colors mode, anonymous mode leaks no identifier, and console errors are
 visible.
@@ -252,15 +252,13 @@ jobs:
   `overflow: hidden`, which would clip the offset ring on the viewer buttons
 - The viewer's segmented controls keep `aria-pressed` in sync with the visual state,
   and each group is a labelled `role="group"`
-- `prefers-reduced-motion` zeroes animation and transition durations. That reaches CSS
-  animation and transitions only, and the page has none of its own, so the rule guards
-  future additions rather than doing work today. **Known gap: it does not reach the 3D
-  viewer.** `OrbitControls` damping (`enableDamping`, `viewer3d.js`) and the Auto-rotate
-  checkbox drive motion from `requestAnimationFrame`, which no CSS duration override can
-  stop; there is no `scroll-behavior: smooth` for it to affect either. Honouring the
-  preference in the viewer means reading
-  `matchMedia('(prefers-reduced-motion: reduce)')` in `viewer3d.js` and disabling
-  damping and auto-rotate when it matches — not yet done
+- `prefers-reduced-motion` is honoured in two places. The CSS rule zeroes animation
+  and transition durations, which covers CSS animation only — the page has none of its
+  own, so it guards future additions. The viewer honours it separately in
+  `viewer3d.js`, because `OrbitControls` damping runs from `requestAnimationFrame` and
+  no CSS duration override can reach it: damping is switched off and auto-rotate no
+  longer self-starts. Ticking Auto-rotate still works — that is an explicit request for
+  motion. Gated by `check_page.py`'s reduced-motion context
 - The viewer stage is `role="img"` with a descriptive label that states plainly it is
   not keyboard-operable and points at the static figure. (It is deliberately not
   `role="application"`, which would claim to handle keyboard input it does not.) The

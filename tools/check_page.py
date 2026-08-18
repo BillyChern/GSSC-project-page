@@ -16,13 +16,10 @@ Usage:
     python tools/check_page.py --selftest      # prove every check can fail
     python tools/check_page.py --url http://localhost:8099/
 
-45 assertions: 12 x 3 viewports, plus print, no-JS and slow-load contexts. ~40s;
+47 assertions: 12 x 3 viewports, plus print, no-JS, slow-load and reduced-motion
+contexts. ~50s;
 --selftest ~3min, because the slow-load check must outwait an 8s watchdog twice.
 
-NOTE: the two bolding assertions and their fault injectors were written while the
-machine's disk was full and no shell could run, so they have never been executed.
-Run --selftest before trusting them; a spurious FAIL there is a bug in this file,
-not in the page.
 """
 from __future__ import annotations
 
@@ -242,7 +239,27 @@ def inspect_slowload(browser, url, fault=None):
             ("truthful aria-label restored", d["labelPromises"], str(d["labelPromises"]))]
 
 
-CONTEXTS = (("print", inspect_print), ("no-JS", inspect_nojs), ("slow load", inspect_slowload))
+def inspect_reduced_motion(browser, url, fault=None):
+    """A reader who asks for reduced motion must not get ambient damping.
+
+    The CSS @media rule cannot reach the viewer -- damping runs from
+    requestAnimationFrame -- so this is checked against the viewer's own state.
+    """
+    ctx = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    page = ctx.new_page()
+    if fault:
+        fault(page)
+    page.goto(url, wait_until="networkidle")
+    page.wait_for_timeout(4000)
+    flag = page.eval_on_selector("#viewer3d-stage", "e => e.dataset.reducedMotion")
+    canvas = page.evaluate("!!document.querySelector('#viewer3d-stage canvas')")
+    ctx.close()
+    return [("viewer honours prefers-reduced-motion", flag == "true", str(flag)),
+            ("viewer still draws under reduced motion", canvas, str(canvas))]
+
+
+CONTEXTS = (("print", inspect_print), ("no-JS", inspect_nojs), ("slow load", inspect_slowload),
+            ("reduced motion", inspect_reduced_motion))
 
 
 def gate(url: str) -> int:
@@ -337,6 +354,14 @@ FAULTS = [
 ]
 
 
+def _ignore_reduced_motion(page):
+    """Reproduce the pre-fix viewer: damping on regardless of the preference."""
+    src = (Path(__file__).resolve().parent.parent / "scripts" / "viewer3d.js").read_text(encoding="utf-8")
+    src = src.replace("&& window.matchMedia('(prefers-reduced-motion: reduce)').matches;", "&& false;", 1)
+    page.route("**/scripts/viewer3d.js",
+               lambda r: r.fulfill(status=200, content_type="text/javascript", body=src))
+
+
 CONTEXT_FAULTS = [
     ("print hides the 3D viewer", inspect_print,
      lambda p: _serve_css(p, lambda c: c.replace(
@@ -350,6 +375,7 @@ CONTEXT_FAULTS = [
          '#bibtex-copy[hidden] { display: none; }', ''))),
     # The original round-18 bug, faithfully: .is-hidden declared BEFORE
     # .viewer3d__fallback loses the specificity tie, so the claim never hides.
+    ("viewer honours prefers-reduced-motion", inspect_reduced_motion, _ignore_reduced_motion),
     ("false failure claim is retracted", inspect_slowload,
      lambda p: _serve_css(p, lambda c: c.replace(
          '#viewer3d-loading.is-hidden { display: none; }', '', 1))),
