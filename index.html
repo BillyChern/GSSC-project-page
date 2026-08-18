@@ -28,7 +28,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
 </head>
 <body data-anon="false">
-<a class="skip-link" href="#abstract">Skip to content</a>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="head prose">
   <h1>Generative Semantic Scene Completion</h1>
@@ -49,6 +49,12 @@
   <p class="links-note">The leaderboard entry is live and independently verifiable. Code, models and the PS&sup3; corpus are released on publication.</p>
 </header>
 
+<!-- The main landmark opens BEFORE the teaser deliberately. The figure previously sat
+     between the header and main, inside no landmark at all, so landmark navigation
+     skipped the page's primary visual and the skip link jumped past it. tabindex="-1"
+     lets the skip link move focus here reliably. -->
+<main id="main" tabindex="-1">
+
 <figure class="media scrollable" id="teaser">
   <picture>
     <source srcset="assets/figures/fig4_qualitative.webp" type="image/webp">
@@ -56,8 +62,6 @@
   </picture>
   <figcaption><strong>Qualitative comparison on val seq. 08.</strong> Three frozen sources (JS3C-Net, SCPNet, TALoS&rsquo;s adaptation of SCPNet), our S<sup>2</sup>D<sup>2</sup> on the SCPNet base, and ground truth; top bicyclist, bottom motorcyclist. The chips give per-sample rare-class IoU and TP/FP voxel counts, and they come from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration &mdash; not the <em>N</em>=1 headline, and outside the predicate. Source: paper Fig. 6.</figcaption>
 </figure>
-
-<main>
 
 <section id="abstract" class="prose abstract">
   <h2>Abstract</h2>
