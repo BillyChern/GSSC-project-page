@@ -80,26 +80,62 @@ turns out not to require it.
 
 ```bash
 cd s2d2_website
-python3 -m http.server 8000
-# then open http://localhost:8000
+python3 -m http.server 8099
+# then open http://localhost:8099
 ```
 
-Any static file server works — there's no build step.
+Any static file server works — there's no build step. Port 8099 matches the
+default the checks below expect.
+
+## Checks
+
+Two gates, each with a `--selftest` that injects one fault per assertion and
+requires it to trip. A check never seen failing is not evidence of anything.
+
+```bash
+python3 -m http.server 8099 &          # check_page.py needs the site served
+python tools/check_page.py             # 39 behaviour assertions; exit 1 on failure
+python tools/check_page.py --selftest   # ~2 min: proves all 14 arms can fail
+
+python tools/check_content.py           # site claims vs the built paper
+python tools/check_content.py --selftest
+```
+
+`check_page.py` covers three viewports plus the print, no-JS and slow-load
+contexts, and deliberately pins earlier fixes: the viewer legend still discloses
+its configuration, excluded table rows stay italic so the distinction survives
+forced-colors mode, anonymous mode leaks no identifier, and console errors are
+visible.
+
+`check_content.py` compares the page against `/workspace/GSSC-paper/pdf`
+(`--paper` to point elsewhere): every "Source: paper Fig. N / Table X" caption
+must resolve to a float whose caption is about the same thing, and every number
+in the prose and `data/*.json` must appear in the paper. **Run it after any float
+moves in the manuscript** — moving one float renumbers every figure after it, and
+these captions cite six floats by number.
 
 ## Regenerating the 3D viewer's PLY assets
 
-The viewer loads 8 of the 12 PLY point clouds in `assets/ply/`:
+The viewer loads all 8 PLY point clouds in `assets/ply/`:
 
-| Scene        | Views (sparse · SCPNet · S²D² · GT) | Loaded |
-|--------------|-------------------------------------|--------|
-| bicyclist    | `bicyclist_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 003096)    | yes |
-| motorcyclist | `motorcyclist_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 001417) | yes |
-| traffic-sign | `traffic_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 002870)      | no  |
+| Scene        | Views (sparse · SCPNet · S²D² · GT) |
+|--------------|-------------------------------------|
+| bicyclist    | `bicyclist_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 003096)    |
+| motorcyclist | `motorcyclist_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 001417) |
 
-The two loaded scenes are the two defined in `SCENES` in `scripts/viewer3d.js`.
-The traffic-sign assets were exported but never wired in: adding that scene needs
-a `label` and per-scene `stats` (rare-class IoU for base and ours), and no verified
-source for those figures exists — do not invent them.
+These are the two scenes defined in `SCENES` in `scripts/viewer3d.js` and the two
+rows of main-paper Fig. 6. A third `traffic_*` set was exported early and never
+wired in; it was removed rather than left as 1.1 MB of dead weight in every clone,
+and it is absent from the exporter's `FRAMES`. Restoring it would need a `label`
+and per-scene `stats`, and no verified source for those figures exists — do not
+invent them.
+
+Provenance worth knowing before you regenerate: the `*_s2d2.ply` files are the
+**N=4, +D₄-TTA** prediction, verified by recomputing per-class IoU across every
+local prediction variant — it is the only one reproducing Fig. 6's own chips
+(frame 003096: TP 2724 / FP 1956 → 56.9%; frame 001417: 255 / 94 → 62.3%). That
+configuration sits outside the paper's headline predicate, which is why the
+viewer's legend says so on the page.
 
 Regenerate from source voxel data:
 
@@ -116,8 +152,18 @@ and writes ASCII PLY files ready for `three.js` `PLYLoader`.
 Authors are visible by default (`<body data-anon="false">`) and the BibTeX
 carries the real names. `scripts/anon.js` IS wired: the header toggle flips
 `body[data-anon]`, `styles/site.css` hides `.identity` and reveals the withheld
-notice, and the preference persists in `localStorage`. Set `data-anon="true"` in
-`index.html` to ship anonymous by default if the venue requires it.
+notice, and the preference persists in `localStorage`. Verified: in anonymous mode
+no author identifier survives the rendered page, and the BibTeX author field
+becomes "Author names withheld".
+
+> **The toggle is NOT blinding, and must not be relied on for a double-anonymous
+> submission.** It hides on-page text only. `og:url` and `og:image` hardcode
+> `billychern.github.io`; CSS cannot reach meta tags, crawlers need them absolute
+> and ignore JS-set metadata, and the hosting URL itself carries the username — so
+> a shared link still previews the author's account, and the address bar always
+> did. If the venue is double-anonymous, host the page under a non-identifying
+> account or an anonymising service. Setting `data-anon="true"` is the text layer,
+> not the requirement.
 
 ## Release links
 
@@ -230,11 +276,11 @@ file scheme.
 
 ```bash
 cd GSSC-project-page
-python3 -m http.server 8000
+python3 -m http.server 8099
 ```
 
-Then open <http://localhost:8000>. Any free port works; stop later with
-`pkill -f "http.server 8000"`.
+Then open <http://localhost:8099>. Any free port works, but 8099 is what the
+checks above expect; stop later with `pkill -f "http.server 8099"`.
 
 ## Citation
 

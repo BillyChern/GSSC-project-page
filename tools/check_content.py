@@ -62,6 +62,13 @@ def normalise(text: str) -> str:
 
 
 def site_prose() -> str:
+    # README.md is deliberately NOT swept. It repeats result numbers, but it also
+    # documents the implementation -- CSS token widths, contrast ratios, an HTTP
+    # status, a port -- and requiring those to appear in the paper produced 8 false
+    # failures. Muzzling them with an allowlist would put a filter in front of the
+    # gate, which is where defects hide. Its result numbers duplicate the page's and
+    # are swept there; they were also checked directly once (107 ms, 3.23 FPS: both
+    # present). Re-check by hand if the README ever states a result the page does not.
     html = (SITE / "index.html").read_text(encoding="utf-8")
     # Drop <script>/<style> first: tag-stripping alone leaves the importmap behind, and
     # "three@0.160.0" is a dependency version, not a numeric claim about results.
