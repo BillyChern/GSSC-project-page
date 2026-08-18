@@ -342,8 +342,11 @@ function boot() {
     // coordinates are measured stepping by 0.4 m. So these cubes occupy half their
     // spacing per axis, unlike the paper's full-resolution renders. The comment here
     // used to claim the size "matches export_ply.py" and therefore gives "the same
-    // chunky-voxel look as the figures", which glossed over the 2x downsample.
-    const VOXEL_SIZE = 0.2;
+    // chunky-voxel look as the figures", which glossed over the 2x downsample -- and
+    // 0.2m cubes at 0.4m spacing rendered as a visibly stippled cloud, not the
+    // contiguous voxels of the paper's figures. The cube must match the EFFECTIVE
+    // pitch of the exported cloud, not SemanticKITTI's native one.
+    const VOXEL_SIZE = 0.4;
     const boxGeo = new THREE.BoxGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
     const material = new THREE.MeshLambertMaterial({ vertexColors: false });
     const inst = new THREE.InstancedMesh(boxGeo, material, n);
