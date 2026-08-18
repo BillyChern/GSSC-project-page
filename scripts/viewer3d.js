@@ -228,6 +228,16 @@ function boot() {
       return;   // draw nothing; rethrowing left an unhandled rejection
     }
 
+    // A truncated or empty PLY does NOT make the loader reject: it parses the
+    // header and hands back a geometry with no vertices. Without this check the
+    // stage showed a blank canvas and the readout below still printed per-scene
+    // IoU numbers -- asserting a result for a scene that was never drawn.
+    if (!geometry.attributes.position || geometry.attributes.position.count === 0) {
+      console.error(`PLY ${url} parsed to zero vertices; treating as a load failure.`);
+      showLoadFailure();
+      return;
+    }
+
     // Normalize colour: our exporter writes red/green/blue uchar; we
     // want a single per-vertex "color" float attribute in [0, 1] that
     // we can read back when building InstancedMesh colours below.

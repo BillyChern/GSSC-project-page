@@ -142,10 +142,31 @@
     });
   }
 
-  function load(url, fn) {
-    fetch(url).then(function (r) { return r.json(); }).then(fn).catch(function () {
-      /* A failed fetch leaves the table empty rather than showing stale markup. */
-    });
+  /* A table that renders its headers and no rows, with nothing said, is a silent
+     failure: the reader cannot tell an empty result from a broken fetch. Say so. */
+  function tableError(bodyId, cols, url) {
+    var body = document.getElementById(bodyId);
+    if (!body || body.children.length) return;
+    var tr = el('tr');
+    var td = el('td', 'note', 'This table could not be loaded from ' + url +
+                              '. The same table is in the paper.');
+    td.setAttribute('colspan', String(cols));
+    tr.appendChild(td);
+    body.appendChild(tr);
+  }
+
+  function load(url, fn, bodyId, cols) {
+    fetch(url)
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+        return r.json();
+      })
+      .then(fn)
+      .then(function () { tableError(bodyId, cols, url); })   // parsed but produced no rows
+      .catch(function (e) {
+        console.error('Could not load ' + url, e);
+        tableError(bodyId, cols, url);
+      });
   }
 
   /* viewer3d.js is an ES module importing three.js from a CDN. If that fetch
@@ -176,7 +197,7 @@
   }
   viewerWatchdog();
 
-  load('data/results.json', mainResults);
-  load('data/perclass.json', perClass);
+  load('data/results.json', mainResults, 'main-results-body', 6);
+  load('data/perclass.json', perClass, 'perclass-body', 4);
   bibtex();
 })();
