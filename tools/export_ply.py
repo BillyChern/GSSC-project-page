@@ -154,8 +154,15 @@ def load_voxel_grid_s2d2(seq: str, frame: str) -> np.ndarray:
             raw = load_label(candidate)
             if raw.size == 256 * 256 * 32:
                 return to_learning_map(raw).reshape(256, 256, 32)
-    print(f"  [warn] S²D² prediction not found, using SCPNet as proxy for frame {frame}")
-    return load_voxel_grid_scpnet(seq, frame)
+    # Never substitute the base for our own prediction. Returning SCPNet here wrote
+    # the frozen base's voxels into a file named *_s2d2.ply, which the site then
+    # labels "Ours" -- the same fabrication the viewer's synthetic-cloud fallback
+    # used to commit. Fail loudly instead; a missing prediction is a data problem.
+    raise FileNotFoundError(
+        f"S2D2 prediction not found for seq {seq} frame {frame}. "
+        f"Searched: {[str(c) for c in candidates]}. "
+        f"Refusing to substitute the SCPNet base, which would be mislabelled as ours."
+    )
 
 
 def voxel_to_points(grid: np.ndarray, *, downsample: int = 2) -> tuple[np.ndarray, np.ndarray]:

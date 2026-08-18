@@ -1,6 +1,6 @@
 # Generative Semantic Scene Completion — Project Page
 
-Static, dependency-free project page for the paper
+Static, build-free project page for the paper
 **Generative Semantic Scene Completion**.
 
 The page is centred on **S²D²** (Structured Source Discrete Diffusion),
@@ -211,7 +211,7 @@ s2d2_website/
 
 ## Develop locally
 
-The page is dependency-free — just serve the repo root over HTTP. Opening
+The page is build-free — just serve the repo root over HTTP. Opening
 `index.html` directly via `file://` will NOT populate the leaderboard or
 per-class tables, because `scripts/main.js` loads `data/results.json` and
 `data/perclass.json` via `fetch()`, which browsers block over the local

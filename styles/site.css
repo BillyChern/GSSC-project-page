@@ -77,6 +77,9 @@ body:not([data-anon="true"]) .anon-note { display: none; }
   justify-content: center; margin: var(--s-6) 0 var(--s-2);
 }
 .btn {
+  /* <button> does not inherit font-family, so the anon toggle and the BibTeX
+     copy button rendered in the browser's default UI face. */
+  font-family: inherit;
   display: inline-block; padding: 7px 16px;
   border: 1px solid var(--rule-strong); border-radius: 3px;
   font-size: var(--fs-small); color: var(--text); background: var(--ground);
@@ -106,11 +109,15 @@ h3 {
 p { margin: 0 0 var(--s-4); }
 .abstract p { text-align: justify; hyphens: auto; line-height: 1.65; }
 .note { font-size: var(--fs-small); color: var(--muted); line-height: 1.55; }
+.media > .note { max-width: var(--w-prose); }
 
 /* ---- figures: media measure, caption at prose size ---- */
 figure { margin: 0 0 var(--s-6); }
 figure img { display: block; width: 100%; height: auto; }
 figcaption {
+  /* Captions sit under 1040px media but must keep a readable measure; without a
+     cap they ran 107-153 characters a line against a ~65-90 target. */
+  max-width: var(--w-prose);
   margin-top: var(--s-3);
   font-size: var(--fs-small); color: var(--muted); line-height: 1.55;
 }
@@ -204,11 +211,6 @@ p code, li code { background: var(--ground-sunk); padding: 1px 4px; border-radiu
   display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4);
   font-size: var(--fs-micro); color: var(--muted); margin-top: var(--s-3);
 }
-.swatch {
-  display: inline-block; width: 10px; height: 10px; border-radius: 2px;
-  margin-right: 5px; vertical-align: baseline;
-}
-
 /* ---- footer ---- */
 footer {
   margin-top: var(--s-7); padding: var(--s-6) 0 var(--s-8);

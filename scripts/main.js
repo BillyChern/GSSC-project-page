@@ -130,12 +130,15 @@
     var btn = document.getElementById('bibtex-copy');
     var code = document.getElementById('bibtex-code');
     var label = document.getElementById('bibtex-copy-label');
-    if (!btn || !code || !navigator.clipboard) return;
+    if (!btn || !code) return;
+    /* Hide the control where the API does not exist rather than leaving a button
+       that silently does nothing. */
+    if (!navigator.clipboard) { btn.hidden = true; return; }
     btn.addEventListener('click', function () {
       navigator.clipboard.writeText(code.textContent).then(function () {
         label.textContent = 'Copied';
         setTimeout(function () { label.textContent = 'Copy'; }, 1600);
-      });
+      }).catch(function () { label.textContent = 'Press \u2318/Ctrl+C'; });
     });
   }
 

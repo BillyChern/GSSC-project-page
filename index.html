@@ -86,12 +86,12 @@
 <section id="results" class="media">
   <h2>Results</h2>
   <div class="lede">
-    <p>Official evaluator, both splits. Under the predicate &mdash; causal, single-sweep, single-sample &mdash; one correction step reaches <strong>38.8%</strong> mIoU on the hidden test, +2.1&nbsp;pp over SCPNet&rsquo;s published 36.7% &mdash; measured against a base we did not re-submit, so the comparison is to SCPNet&rsquo;s published score. Rows outside the predicate are greyed and are not comparable to ours: test-time adaptation, our own eight-view ensemble, and the four-sweep entry.</p>
+    <p>Official evaluator, both splits. Under the predicate &mdash; causal, single-sweep, single-sample &mdash; one correction step reaches <strong>38.8%</strong> mIoU on the hidden test, +2.1&nbsp;pp over SCPNet&rsquo;s published 36.7% &mdash; measured against a base we did not re-submit, so the comparison is to SCPNet&rsquo;s published score. Rows outside the predicate are greyed and are not comparable to ours: test-time adaptation, our own eight-view ensemble, the four-sweep entry, and PaSCo, whose panoptic-mode evaluator is not protocol-matched to ours.</p>
     <p>On validation the same checkpoint reaches <strong>38.54%</strong> against its base&rsquo;s 36.17%. The nearest comparison is SemCity, which refines the same base with a continuous prior: it reports 38.19% from SCPNet&rsquo;s released weights, which score 1.4&nbsp;pp above our port, and it gains far more completion IoU than we do (+9.0 against +2.8). Our lead is 0.35&nbsp;pp from a weaker anchor, so we read the two as comparable rather than ranked. Run from noise with no completion base at all, the same machinery (SGSC) reaches 30.5%, and 32.8% once its own output is corrected &mdash; 3.3&nbsp;pp short of the discriminative base, which is the honest present position of a pipeline built without one &mdash; though not a fully generative one, since its conditioning still reads a frozen segmentation backbone.</p>
   </div>
   <div class="table-wrap">
     <table id="main-results">
-      <caption class="note">Main results on SemanticKITTI, both splits. Source: paper Table&nbsp;I.</caption>
+      <caption class="note">Main results on SemanticKITTI, both splits. SC-m is safety-critical mIoU; VRU is mean IoU over person, bicyclist and motorcyclist. Source: paper Table&nbsp;I.</caption>
       <thead>
         <tr>
           <th scope="col">Method</th>
@@ -136,7 +136,7 @@
     <p class="note">Real SemanticKITTI voxel grids, rendered as 0.2&nbsp;m cubes. The base, ours and ground-truth views use the official class palette; the sparse input view is painted a single colour, since the raw scan carries no labels. The camera pose is held across view switches, so the four views are directly comparable. The per-scene IoU figures below are the same chips as the figure above, from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration rather than the <em>N</em>=1 headline.</p>
   </div>
   <div class="viewer-shell">
-    <div id="viewer3d-stage" role="application" aria-label="Interactive 3D comparison of sparse input, frozen base, our refinement, and ground truth">
+    <div id="viewer3d-stage" role="img" aria-label="Interactive 3D comparison of sparse input, the frozen base, our refinement, and ground truth. Mouse or touch: drag to orbit, scroll to zoom. Not keyboard-operable; the same comparison is in the figure above.">
       <p id="viewer3d-loading" class="note" style="padding:var(--s-3) var(--s-4);margin:0">Loading scene&hellip;</p>
     </div>
     <div class="viewer-bar">

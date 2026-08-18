@@ -349,7 +349,7 @@ function boot() {
 
   // Pause the render loop when the viewer is scrolled off-screen so the
   // continuous Three.js draw (and its per-frame GPU work) does not run —
-  // and resumes cleanly on re-entry. Mirrors heroCanvas.js. This also
+  // and resumes cleanly on re-entry. This also
   // removes the steady "GPU stall due to ReadPixels" perf warnings that
   // a never-idle render loop produces while the canvas is not visible.
   let onScreen = true;
