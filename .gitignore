@@ -27,3 +27,10 @@ assets/figures/*.pdf
 assets/**/*.pdf
 assets/**/*.prepatch.bak
 assets/**/*.bak
+
+# Development render/audit scratch. Never deploy: .nojekyll makes GitHub Pages
+# serve dotdirs verbatim, so 69 tracked screenshots (48 MB) of the PRE-REBUILD
+# page -- the version whose hero claimed "39.2% ... +1.3% over TALoS", numbers
+# the paper's predicate excludes -- were publicly fetchable at /.audit/*.png
+# after those claims had been removed from the page itself.
+.audit/
