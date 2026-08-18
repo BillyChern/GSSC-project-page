@@ -44,6 +44,24 @@ returns 404 by design, not by accident. The paper is also under review.
 
 Do not follow the deploy steps below until that hold is lifted by the author.
 
+> **This repository's HISTORY carries material the checkout does not.** `.git` is
+> ~153 MB against a small working tree, because history retains 69 `.audit/`
+> screenshots — full-page renders of an earlier, over-claiming version of this page,
+> including one of the author-revealed state — plus two copies of
+> `fig4_qualitative.pdf` at 18.2 MB and 16.6 MB. All were removed from tracking; none
+> were removed from history, so anyone who clones a public copy can recover them.
+> No credentials are present (the remote is SSH with no embedded token, and a scan of
+> 200 commits for GitHub/AWS/private-key patterns found nothing).
+>
+> Two ways to handle it, both the author's call:
+> 1. **Publish a clean snapshot** (recommended, non-destructive): create the public
+>    repo, copy the working tree in, and make one initial commit. This private repo
+>    keeps the full development history.
+> 2. **Rewrite history** (`git filter-repo --path .audit --path-glob 'assets/**/*.pdf'
+>    --invert-paths`), then force-push. This rewrites every commit hash and is
+>    irreversible — do it only if you want the development history published minus
+>    those paths.
+
 - Repository: <https://github.com/BillyChern/GSSC-project-page> (private)
 - Intended URL once released: <https://billychern.github.io/GSSC-project-page/>
 
@@ -62,7 +80,7 @@ noun headings, and no page animation — motion belongs to results, not to chrom
 
 | Section | What it shows |
 |---|---|
-| Header | Title, venue, authors (withheld by default while under review), four resource links |
+| Header | Title, venue, authors (**visible** by default — see *Author visibility*), four resource links |
 | Teaser | Qualitative comparison, paper Fig. 6, immediately after the header |
 | Abstract | The paper's abstract verbatim, plus the predicate that scopes every number |
 | Method | One paragraph and the S²D² diagram, paper Fig. 5 |
@@ -72,9 +90,10 @@ noun headings, and no page animation — motion belongs to results, not to chrom
 | Limitations | The failure case, paper Fig. 12, and the paper's own limitations paragraph |
 | BibTeX | Copy-to-clipboard citation block |
 
-Author names are hidden by default (`body[data-anon="true"]`) and revealed by the toggle in the
-header; the preference persists in `localStorage`. Flip the default in `index.html` if the venue
-turns out not to require it.
+Authors are **visible** by default: `index.html` ships `<body data-anon="false">`.
+The header toggle flips it and the preference persists in `localStorage`. Set
+`data-anon="true"` to ship hidden — but read *Author visibility* below first, because
+the toggle is not blinding.
 
 ## Local preview
 
@@ -235,8 +254,11 @@ jobs:
   and each group is a labelled `role="group"`
 - `prefers-reduced-motion` zeroes animation and transition durations. The page has
   no animation of its own; the rule guards the viewer and native scrolling
-- The viewer stage carries `role="application"` with a descriptive label, and both
-  the no-WebGL and failed-scene paths render readable prose pointing at the figure
+- The viewer stage is `role="img"` with a descriptive label that states plainly it is
+  not keyboard-operable and points at the static figure. (It is deliberately not
+  `role="application"`, which would claim to handle keyboard input it does not.) The
+  label is rewritten on every failure path, and `#viewer3d-loading` is a
+  `role="status" aria-live="polite"` region so failures are announced, not just drawn
 - Every table has a `<caption>`; numeric cells use `tabular-nums`
 - Contrast: every text/background pair used meets WCAG AA on white. Disabled link
   labels were lifted from 2.61:1 to 4.83:1; state is carried by the dashed border
@@ -260,10 +282,13 @@ s2d2_website/
 │   └── perclass.json    val per-class IoU table
 ├── assets/
 │   ├── favicon.svg
-│   ├── figures/         paper Fig 2 / Fig 3 / Fig 4 PNG exports
+│   ├── figures/         PNG+WebP exports of paper Fig 2 / Fig 5 / Fig 6 / Fig 12
 │   └── ply/             8 PLY point clouds (2 scenes × 4 views)
 └── tools/
-    └── export_ply.py    voxel-grid → colored PLY exporter
+    ├── export_ply.py       voxel-grid → colored PLY exporter
+    ├── check_page.py       39 behaviour assertions + --selftest
+    ├── check_content.py    site claims vs the built paper + --selftest
+    └── push_to_github.sh   publish (gated: see Publication status)
 ```
 
 ## Develop locally
