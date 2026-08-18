@@ -59,8 +59,12 @@ a:hover, a:focus-visible { color: var(--accent-hover); text-decoration: underlin
 }
 .head sup { font-size: 0.72em; }
 
-/* Anonymity for double-blind review. anon.js flips body[data-anon];
-   the page ships ANONYMOUS by default, matching the prior site's behaviour. */
+/* Anonymity for double-blind review. anon.js flips body[data-anon].
+   The page ships REVEALED: index.html carries <body data-anon="false">. This comment
+   said "ANONYMOUS by default" -- the same inversion that was corrected in README.md
+   and anon.js and left uncorrected here, which is the direction that fails unsafely.
+   The toggle is not blinding in any case: og:url and og:image carry the author's
+   GitHub username and CSS cannot reach meta tags. */
 body[data-anon="true"] .identity { display: none; }
 /* The toggle must anonymise every occurrence, not only the header block; the
    BibTeX author field named them regardless. */
@@ -246,7 +250,12 @@ footer p { margin: 0 0 var(--s-2); }
   #viewer3d-stage { height: 320px; }
 }
 
-/* No page motion by design. This only guards the viewer + native scroll. */
+/* No page motion by design, so this rule currently guards future additions rather
+   than doing work. It does NOT reach the viewer, despite what this comment used to
+   say: OrbitControls damping and the Auto-rotate checkbox run from
+   requestAnimationFrame, which no CSS duration override can stop, and there is no
+   scroll-behavior: smooth here either. Honouring the preference in the viewer needs
+   matchMedia('(prefers-reduced-motion: reduce)') in viewer3d.js. */
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }

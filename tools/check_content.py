@@ -142,6 +142,58 @@ def site_numbers(extra_prose: str = "") -> set[str]:
     return nums
 
 
+def paper_title(paper_dir: Path) -> str | None:
+    """The paper's TYPESET title, from page 1 of main.pdf.
+
+    IEEEtran page 1 reads: running head, page number, title, authors, Abstract.
+    So skip the running head and any bare page number; the next non-empty line is
+    the title. This is the source of truth -- an earlier version of this check
+    anchored on README.md's citation block instead, and that block carried a longer
+    working title than the built paper, which is how a CORRECT BibTeX entry on the
+    page got "fixed" into a wrong one. Anchor on the artifact, not on a derivative.
+    """
+    with fitz.open(paper_dir / "main.pdf") as doc:
+        lines = [l.strip() for l in doc[0].get_text().splitlines()]
+    for l in lines:
+        if not l or l.upper().startswith("IEEE TRANSACTIONS") or l.isdigit():
+            continue
+        return normalise(l)
+    return None
+
+
+def _bibtex_title(text: str) -> str | None:
+    m = re.search(r"title\s*=\s*\{(.*?)\}", text, re.S)
+    if not m:
+        return None
+    return normalise(htmllib.unescape(re.sub(r"<[^>]+>", " ", m.group(1)))).strip()
+
+
+def check_citation(paper_dir: Path, title_override: str | None = None) -> list[tuple[str, bool, str]]:
+    """Every citation this repo hands out must name the paper as the paper names itself.
+
+    The copy button is the one thing a reader takes away and reuses. Both the page's
+    BibTeX and README.md's citation block are checked against the typeset title.
+    """
+    truth = paper_title(paper_dir)
+    if truth is None:
+        return [("paper title extracted", False, "could not read page 1")]
+
+    html = (SITE / "index.html").read_text(encoding="utf-8")
+    block = re.search(r'id="bibtex-code">(.*?)</code>', html, re.S)
+    site_title = title_override if title_override is not None else (
+        _bibtex_title(block.group(1)) if block else None)
+    readme_title = _bibtex_title((SITE / "README.md").read_text(encoding="utf-8"))
+
+    return [
+        ("page BibTeX title is the paper's title",
+         site_title is not None and site_title.lower() == truth.lower(),
+         f"page={(site_title or '<none>')[:52]!r} paper={truth[:52]!r}"),
+        ("README citation title is the paper's title",
+         readme_title is not None and readme_title.lower() == truth.lower(),
+         f"readme={(readme_title or '<none>')[:52]!r} paper={truth[:52]!r}"),
+    ]
+
+
 def check_numbers(paper: str, nums: set[str]) -> list[tuple[str, bool, str]]:
     flat = paper.replace(",", "")
     missing = []
@@ -155,9 +207,10 @@ def check_numbers(paper: str, nums: set[str]) -> list[tuple[str, bool, str]]:
              ", ".join(sorted(missing)[:8]) or "none")]
 
 
-def run(paper_dir: Path, caps=None, extra_prose="") -> list[tuple[str, bool, str]]:
+def run(paper_dir: Path, caps=None, extra_prose="", title_override=None) -> list[tuple[str, bool, str]]:
     paper = normalise(paper_text(paper_dir))
     return (check_provenance(paper, caps if caps is not None else captions())
+            + check_citation(paper_dir, title_override)
             + check_numbers(paper, site_numbers(extra_prose)))
 
 
@@ -184,6 +237,14 @@ def selftest(paper_dir: Path) -> int:
         # verified negative.
         ("fabricated number in the prose",
          dict(extra_prose="a headline of 99.97 percent")),
+        # The exact defect this arm was written for: the title the copy button handed
+        # out was truncated to its first four words.
+        # The exact error I made: "correcting" the page's BibTeX to a longer working
+        # title carried by README.md and the directory name, rather than the title the
+        # built paper actually prints.
+        ("BibTeX title longer than the paper's",
+         dict(title_override="Generative Semantic Scene Completion through Modeling "
+                             "the Underlying Geometry and Semantics in Point Clouds")),
     ]
     silent = 0
     for label, kwargs in cases:

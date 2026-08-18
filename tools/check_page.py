@@ -16,17 +16,35 @@ Usage:
     python tools/check_page.py --selftest      # prove every check can fail
     python tools/check_page.py --url http://localhost:8099/
 
-39 assertions: 10 x 3 viewports, plus print, no-JS and slow-load contexts. ~40s;
---selftest ~2min, because the slow-load check must outwait an 8s watchdog twice.
+45 assertions: 12 x 3 viewports, plus print, no-JS and slow-load contexts. ~40s;
+--selftest ~3min, because the slow-load check must outwait an 8s watchdog twice.
+
+NOTE: the two bolding assertions and their fault injectors were written while the
+machine's disk was full and no shell could run, so they have never been executed.
+Run --selftest before trusting them; a spurious FAIL there is a bug in this file,
+not in the page.
 """
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import re
 import sys
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+
+# Keep browser scratch off the small overlay filesystem. Playwright creates a fresh
+# browser profile per launch under the system temp dir, and a --selftest run launches
+# Chromium ~14 times. Where /tmp shares a modest overlay with /, that accumulation can
+# fill the disk -- and a full / is not recoverable from inside a shell, because the
+# shell needs to write there to run at all. Honour an existing TMPDIR; otherwise use a
+# gitignored dir beside the repo.
+if not os.environ.get("TMPDIR"):
+    _scratch = Path(__file__).resolve().parent.parent / ".tmp"
+    _scratch.mkdir(exist_ok=True)
+    os.environ["TMPDIR"] = str(_scratch)
 
 DEFAULT_URL = "http://localhost:8099/"
 VIEWPORTS = ((1280, 900, "desktop"), (768, 1024, "tablet"), (375, 812, "mobile"))
@@ -54,10 +72,47 @@ PROBE = """() => {
     identityPresent: !!identity,
     legendText: legend ? legend.innerText.replace(/\\s+/g, ' ').trim() : null,
     excludedFontStyle: excluded ? getComputedStyle(excluded).fontStyle : null,
+    // The page's founding defect was leading with an EXCLUDED row (39.2, the D4 TTA
+    // entry) as if it were the headline. main.js computes the best eligible cell per
+    // split rather than hard-coding one; these two readings check that the computation
+    // still lands where the predicate says it must.
+    bestCells: [...document.querySelectorAll('#main-results-body .best')]
+      .map((e) => e.textContent.trim()),
+    excludedMarkedBest: document.querySelectorAll('#main-results-body tr.excluded .best').length,
     stageLabel: (q('#viewer3d-stage') || {}).ariaLabel
                 || (q('#viewer3d-stage') ? q('#viewer3d-stage').getAttribute('aria-label') : null),
   };
 }"""
+
+
+def expected_best() -> list[str]:
+    """The cells that MUST be bolded: the best eligible mIoU in each split, in the
+    order the splits appear.
+
+    Computed here from data/results.json independently of the page, so this is a real
+    cross-check rather than a restatement of whatever main.js did. Excluded rows are
+    barred from winning -- that is the whole point of the predicate, and the page's
+    original defect was presenting the excluded 39.2 as the headline.
+    """
+    rows = json.loads((Path(__file__).resolve().parent.parent / "data" / "results.json")
+                      .read_text(encoding="utf-8"))
+    out = []
+    for split in dict.fromkeys(r.get("eval") for r in rows):   # first-seen split order
+        if split not in ("test", "val"):
+            continue
+        eligible = [r["mIoU"] for r in rows
+                    if r.get("eval") == split and not r.get("excluded") and r.get("mIoU") is not None]
+        if eligible:
+            # float() first: a value written as `40` in the JSON parses as int, and
+            # int.is_integer() does not exist before Python 3.12 -- that would crash
+            # this gate with AttributeError instead of checking anything. Every value
+            # happens to carry a decimal point today, which is exactly why the trap
+            # would sit unnoticed until someone added a round number.
+            best = float(max(eligible))
+            # Match main.js's fmt(): keep the paper's precision, so 50.24 stays 50.24
+            # rather than being flattened to 50.2 and silently disagreeing with Table I.
+            out.append(f"{best:.1f}" if (best * 10).is_integer() else str(best))
+    return out
 
 
 def anon_leaks(page) -> list[str]:
@@ -93,6 +148,11 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
         ("viewer drew a canvas", d["canvas"], str(d["canvas"])),
         ("author block present", d["identityPresent"], str(d["identityPresent"])),
         ("anon mode leaks no identifiers", not leaks, ", ".join(leaks) or "none"),
+        ("no excluded row is marked best", d["excludedMarkedBest"] == 0,
+         str(d["excludedMarkedBest"])),
+        ("bolded cells are the best ELIGIBLE per split",
+         d["bestCells"] == expected_best(),
+         f"page={d['bestCells']} expected={expected_best()}"),
         ("viewer legend discloses N=4 +D4 TTA",
          "D4 TTA" in legend and "predicate" in legend, legend[-58:] or "<empty>"),
         ("excluded rows are italic", d["excludedFontStyle"] == "italic", str(d["excludedFontStyle"])),
@@ -222,6 +282,20 @@ def _animate(page):
         "document.head.appendChild(s);})")
 
 
+def _unexclude_d4(page):
+    """Reproduce this page's ORIGINAL defect rather than a stand-in: clear the
+    `excluded` flag on the eight-view D4 row, so 39.2 becomes the largest test cell
+    and the page bolds a configuration the paper's predicate rules out."""
+    rows = json.loads((Path(__file__).resolve().parent.parent / "data" / "results.json")
+                      .read_text(encoding="utf-8"))
+    for r in rows:
+        if r.get("mIoU") == 39.2:
+            r["excluded"] = False
+    page.route("**/data/results.json",
+               lambda route: route.fulfill(status=200, content_type="application/json",
+                                           body=json.dumps(rows)))
+
+
 FAULTS = [
     ("results table has 19 rows",
      lambda p: p.route("**/data/results.json",
@@ -231,6 +305,14 @@ FAULTS = [
      lambda p: p.route("**/data/perclass.json", lambda r: r.abort())),
     ("no horizontal page scroll", _wide),
     ("no CSS keyframe animation", _animate),
+    ("bolded cells are the best ELIGIBLE per split", _unexclude_d4),
+    ("no excluded row is marked best",
+     # Force the bold onto a row that IS still flagged excluded, which is the
+     # narrower failure the other injector cannot produce.
+     lambda p: p.add_init_script(
+         "addEventListener('load',()=>{setTimeout(()=>{"
+         "const c=document.querySelector('#main-results-body tr.excluded td.num span');"
+         "if(c)c.classList.add('best');},1200);})")),
     ("viewer drew a canvas",
      lambda p: p.route("**/three.module.js", lambda r: r.abort())),
     ("no console errors",

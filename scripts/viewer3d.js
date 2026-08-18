@@ -51,8 +51,17 @@ function computeRareMask(colors, n) {
 }
 
 // Asset map: each scene has four views. Files live under assets/ply/.
-// If a PLY is missing we fall back to a procedurally-generated cube
-// of colored voxels so the viewer never looks broken.
+//
+// A MISSING OR CORRUPT PLY DRAWS NOTHING. This comment used to say the opposite --
+// that a missing file fell back to "a procedurally-generated cube of colored voxels
+// so the viewer never looks broken" -- and that was real: makeSyntheticCloud() drew a
+// seeded lattice inside the panel labelled with our method name, so a reader whose
+// network dropped one file was shown invented geometry as our model's output. The
+// helpers are gone and the load path now fails visibly (see showLoadFailure). Do not
+// reintroduce a synthetic fallback: an empty stage with an explanation is correct, and
+// plausible-looking invented voxels under our own label are not.
+//
+// The stats below are the paper's Fig. 6 chips, from the N=4 +D4-TTA configuration.
 const SCENES = {
   'bicyclist': {
     label: 'Bicyclist — SemanticKITTI seq 08 · frame 003096',
@@ -324,10 +333,16 @@ function boot() {
     }
     const pos = geometry.attributes.position.array;
 
-    // Instanced solid cubes at 0.2 m each — matches the voxel size used
-    // by tools/export_ply.py and by the headless Blender paper pipeline,
-    // giving the website the same chunky-voxel look as the figures in
-    // the paper rather than a soft point-cloud.
+    // Instanced solid cubes rather than a soft point-cloud, so the viewer reads as
+    // voxels the way the paper's figures do.
+    //
+    // Size vs SPACING, which are not the same here: 0.2 m is SemanticKITTI's voxel
+    // pitch and matches tools/export_ply.py's VOXEL_SIZE, but that exporter writes
+    // with downsample=2, keeping every second voxel per axis — the shipped PLY
+    // coordinates are measured stepping by 0.4 m. So these cubes occupy half their
+    // spacing per axis, unlike the paper's full-resolution renders. The comment here
+    // used to claim the size "matches export_ply.py" and therefore gives "the same
+    // chunky-voxel look as the figures", which glossed over the 2x downsample.
     const VOXEL_SIZE = 0.2;
     const boxGeo = new THREE.BoxGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
     const material = new THREE.MeshLambertMaterial({ vertexColors: false });

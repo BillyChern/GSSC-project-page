@@ -252,8 +252,15 @@ jobs:
   `overflow: hidden`, which would clip the offset ring on the viewer buttons
 - The viewer's segmented controls keep `aria-pressed` in sync with the visual state,
   and each group is a labelled `role="group"`
-- `prefers-reduced-motion` zeroes animation and transition durations. The page has
-  no animation of its own; the rule guards the viewer and native scrolling
+- `prefers-reduced-motion` zeroes animation and transition durations. That reaches CSS
+  animation and transitions only, and the page has none of its own, so the rule guards
+  future additions rather than doing work today. **Known gap: it does not reach the 3D
+  viewer.** `OrbitControls` damping (`enableDamping`, `viewer3d.js`) and the Auto-rotate
+  checkbox drive motion from `requestAnimationFrame`, which no CSS duration override can
+  stop; there is no `scroll-behavior: smooth` for it to affect either. Honouring the
+  preference in the viewer means reading
+  `matchMedia('(prefers-reduced-motion: reduce)')` in `viewer3d.js` and disabling
+  damping and auto-rotate when it matches — not yet done
 - The viewer stage is `role="img"` with a descriptive label that states plainly it is
   not keyboard-operable and points at the static figure. (It is deliberately not
   `role="application"`, which would claim to handle keyboard input it does not.) The
@@ -311,7 +318,7 @@ checks above expect; stop later with `pkill -f "http.server 8099"`.
 
 ```bibtex
 @article{chen2026gssc,
-  title   = {Generative Semantic Scene Completion through Modeling the Underlying Geometry and Semantics in Point Clouds},
+  title   = {Generative Semantic Scene Completion},
   author  = {Chen, Shi and Ge, Weifeng},
   journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence (under review)},
   year    = {2026}

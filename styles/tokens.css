@@ -39,7 +39,13 @@
   /* Ink */
   --text:          #2E3338;
   --muted:         #6B7280;
-  --faint:         #9AA1AB;
+  /* #9AA1AB is 2.61:1 on white and FAILS WCAG AA. It is consumed by
+     .btn[aria-disabled="true"] -- the three "on publication" resource labels -- so
+     that failure was live on visible controls while the README claimed the value had
+     already been "lifted from 2.61:1 to 4.83:1". #6B7280 is 4.834:1 and is the value
+     that claim describes. Disabled state is carried by the dashed border, not by
+     making the text hard to read. */
+  --faint:         #6B7280;
 
   /* The single accent. Links, and nothing else. */
   --accent:        #B85C00;

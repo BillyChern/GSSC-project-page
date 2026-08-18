@@ -28,6 +28,11 @@ assets/**/*.pdf
 assets/**/*.prepatch.bak
 assets/**/*.bak
 
+# Browser scratch for tools/check_page.py. It sets TMPDIR here when TMPDIR is unset,
+# so Chromium's per-launch profile dirs (~14 per --selftest run) land on this volume
+# instead of a small /tmp overlay, where filling the disk is unrecoverable from a shell.
+.tmp/
+
 # Development render/audit scratch. Never deploy: .nojekyll makes GitHub Pages
 # serve dotdirs verbatim, so 69 tracked screenshots (48 MB) of the PRE-REBUILD
 # page -- the version whose hero claimed "39.2% ... +1.3% over TALoS", numbers
