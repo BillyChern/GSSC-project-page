@@ -118,6 +118,22 @@ function showLoadFailure() {
 }
 
 function boot() {
+  // Probe first. three's WebGLRenderer does not reliably throw when no context
+  // can be created -- it still constructs and still appends a canvas -- so the
+  // try/catch below is not sufficient on its own, and a reader with WebGL
+  // disabled saw a 520px black box with per-scene IoU numbers printed under it.
+  try {
+    const probe = document.createElement('canvas');
+    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) {
+      console.warn('No WebGL context available; showing the static-figure fallback.');
+      showNoWebGLFallback();
+      return;
+    }
+  } catch (e) {
+    showNoWebGLFallback();
+    return;
+  }
+
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({
