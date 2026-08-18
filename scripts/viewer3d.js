@@ -294,7 +294,10 @@ function boot() {
     const s = SCENES[sceneId].stats;
     const row = document.getElementById('viewer3d-stat-row');
     if (!row) return;
-    const map = { scp: s.scp + '%', ours: s.ours + '%', delta: s.delta };
+    /* `klass` and `label` were carried in SCENES but never rendered; the readout
+       now names which class and which frame the numbers refer to. */
+    const map = { scp: s.scp.toFixed(1) + '%', ours: s.ours.toFixed(1) + '%', delta: s.delta,
+                  klass: s.klass, label: SCENES[sceneId].label };
     row.querySelectorAll('[data-stat]').forEach((cell) => {
       const k = cell.dataset.stat;
       if (map[k] !== undefined) cell.textContent = map[k];

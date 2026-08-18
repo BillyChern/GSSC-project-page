@@ -41,9 +41,9 @@
 <figure class="media">
   <picture>
     <source srcset="assets/figures/fig4_qualitative.webp" type="image/webp">
-    <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI validation: sparse input, the frozen SCPNet base, our refinement, and ground truth, on scenes containing a bicyclist, a motorcyclist and traffic signs." width="1355" height="882" />
+    <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI validation sequence 08: three frozen sources (JS3C-Net, SCPNet, and TALoS's adaptation of SCPNet), our refinement on the SCPNet base, and ground truth; a bicyclist scene above and a motorcyclist scene below." width="1355" height="882" />
   </picture>
-  <figcaption><strong>One correction step on a frozen base.</strong> Sparse input, the frozen base&rsquo;s prediction, our refined output, and ground truth. The refiner does not regenerate the scene; it corrects the base it is given. Source: paper Fig. 6.</figcaption>
+  <figcaption><strong>Qualitative comparison on val seq. 08.</strong> Three frozen sources (JS3C-Net, SCPNet, TALoS&rsquo;s adaptation of SCPNet), our S<sup>2</sup>D<sup>2</sup> on the SCPNet base, and ground truth; top bicyclist, bottom motorcyclist. The chips give per-sample rare-class IoU and TP/FP voxel counts, and they come from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration &mdash; not the <em>N</em>=1 headline, and outside the predicate. Source: paper Fig. 6.</figcaption>
 </figure>
 
 <main>
@@ -64,7 +64,7 @@
       <source srcset="assets/figures/fig3_s2d2.webp" type="image/webp">
       <img src="assets/figures/fig3_s2d2.png" alt="The S2D2 denoiser: a frozen base prediction is used as the structured source of the forward process, and a four-level dense 3D U-Net predicts the correction in one flow-matching step." width="1356" height="1377" />
     </picture>
-    <figcaption><strong>Structured source discrete diffusion.</strong> The forward process terminates at the base&rsquo;s prediction, not at noise, so a single reverse step recovers the target. Source: paper Fig. 5.</figcaption>
+    <figcaption><strong>S<sup>2</sup>D<sup>2</sup> refinement: the shared denoiser&rsquo;s second role.</strong> The velocity field carries the base prediction to ground truth in one Euler step on the per-voxel simplex (top); an identity and error bound rule out the amplification that would otherwise force the full chain (middle); and a motorcyclist scene, frozen base against base&nbsp;+&nbsp;S<sup>2</sup>D<sup>2</sup> at <em>N</em>=1, one denoiser evaluation (bottom). Source: paper Fig. 5.</figcaption>
   </figure>
 </section>
 
@@ -78,7 +78,7 @@
       <source srcset="assets/figures/fig4_da_pipeline.webp" type="image/webp">
       <img src="assets/figures/fig4_da_pipeline.png" alt="The PS3 pipeline: pyramid discrete diffusion synthesises complete scenes, a Jensen-Shannon filter and a rare-class object bank shape the distribution, and a LiDAR ray-tracer produces the matched sparse observation." width="1355" height="1890" />
     </picture>
-    <figcaption><strong>PS<sup>3</sup>: paired sparse&ndash;dense scene synthesis.</strong> Each synthetic scene is paired with the sparse scan an HDL-64E would have returned, so the pairs train the same way real ones do. Source: paper Fig. 2.</figcaption>
+    <figcaption><strong>PS<sup>3</sup>: the offline data-augmentation pipeline.</strong> Three cascaded coarse-to-fine multinomial diffusions, screened by a Jensen&ndash;Shannon divergence filter; a rare-class object bank and the Hardware-Aware LiDAR Observation (HALO) HDL-64E ray-tracer then turn each synthetic scene into a (sparse, dense) pair. Source: paper Fig. 2.</figcaption>
   </figure>
 </section>
 
@@ -130,7 +130,7 @@
 <section id="viewer" class="media">
   <h2>Interactive comparison</h2>
   <div class="lede">
-    <p class="note">Real SemanticKITTI voxel grids, rendered as 0.2&nbsp;m cubes with the official class palette. The camera pose is held across view switches, so the four views are directly comparable.</p>
+    <p class="note">Real SemanticKITTI voxel grids, rendered as 0.2&nbsp;m cubes with the official class palette. The camera pose is held across view switches, so the four views are directly comparable. The per-scene IoU figures below are the same chips as the figure above, from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration rather than the <em>N</em>=1 headline.</p>
   </div>
   <div class="viewer-shell">
     <div id="viewer3d-stage" role="application" aria-label="Interactive 3D comparison of sparse input, frozen base, our refinement, and ground truth">
@@ -142,7 +142,6 @@
         <span class="seg">
           <button class="seg__btn" id="scene-bicyclist" data-scene="bicyclist" aria-pressed="true">Bicyclist</button>
           <button class="seg__btn" data-scene="motorcyclist" aria-pressed="false">Motorcyclist</button>
-          <button class="seg__btn" data-scene="traffic" aria-pressed="false">Traffic sign</button>
         </span>
       </div>
       <div class="group">
@@ -161,7 +160,10 @@
       </div>
     </div>
   </div>
-  <p class="viewer-legend" id="viewer3d-stat-row"></p>
+  <p class="viewer-legend" id="viewer3d-stat-row">
+    <span data-stat="label"></span>
+    <span><span data-stat="klass"></span>: frozen base <span data-stat="scp"></span> &middot; ours <span data-stat="ours"></span> &middot; <span data-stat="delta"></span></span>
+  </p>
   <noscript><p class="note">The 3D comparison needs JavaScript and WebGL. The same scenes appear in the figure above.</p></noscript>
 </section>
 

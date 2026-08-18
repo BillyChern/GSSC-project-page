@@ -57,7 +57,7 @@ noun headings, and no page animation — motion belongs to results, not to chrom
 | Method | One paragraph and the S²D² diagram, paper Fig. 5 |
 | Data augmentation | One paragraph and the PS³ pipeline, paper Fig. 2 |
 | Results | The paper's Table I in full, with rows outside the predicate greyed and named; per-class Table II with both Released and Retrain deltas |
-| Interactive comparison | Three.js viewer over four views (input / base / ours / ground truth) on three rare-class frames |
+| Interactive comparison | Three.js viewer over four views (input / base / ours / ground truth) on two rare-class frames; the IoU chips are the N=4 +D4-TTA configuration, as the paper states |
 | Limitations | The failure case, paper Fig. 12, and the paper's own limitations paragraph |
 | BibTeX | Copy-to-clipboard citation block |
 

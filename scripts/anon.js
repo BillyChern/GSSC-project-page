@@ -11,7 +11,9 @@
   const setMode = (anon) => {
     document.body.dataset.anon = anon ? 'true' : 'false';
     toggle.setAttribute('aria-pressed', anon ? 'true' : 'false');
-    label.textContent = anon ? 'Anonymous' : 'Reveal authors';
+    // The label names the ACTION the button performs, not the current state.
+    // It previously read 'Reveal authors' while the authors were already visible.
+    label.textContent = anon ? 'Show authors' : 'Hide authors';
   };
 
   // Persist preference across reloads; default: anonymous.
