@@ -6,7 +6,7 @@
 <title>Generative Semantic Scene Completion</title>
 <meta name="description" content="Generative semantic scene completion for outdoor LiDAR: one discrete-diffusion formulation in three roles — PS3 paired sparse-dense synthesis, SGSC from-noise completion, and S2D2 one-step refinement of a frozen base." />
 <meta property="og:title" content="Generative Semantic Scene Completion" />
-<meta property="og:description" content="One discrete-diffusion formulation in three roles. 38.8% SemanticKITTI hidden-test mIoU at one step with no test-time augmentation — the best causal, single-sweep, single-sample result to date, +2.1 pp over the previous best published score." />
+<meta property="og:description" content="One discrete-diffusion formulation in three roles. 38.8% SemanticKITTI hidden-test mIoU at one step with no test-time augmentation — to our knowledge the best causal, single-sweep, single-sample result to date, +2.1 pp over the previous best published score." />
 <meta property="og:type" content="website" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,7 +38,7 @@
   <p class="links-note">The leaderboard entry is live and independently verifiable. Code, models and the PS&sup3; corpus are released on publication.</p>
 </header>
 
-<figure class="media">
+<figure class="media scrollable" id="teaser">
   <picture>
     <source srcset="assets/figures/fig4_qualitative.webp" type="image/webp">
     <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI validation sequence 08: three frozen sources (JS3C-Net, SCPNet, and TALoS's adaptation of SCPNet), our refinement on the SCPNet base, and ground truth; a bicyclist scene above and a motorcyclist scene below." width="1355" height="882" />
@@ -85,8 +85,8 @@
 <section id="results" class="media">
   <h2>Results</h2>
   <div class="lede">
-    <p>Official evaluator, both splits. Under the predicate &mdash; causal, single-sweep, single-sample &mdash; one correction step reaches <strong>38.8%</strong> mIoU on the hidden test, +2.1&nbsp;pp over SCPNet&rsquo;s published 36.7%. Rows outside the predicate are greyed and are not comparable to ours: test-time adaptation, our own eight-view ensemble, and the four-sweep entry.</p>
-    <p>On validation the same checkpoint reaches <strong>38.54%</strong> against its base&rsquo;s 36.17%. The nearest comparison is SemCity, which refines the same base with a continuous prior: it reports 38.19% from SCPNet&rsquo;s released weights, which score 1.4&nbsp;pp above our port, and it gains far more completion IoU than we do (+9.0 against +2.8). Our lead is 0.35&nbsp;pp from a weaker anchor, so we read the two as comparable rather than ranked. Run from noise with no completion base at all, the same machinery (SGSC) reaches 30.5%, and 32.8% once its own output is corrected &mdash; 3.3&nbsp;pp short of the discriminative base, which is the honest present position of a pipeline built without one.</p>
+    <p>Official evaluator, both splits. Under the predicate &mdash; causal, single-sweep, single-sample &mdash; one correction step reaches <strong>38.8%</strong> mIoU on the hidden test, +2.1&nbsp;pp over SCPNet&rsquo;s published 36.7% &mdash; measured against a base we did not re-submit, so the comparison is to SCPNet&rsquo;s published score. Rows outside the predicate are greyed and are not comparable to ours: test-time adaptation, our own eight-view ensemble, and the four-sweep entry.</p>
+    <p>On validation the same checkpoint reaches <strong>38.54%</strong> against its base&rsquo;s 36.17%. The nearest comparison is SemCity, which refines the same base with a continuous prior: it reports 38.19% from SCPNet&rsquo;s released weights, which score 1.4&nbsp;pp above our port, and it gains far more completion IoU than we do (+9.0 against +2.8). Our lead is 0.35&nbsp;pp from a weaker anchor, so we read the two as comparable rather than ranked. Run from noise with no completion base at all, the same machinery (SGSC) reaches 30.5%, and 32.8% once its own output is corrected &mdash; 3.3&nbsp;pp short of the discriminative base, which is the honest present position of a pipeline built without one &mdash; though not a fully generative one, since its conditioning still reads a frozen segmentation backbone.</p>
   </div>
   <div class="table-wrap">
     <table id="main-results">
@@ -105,7 +105,7 @@
     </table>
   </div>
   <p class="note">S3CNet, not us, takes the vulnerable-road-user column. We do not lead on safety: among single-sweep rows S3CNet leads every VRU class, at VRU-IoU 32.6 against our 21.6.</p>
-  <p class="note">The frozen SemanticKITTI checkpoint also transfers zero-shot, with no fine-tuning: on SemanticPOSS &mdash; a different sensor &mdash; mIoU rises 1.0&nbsp;&rarr;&nbsp;6.5% and completion IoU 31.8&nbsp;&rarr;&nbsp;54.9%; on SSCBench-KITTI360 the gain is in completion IoU, with the mIoU delta small relative to single-seed run-to-run variance.</p>
+  <p class="note">The frozen SemanticKITTI checkpoint also transfers zero-shot, with no fine-tuning: on SemanticPOSS &mdash; a different sensor &mdash; mIoU rises 1.0&nbsp;&rarr;&nbsp;6.5% and completion IoU 31.8&nbsp;&rarr;&nbsp;54.9%, though that ground truth is reconstructed rather than official, so it is not head-to-head with published numbers; on SSCBench-KITTI360 the gain is in completion IoU, with the mIoU delta small relative to single-seed run-to-run variance.</p>
 
   <h3>Per-class gain over the frozen base</h3>
   <div class="lede">
@@ -130,7 +130,7 @@
 <section id="viewer" class="media">
   <h2>Interactive comparison</h2>
   <div class="lede">
-    <p class="note">Real SemanticKITTI voxel grids, rendered as 0.2&nbsp;m cubes with the official class palette. The camera pose is held across view switches, so the four views are directly comparable. The per-scene IoU figures below are the same chips as the figure above, from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration rather than the <em>N</em>=1 headline.</p>
+    <p class="note">Real SemanticKITTI voxel grids, rendered as 0.2&nbsp;m cubes. The base, ours and ground-truth views use the official class palette; the sparse input view is painted a single colour, since the raw scan carries no labels. The camera pose is held across view switches, so the four views are directly comparable. The per-scene IoU figures below are the same chips as the figure above, from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration rather than the <em>N</em>=1 headline.</p>
   </div>
   <div class="viewer-shell">
     <div id="viewer3d-stage" role="application" aria-label="Interactive 3D comparison of sparse input, frozen base, our refinement, and ground truth">
@@ -138,15 +138,15 @@
     </div>
     <div class="viewer-bar">
       <div class="group">
-        <label for="scene-bicyclist">Scene</label>
-        <span class="seg">
+        <span class="seg-label" id="scene-lbl">Scene</span>
+        <span class="seg" role="group" aria-labelledby="scene-lbl">
           <button class="seg__btn" id="scene-bicyclist" data-scene="bicyclist" aria-pressed="true">Bicyclist</button>
           <button class="seg__btn" data-scene="motorcyclist" aria-pressed="false">Motorcyclist</button>
         </span>
       </div>
       <div class="group">
-        <label>View</label>
-        <span class="seg">
+        <span class="seg-label" id="view-lbl">View</span>
+        <span class="seg" role="group" aria-labelledby="view-lbl">
           <button class="seg__btn" data-view="sparse" aria-pressed="false">Input</button>
           <button class="seg__btn" data-view="scpnet" aria-pressed="false">Base</button>
           <button class="seg__btn" data-view="s2d2" aria-pressed="true">Ours</button>
@@ -186,8 +186,7 @@
 <section id="bibtex" class="prose">
   <h2>BibTeX</h2>
   <pre><code id="bibtex-code">@article{chen2026gssc,
-  title   = {Generative Semantic Scene Completion through Modeling the
-             Underlying Geometry and Semantics in Point Clouds},
+  title   = {Generative Semantic Scene Completion},
   author  = {Chen, Shi and Ge, Weifeng},
   journal = {Under review, IEEE Transactions on Pattern Analysis and
              Machine Intelligence},
@@ -199,7 +198,7 @@
 </main>
 
 <footer class="prose">
-  <p>This page is static: no analytics, no cookies, no third-party scripts beyond the webfont.</p>
+  <p>This page is static: no analytics and no cookies. It fetches two third-party assets &mdash; the IBM Plex Sans webfont from Google Fonts, and the three.js library from unpkg for the 3D viewer.</p>
   <p>Figures and numbers on this page are taken from the manuscript under review. Where the manuscript hedges a result, this page hedges it too.</p>
 </footer>
 

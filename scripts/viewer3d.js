@@ -302,6 +302,7 @@ function boot() {
       const k = cell.dataset.stat;
       if (map[k] !== undefined) cell.textContent = map[k];
     });
+    row.setAttribute('data-ready', '');
   }
 
   function makeEgoMarker() {
@@ -354,15 +355,17 @@ function boot() {
 
   sceneBtns.forEach((b) => {
     b.addEventListener('click', () => {
-      sceneBtns.forEach((x) => x.classList.remove('is-active'));
-      b.classList.add('is-active');
+      /* aria-pressed must track the visual state, not just the class, or the
+         control lies to assistive tech and the highlight never moves. */
+      sceneBtns.forEach((x) => { x.classList.remove('is-active'); x.setAttribute('aria-pressed', 'false'); });
+      b.classList.add('is-active'); b.setAttribute('aria-pressed', 'true');
       loadAndShow(b.dataset.scene, currentView);
     });
   });
   viewBtns.forEach((b) => {
     b.addEventListener('click', () => {
-      viewBtns.forEach((x) => x.classList.remove('is-active'));
-      b.classList.add('is-active');
+      viewBtns.forEach((x) => { x.classList.remove('is-active'); x.setAttribute('aria-pressed', 'false'); });
+      b.classList.add('is-active'); b.setAttribute('aria-pressed', 'true');
       loadAndShow(currentScene, b.dataset.view);
     });
   });

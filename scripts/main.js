@@ -104,10 +104,26 @@
     tot.appendChild(el('td', 'num', data.base_miou.toFixed(2)));
     ['released_delta', 'retrain_delta'].forEach(function (k) {
       var td = el('td', 'num');
-      td.appendChild(el('span', 'pos', '+' + data[k].toFixed(2)));
+      /* Print what the paper prints: +2.36 and +1.9. toFixed(2) invented a
+         trailing zero the paper does not carry. */
+      td.appendChild(el('span', 'pos', '+' + fmt(data[k])));
       tot.appendChild(td);
     });
     body.appendChild(tot);
+
+    /* Table II's last row. Omitting it while captioning the table "Source:
+       paper Table II" made the page's own safety claim unsourced. */
+    if (data.vru_iou) {
+      var v = el('tr');
+      var vth = el('th', null, 'VRU-IoU');
+      vth.setAttribute('scope', 'row');
+      vth.appendChild(el('span', 'note', '  (person, bicyclist, motorcyclist)'));
+      v.appendChild(vth);
+      v.appendChild(num(data.vru_iou.base));
+      v.appendChild(delta(data.vru_iou.released));
+      v.appendChild(delta(data.vru_iou.retrain));
+      body.appendChild(v);
+    }
   }
 
   function bibtex() {

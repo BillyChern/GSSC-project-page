@@ -4,24 +4,144 @@
   "released_delta": 2.36,
   "retrain_delta": 1.9,
   "classes": [
-    { "klass": "car",           "base": 50.3, "released": 1.1,  "retrain": 1.0,  "vru": false },
-    { "klass": "bicycle",       "base": 23.7, "released": 0.6,  "retrain": -0.1, "vru": false },
-    { "klass": "motorcycle",    "base": 35.6, "released": -0.1, "retrain": 0.2,  "vru": false },
-    { "klass": "truck",         "base": 54.7, "released": 5.3,  "retrain": 5.4,  "vru": false },
-    { "klass": "other-vehicle", "base": 42.0, "released": 2.5,  "retrain": 2.3,  "vru": false },
-    { "klass": "person",        "base": 22.0, "released": 1.2,  "retrain": 1.9,  "vru": true  },
-    { "klass": "bicyclist",     "base": 18.0, "released": 5.3,  "retrain": 5.2,  "vru": true  },
-    { "klass": "motorcyclist",  "base": 4.1,  "released": 8.3,  "retrain": 0.3,  "vru": true, "disclaimed": true },
-    { "klass": "road",          "base": 70.0, "released": 4.6,  "retrain": 4.3,  "vru": false },
-    { "klass": "parking",       "base": 59.3, "released": 2.4,  "retrain": 2.3,  "vru": false },
-    { "klass": "sidewalk",      "base": 51.9, "released": 2.1,  "retrain": 1.9,  "vru": false },
-    { "klass": "other-ground",  "base": 13.6, "released": 0.4,  "retrain": 0.1,  "vru": false },
-    { "klass": "building",      "base": 33.3, "released": 1.5,  "retrain": 0.7,  "vru": false },
-    { "klass": "fence",         "base": 29.9, "released": 0.3,  "retrain": 0.1,  "vru": false },
-    { "klass": "vegetation",    "base": 38.5, "released": 2.2,  "retrain": 1.9,  "vru": false },
-    { "klass": "trunk",         "base": 32.0, "released": 0.4,  "retrain": 0.2,  "vru": false },
-    { "klass": "terrain",       "base": 51.9, "released": 2.6,  "retrain": 2.0,  "vru": false },
-    { "klass": "pole",          "base": 37.7, "released": 0.1,  "retrain": 0.1,  "vru": false },
-    { "klass": "traffic-sign",  "base": 18.8, "released": 4.2,  "retrain": 5.8,  "vru": false }
-  ]
+    {
+      "klass": "car",
+      "base": 50.3,
+      "released": 1.1,
+      "retrain": 1.0,
+      "vru": false
+    },
+    {
+      "klass": "bicycle",
+      "base": 23.7,
+      "released": 0.6,
+      "retrain": -0.1,
+      "vru": false
+    },
+    {
+      "klass": "motorcycle",
+      "base": 35.6,
+      "released": -0.1,
+      "retrain": 0.2,
+      "vru": false
+    },
+    {
+      "klass": "truck",
+      "base": 54.7,
+      "released": 5.3,
+      "retrain": 5.4,
+      "vru": false
+    },
+    {
+      "klass": "other-vehicle",
+      "base": 42.0,
+      "released": 2.5,
+      "retrain": 2.3,
+      "vru": false
+    },
+    {
+      "klass": "person",
+      "base": 22.0,
+      "released": 1.2,
+      "retrain": 1.9,
+      "vru": true
+    },
+    {
+      "klass": "bicyclist",
+      "base": 18.0,
+      "released": 5.3,
+      "retrain": 5.2,
+      "vru": true
+    },
+    {
+      "klass": "motorcyclist",
+      "base": 4.1,
+      "released": 8.3,
+      "retrain": 0.3,
+      "vru": true,
+      "disclaimed": true
+    },
+    {
+      "klass": "road",
+      "base": 70.0,
+      "released": 4.6,
+      "retrain": 4.3,
+      "vru": false
+    },
+    {
+      "klass": "parking",
+      "base": 59.3,
+      "released": 2.4,
+      "retrain": 2.3,
+      "vru": false
+    },
+    {
+      "klass": "sidewalk",
+      "base": 51.9,
+      "released": 2.1,
+      "retrain": 1.9,
+      "vru": false
+    },
+    {
+      "klass": "other-ground",
+      "base": 13.6,
+      "released": 0.4,
+      "retrain": 0.1,
+      "vru": false
+    },
+    {
+      "klass": "building",
+      "base": 33.3,
+      "released": 1.5,
+      "retrain": 0.7,
+      "vru": false
+    },
+    {
+      "klass": "fence",
+      "base": 29.9,
+      "released": 0.3,
+      "retrain": 0.1,
+      "vru": false
+    },
+    {
+      "klass": "vegetation",
+      "base": 38.5,
+      "released": 2.2,
+      "retrain": 1.9,
+      "vru": false
+    },
+    {
+      "klass": "trunk",
+      "base": 32.0,
+      "released": 0.4,
+      "retrain": 0.2,
+      "vru": false
+    },
+    {
+      "klass": "terrain",
+      "base": 51.9,
+      "released": 2.6,
+      "retrain": 2.0,
+      "vru": false
+    },
+    {
+      "klass": "pole",
+      "base": 37.7,
+      "released": 0.1,
+      "retrain": 0.1,
+      "vru": false
+    },
+    {
+      "klass": "traffic-sign",
+      "base": 18.8,
+      "released": 4.2,
+      "retrain": 5.8,
+      "vru": false
+    }
+  ],
+  "vru_iou": {
+    "base": 14.7,
+    "released": 4.9,
+    "retrain": 2.5
+  }
 }

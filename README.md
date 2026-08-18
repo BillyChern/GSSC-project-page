@@ -4,8 +4,11 @@ Static, dependency-free project page for the paper
 **Generative Semantic Scene Completion**.
 
 The page is centred on **S²D²** (Structured Source Discrete Diffusion),
-a one-step refiner that lifts any base SSC model by learning a correction
-on the discrete probability simplex.
+a one-step refiner that lifted every SSC base we tested (LMSCNet, JS3C-Net,
+SCPNet) by learning a correction on the discrete probability simplex. The paper
+does not claim it lifts *any* base: on a weaker source it can erase a rare class
+rather than recover it, which is why the transfer claim is scoped to
+voxel-grid-native sources.
 
 **Headline numbers (SemanticKITTI hidden test).** Every number below is indexed on the
 paper's predicate — *causal, single-sweep, single-sample*: one sweep, no future moments, no
@@ -77,14 +80,18 @@ Any static file server works — there's no build step.
 
 ## Regenerating the 3D viewer's PLY assets
 
-The viewer loads 8 PLY point clouds from `assets/ply/`:
+The viewer loads 8 of the 12 PLY point clouds in `assets/ply/`:
 
-| Scene        | Views (sparse · SCPNet · S²D² · GT) |
-|--------------|-------------------------------------|
-| bicyclist    | `bicyclist_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 003096) |
-| traffic-sign | `traffic_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 002870)   |
+| Scene        | Views (sparse · SCPNet · S²D² · GT) | Loaded |
+|--------------|-------------------------------------|--------|
+| bicyclist    | `bicyclist_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 003096)    | yes |
+| motorcyclist | `motorcyclist_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 001417) | yes |
+| traffic-sign | `traffic_{sparse,scpnet,s2d2,gt}.ply` (seq 08 · 002870)      | no  |
 
-The hero preview reuses `bicyclist_s2d2.ply`, so there's no extra network cost.
+The two loaded scenes are the two defined in `SCENES` in `scripts/viewer3d.js`.
+The traffic-sign assets were exported but never wired in: adding that scene needs
+a `label` and per-scene `stats` (rare-class IoU for base and ours), and no verified
+source for those figures exists — do not invent them.
 
 Regenerate from source voxel data:
 
@@ -96,46 +103,38 @@ The exporter reads SemanticKITTI GT voxel labels, SCPNet pre-computed
 predictions, and our S²D² label outputs, colour-codes each voxel by class,
 and writes ASCII PLY files ready for `three.js` `PLYLoader`.
 
-## Single-blind submission
+## Author visibility
 
-The page is single-blind: authors (Shi Chen, Weifeng Ge — Fudan University)
-are visible by default and the bibtex carries the real names. The earlier
-double-blind toggle / `data-anon` attribute / `scripts/anon.js` machinery
-has been removed. The orphaned `scripts/anon.js` file remains on disk for
-git history but is no longer referenced by `index.html` and can be deleted
-in a future cleanup commit if desired.
+Authors are visible by default (`<body data-anon="false">`) and the BibTeX
+carries the real names. `scripts/anon.js` IS wired: the header toggle flips
+`body[data-anon]`, `styles/site.css` hides `.identity` and reveals the withheld
+notice, and the preference persists in `localStorage`. Set `data-anon="true"` in
+`index.html` to ship anonymous by default if the venue requires it.
 
-## Filling in the release links
+## Release links
 
-The hero has four release buttons. Each is currently a placeholder
-(`href="#"` + `aria-disabled="true"`) so clicks are swallowed by the
-smooth-scroll handler in `scripts/main.js` — the page never jumps to top.
+Four slots sit under the author block. Three are inert
+`<span class="btn" role="link" aria-disabled="true">` elements — they are not
+anchors and carry no `href`, so there is no dead link to click. The fourth, the
+SemanticKITTI leaderboard, is a live `<a>`.
 
-| Button | `data-link` | Destination once live |
-|---|---|---|
-| Paper | `paper` | arXiv abstract page |
-| Code | `code` | GitHub repo |
-| Model | `model` | Pretrained checkpoint on HuggingFace |
-| Dataset | `dataset` | Full synthetic dataset on HuggingFace |
-
-Swap each placeholder when the URL lands, for example:
-
-```html
-<!-- from (placeholder) -->
-<a class="btn" href="#" data-link="paper" aria-disabled="true" title="Paper (arXiv) coming soon.">Paper</a>
-<!-- to (live) -->
-<a class="btn" href="https://arxiv.org/abs/XXXX.YYYYY" data-link="paper" target="_blank" rel="noopener">Paper</a>
-```
-
-Remove the `aria-disabled` attribute and the tooltip `title` once the URL is live.
+To publish one, replace the `<span>` with
+`<a class="btn" href="..." target="_blank" rel="noopener">Code</a>` and drop the
+sentence under the row that says the release happens on publication. Do not link
+`github.com/BillyChern/GSSC-S2D2` until it actually resolves; it currently
+returns 404, and the honest inert state is deliberate.
 
 ## Editing numbers
 
-- **Main comparison (test set)**: `data/results.json` — 7 rows, ordered by mIoU,
-  with `best:true` on the `S²D² + D₄ TTA` row and `ours:true` on both of our
-  deployment configurations (`S²D² 1-step` and `S²D² + D₄ TTA`).
-- **Per-class table (val set)**: `data/perclass.json` — SCPNet → S²D² val
-  per-class IoUs with safety-class flags.
+- **Main comparison**: `data/results.json` — 17 rows across both splits, mirroring
+  paper Table I. Keys: `eval` (`test`|`val`), `ours`, and `excluded` for rows
+  outside the paper's predicate (TALoS, our D₄ row, the four-sweep entry). There is
+  no `best` flag: `scripts/main.js` COMPUTES the best eligible cell per split, so
+  the table cannot drift from the predicate it claims to apply. Never hand-bold a
+  row, and never mark an `excluded` row as best — the 39.2 D₄ row is excluded.
+- **Per-class table**: `data/perclass.json` — paper Table II: base IoU plus both
+  the Released Δ and the Retrain Δ, the VRU-IoU row, and `disclaimed: true` on
+  motorcyclist, whose released +8.3 does not reproduce (retrain recovers +0.3).
 
 ## Deploying to GitHub Pages
 
@@ -163,21 +162,27 @@ jobs:
 
 ## Tech stack
 
-- **Three.js** r161 for the main viewer and the hero preview (import map + CDN)
-- **Google Fonts**: Instrument Serif (display) · IBM Plex Sans (body) · JetBrains Mono (code)
-- Vanilla CSS with design tokens in `styles/tokens.css` — no Tailwind runtime
-- Vanilla JS with `IntersectionObserver`, Clipboard API, and `ResizeObserver`
-- No tracker, no analytics, no cookies
+- **three.js** r160, import map from unpkg, for the voxel viewer
+- **Google Fonts**: IBM Plex Sans only (400/500/600). Monospace comes from the
+  system stack; the display serif and JetBrains Mono were dropped in the rebuild
+- Vanilla CSS, tokens in `styles/tokens.css`, everything else in `styles/site.css`
+- Vanilla JS: `fetch` for the two JSON tables, Clipboard API for BibTeX. No build step
+- No tracker, no analytics, no cookies. Two third-party fetches: the webfont and three.js
 
 ## Accessibility notes
 
-- Semantic landmarks (`<nav>`, `<header>`, `<section>`, `<footer>`)
-- Keyboard focus rings with `:focus-visible`
-- `prefers-reduced-motion` disables fills, reveal transitions, the hero rotation, and the live-dot pulse
-- Table headers announce `aria-sort` on click
-- The viewer has a `role="application"` label describing mouse/touch controls
-- The hero preview is announced with an `aria-label` on both the aside and the canvas mount
-- Colour contrast checked against WCAG AA on body text
+- Semantic landmarks (`<header>`, `<main>`, `<section>`, `<footer>`) and a skip link
+- Keyboard focus rings via `:focus-visible`; `.seg` deliberately does not set
+  `overflow: hidden`, which would clip the offset ring on the viewer buttons
+- The viewer's segmented controls keep `aria-pressed` in sync with the visual state,
+  and each group is a labelled `role="group"`
+- `prefers-reduced-motion` zeroes animation and transition durations. The page has
+  no animation of its own; the rule guards the viewer and native scrolling
+- The viewer stage carries `role="application"` with a descriptive label, and both
+  the no-WebGL and failed-scene paths render readable prose pointing at the figure
+- Every table has a `<caption>`; numeric cells use `tabular-nums`
+- Contrast: every text/background pair used meets WCAG AA on white. Disabled link
+  labels were lifted from 2.61:1 to 4.83:1; state is carried by the dashed border
 
 ## File map
 
