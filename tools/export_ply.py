@@ -1,6 +1,8 @@
 """Export SemanticKITTI voxel grids as colored PLY point clouds for the web viewer.
 
-For each of the two showcase frames in the paper (bicyclist 003096, traffic-sign 002870),
+For each of the two showcase frames in the paper (bicyclist 003096, motorcyclist 001417 --
+the two rows of main-paper Fig. 6; the traffic-sign scene was dropped, so any traffic_*.ply
+on disk is an orphan of an earlier revision),
 produce 4 PLY files — sparse LiDAR input, SCPNet base prediction, S²D² refinement, and
 ground truth — covering 8 PLYs total.
 
@@ -80,6 +82,11 @@ def to_learning_map(raw: np.ndarray) -> np.ndarray:
     """Remap SemanticKITTI raw labels to the 20-class learning ids.
 
     Implements the standard mapping defined in `semantic-kitti.yaml`.
+
+    This table is transcribed, which is the risky way to carry a learning map: a silent
+    divergence would mislabel every exported voxel. Verified 2026-08-18 against
+    /workspace/semantic-kitti-api/config/semantic-kitti.yaml -- 34 entries, 0 mismatches.
+    Re-check with that file, not by eye, if the dataset config is ever updated.
     """
     LEARNING_MAP = {
         0:  0, 1:  0, 10: 1, 11: 2, 13: 5, 15: 3, 16: 5, 18: 4, 20: 5,
