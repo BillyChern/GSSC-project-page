@@ -100,11 +100,9 @@ def build(artifact: bool = False) -> str:
         sys.exit("import map not found")
     html = html.replace(old_map.group(0), "", 1)
 
-    # --- JSON tables: fetch() handles data: URLs, so the loader is untouched
-    for name in ("results.json", "perclass.json"):
-        uri = data_uri((SITE / "data" / name).read_bytes(), "application/json")
-        # rewritten inside main.js below, once it is inlined
-        globals().setdefault("_json", {})[f"data/{name}"] = uri
+    # The page no longer fetches JSON at runtime: the results are a generated figure
+    # (tools/make_results_chart.py), so there is nothing to inline here. data/*.json
+    # remains the source of truth for that chart and is gated in check_content.py.
 
     # --- scripts ---------------------------------------------------------
     def inline_script(src_attr: str, path: str, module: bool = False) -> None:
@@ -112,14 +110,6 @@ def build(artifact: bool = False) -> str:
         code = (SITE / path).read_text(encoding="utf-8")
         if path == "scripts/viewer3d.js":
             code = bundle_viewer()
-        if path == "scripts/main.js":
-            for rel, uri in globals()["_json"].items():
-                hit = False
-                for q in ("'", '"'):
-                    if f"{q}{rel}{q}" in code:
-                        code = code.replace(f"{q}{rel}{q}", f"{q}{uri}{q}"); hit = True
-                if not hit:
-                    sys.exit(f"expected {rel} reference in main.js")
         if path == "scripts/viewer3d.js":
             # Quote-agnostic: esbuild normalises single-quoted literals to double
             # quotes, so matching only "'path'" silently rewrote nothing. The
@@ -156,8 +146,11 @@ def build(artifact: bool = False) -> str:
         return tag
 
     html, n = re.subn(r"<picture>.*?</picture>", swap_picture, html, flags=re.S)
-    if n != 6:
-        sys.exit(f"expected 6 <picture> blocks, rewrote {n}")
+    # A floor, not a fixed count: the page gains figures over time, and re.subn already
+    # guarantees every block matched was rewritten. The unresolved-relative-reference
+    # guard below is what actually proves nothing was left pointing at a sibling file.
+    if n < 6:
+        sys.exit(f"expected at least 6 <picture> blocks, rewrote {n}")
 
     # --- favicon ---------------------------------------------------------
     fav = SITE / "assets" / "favicon.svg"
