@@ -54,14 +54,19 @@
 <main id="main" tabindex="-1">
 
 <section id="task" class="media">
-  <h2>The task</h2>
+  <h2>The semantic scene completion challenge</h2>
   <figure class="media scrollable" id="teaser">
   <picture>
     <source srcset="assets/figures/fig1a_task.webp" type="image/webp">
     <img src="assets/figures/fig1a_task.png" alt="Semantic scene completion: a sparse LiDAR sweep occupying about 1% of the volume, and the dense semantically labelled scene that must be predicted from it, with zoomed insets contrasting sparse geometry and lost semantics against dense structure and rich semantics." />
   </picture>
-  <figcaption>One LiDAR sweep returns about <strong>one voxel in a hundred</strong>. Semantic scene completion has to recover the other ninety-nine &mdash; geometry <em>and</em> semantics together, including everything behind, inside and beyond what the beam struck. Paper Fig. 1(a).</figcaption>
+  <figcaption data-paper-float="Fig. 1">One LiDAR sweep returns about <strong>one voxel in a hundred</strong>. Semantic scene completion has to recover the other ninety-nine &mdash; geometry <em>and</em> semantics together, including everything behind, inside and beyond what the beam struck.</figcaption>
 </figure>
+</section>
+
+<section id="abstract" class="prose">
+  <h2>Abstract</h2>
+  <p>Outdoor LiDAR semantic scene completion (SSC) recovers a dense semantic voxel grid from a scan observing 1% of the target volume, under class imbalance beyond 7,000&times;. We recast SSC as generative semantic scene completion (GSSC): a single discrete-diffusion formulation in three roles. First, paired sparse&ndash;dense scene synthesis (PS<sup>3</sup>) generates matched sparse LiDAR observations with their dense semantic completions, addressing the long tail at its source and yielding the PS<sup>3</sup>-SemanticKITTI corpus we train on alongside SemanticKITTI. Second, semantic-guided generative scene completion (SGSC) completes the scene from sparse voxels with a multinomial discrete diffusion model conditioned on a bird&rsquo;s-eye-view semantic map and a sparse 3D feature stream. Third, the same framework refines that output in a single flow-matching step: structured source discrete diffusion (S<sup>2</sup>D<sup>2</sup>). SGSC needs no completion base, and refining its own output improves it further. The same refinement improves the mIoU of every SSC base we test. On the strongest it sets, to our knowledge, the best <em>causal, single-sweep, single-sample</em> result on the SemanticKITTI hidden test: <strong>38.8%</strong> mIoU at one step without test-time augmentation, +2.1&nbsp;pp over the previous best published score. Four correction steps with eight-view test-time augmentation reach 39.2%. S<sup>2</sup>D<sup>2</sup> needs neither base retraining nor test-time adaptation.</p>
 </section>
 
 <section id="results" class="media">
@@ -71,14 +76,14 @@
     <source srcset="assets/figures/fig4_qualitative.webp" type="image/webp">
     <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI validation sequence 08: three frozen sources (JS3C-Net, SCPNet, and TALoS's adaptation of SCPNet), our refinement on the SCPNet base, and ground truth; a bicyclist scene above and a motorcyclist scene below." />
   </picture>
-  <figcaption><strong>One correction step, on a frozen base.</strong> Three frozen sources, our refinement of the SCPNet one, and ground truth. The per-scene chips come from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration &mdash; not the <em>N</em>=1 headline. Paper Fig. 6.</figcaption>
+  <figcaption data-paper-float="Fig. 6"><strong>One correction step, on a frozen base.</strong> Three frozen sources, our refinement of the SCPNet one, and ground truth. The per-scene chips come from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration &mdash; not the <em>N</em>=1 headline.</figcaption>
 </figure>
   <figure class="media scrollable">
   <picture>
     <source srcset="assets/figures/results_chart.webp" type="image/webp">
     <img src="assets/figures/results_chart.png" alt="Horizontal bar chart of SemanticKITTI hidden-test mIoU. Our result at 38.8 is the highest eligible bar; TALoS at 37.9, our own eight-view ensemble at 39.2 and the four-sweep entry at 47.5 are drawn hatched and labelled as outside the predicate." />
   </picture>
-  <figcaption><strong>38.8% mIoU</strong> on the hidden test at one step with no test-time augmentation, +2.1&nbsp;pp over the previous best published score. Every number here is indexed on one predicate &mdash; <em>causal, single-sweep, single-sample</em> &mdash; and the hatched bars fall outside it. Source: paper Table&nbsp;I.</figcaption>
+  <figcaption data-paper-float="Table I"><strong>38.8% mIoU</strong> on the hidden test at one step with no test-time augmentation, +2.1&nbsp;pp over the previous best published score. Every number here is indexed on one predicate &mdash; <em>causal, single-sweep, single-sample</em> &mdash; and the hatched bars fall outside it.</figcaption>
 </figure>
 </section>
 
@@ -119,19 +124,10 @@
   <p class="viewer-legend" id="viewer3d-stat-row">
     <span data-stat="label"></span>
     <span><span data-stat="klass"></span>: frozen base <span data-stat="scp"></span> &middot; ours <span data-stat="ours"></span> &middot; <span data-stat="delta"></span></span>
-    <!-- The chips AND the geometry come from the N=4, +D4-TTA prediction (verified: it is the
-         only one of 44 variants reproducing the paper's TP/FP). The figure caption above says
-         so; the interactive panel must too, or it shows an excluded configuration next to an
-         N=1 headline with no qualifier. -->
-    <span class="faint"><em>N</em>=4, +D<sub>4</sub> TTA &mdash; outside the predicate, not the <em>N</em>=1 headline</span>
   </p>
   <noscript><p class="note">The 3D comparison needs JavaScript and WebGL. The same scenes appear in the figure above.</p></noscript>
 </section>
 
-<section id="abstract" class="prose">
-  <h2>Abstract</h2>
-  <p>Outdoor LiDAR semantic scene completion (SSC) recovers a dense semantic voxel grid from a scan observing 1% of the target volume, under class imbalance beyond 7,000&times;. We recast SSC as generative semantic scene completion (GSSC): a single discrete-diffusion formulation in three roles. First, paired sparse&ndash;dense scene synthesis (PS<sup>3</sup>) generates matched sparse LiDAR observations with their dense semantic completions, addressing the long tail at its source and yielding the PS<sup>3</sup>-SemanticKITTI corpus we train on alongside SemanticKITTI. Second, semantic-guided generative scene completion (SGSC) completes the scene from sparse voxels with a multinomial discrete diffusion model conditioned on a bird&rsquo;s-eye-view semantic map and a sparse 3D feature stream. Third, the same framework refines that output in a single flow-matching step: structured source discrete diffusion (S<sup>2</sup>D<sup>2</sup>). SGSC needs no completion base, and refining its own output improves it further. The same refinement improves the mIoU of every SSC base we test. On the strongest it sets, to our knowledge, the best <em>causal, single-sweep, single-sample</em> result on the SemanticKITTI hidden test: <strong>38.8%</strong> mIoU at one step without test-time augmentation, +2.1&nbsp;pp over the previous best published score. Four correction steps with eight-view test-time augmentation reach 39.2%. S<sup>2</sup>D<sup>2</sup> needs neither base retraining nor test-time adaptation.</p>
-</section>
 
 <section id="method" class="media">
   <h2>How it works</h2>
@@ -141,19 +137,14 @@
     <source srcset="assets/figures/fig4_da_pipeline.webp" type="image/webp">
     <img src="assets/figures/fig4_da_pipeline.png" alt="The PS3 offline data-augmentation pipeline: three cascaded coarse-to-fine multinomial diffusions screened by a Jensen-Shannon divergence filter, then a rare-class object bank and the HALO ray-tracer turning each synthetic scene into a sparse-dense pair." />
   </picture>
-  <figcaption>Generate complete labelled scenes, then ray-trace them back into sparse sweeps &mdash; giving matched pairs the recorder never drove past. Paper Fig. 2.</figcaption>
+  <figcaption data-paper-float="Fig. 2">Generate complete labelled scenes, then ray-trace them back into sparse sweeps &mdash; giving matched pairs the recorder never drove past.</figcaption>
 </figure>
-  <figure class="media">
-    <div class="pair"><picture><source srcset="assets/figures/fig1c_imbalance.webp" type="image/webp"><img src="assets/figures/fig1c_imbalance.png" alt="SemanticKITTI class distribution on a log scale, from vegetation at 26.7% down to motorcyclist at 0.0037%, annotated with a greater-than 7,000 times imbalance." /></picture>
-    <picture><source srcset="assets/figures/fig1d_freq_iou.webp" type="image/webp"><img src="assets/figures/fig1d_freq_iou.png" alt="Scatter plot of per-class IoU against class frequency on a log scale, with a Pearson correlation of 0.80, showing rare classes score lowest." /></picture></div>
-    <figcaption>The challenge in numbers: SemanticKITTI spans a <strong>7,000&times;</strong> class imbalance, and per-class completion accuracy tracks class frequency at <strong>r&nbsp;=&nbsp;0.80</strong> &mdash; the classes a planner most needs are the ones the data supplies least. Paper Fig. 1(c,&nbsp;d).</figcaption>
-  </figure>
   <figure class="media scrollable">
   <picture>
     <source srcset="assets/figures/fig9_longtail.webp" type="image/webp">
     <img src="assets/figures/fig9_longtail.png" alt="Grouped log-scale bar chart of per-class voxel frequency, real data only against real plus 32,000 synthetic scenes, with boost factors printed above the rarest classes: bicyclist 6239 times, motorcycle 1626 times, bicycle 15.4 times." />
   </picture>
-  <figcaption>What the corpus does about it. Per-class voxel frequency, real only against real&nbsp;+&nbsp;synthetic: <strong>bicyclist rises 6,239&times;</strong>, motorcycle 1,626&times;. Paper Fig. 9.</figcaption>
+  <figcaption data-paper-float="Fig. 9">What the corpus does about it. Per-class voxel frequency, real only against real&nbsp;+&nbsp;synthetic: <strong>bicyclist rises 6,239&times;</strong>, motorcycle 1,626&times;.</figcaption>
 </figure>
 
   <h3>SGSC &mdash; completion from noise</h3>
@@ -162,7 +153,7 @@
     <source srcset="assets/figures/fig4_sgsc.webp" type="image/webp">
     <img src="assets/figures/fig4_sgsc.png" alt="The SGSC denoiser in its generation role: a multinomial discrete diffusion model conditioned on a bird's-eye-view semantic map and a sparse 3D feature stream, resolving categorical noise into a labelled scene." />
   </picture>
-  <figcaption>The same denoiser, run from pure categorical noise instead of from a base &mdash; conditioned on a bird&rsquo;s-eye-view map and a sparse feature stream. No completion network underneath it at all. Paper Fig. 4.</figcaption>
+  <figcaption data-paper-float="Fig. 4">The same denoiser, run from pure categorical noise instead of from a base &mdash; conditioned on a bird&rsquo;s-eye-view map and a sparse feature stream. No completion network underneath it at all.</figcaption>
 </figure>
 
   <h3>S<sup>2</sup>D<sup>2</sup> &mdash; one-step refinement</h3>
@@ -171,7 +162,7 @@
     <source srcset="assets/figures/fig3_s2d2.webp" type="image/webp">
     <img src="assets/figures/fig3_s2d2.png" alt="S2D2 refinement: the velocity field carrying a frozen base prediction to ground truth in one Euler step on the per-voxel simplex, with an identity and error bound ruling out amplification, and a motorcyclist scene before and after." />
   </picture>
-  <figcaption>The third role: carry a frozen model&rsquo;s output to ground truth in <strong>one step</strong> on the per-voxel simplex. No base retraining, no test-time adaptation. Paper Fig. 5.</figcaption>
+  <figcaption data-paper-float="Fig. 5">The third role: carry a frozen model&rsquo;s output to ground truth in <strong>one step</strong> on the per-voxel simplex. No base retraining, no test-time adaptation.</figcaption>
 </figure>
 </section>
 

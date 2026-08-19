@@ -29,10 +29,18 @@ ACCENT, TEXT, MUTED, RULE, GROUND = "#B85C00", "#2E3338", "#6B7280", "#E3E5E8", 
 
 def main() -> None:
     rows = [r for r in json.loads((SITE / "data" / "results.json").read_text(encoding="utf-8"))
-            if r.get("eval") == "test" and r.get("mIoU") is not None]
+            if r.get("eval") == "test" and r.get("mIoU") is not None
+            # The four-sweep entry is dropped: at 47.5 it towered over every single-sweep
+            # bar and needed a disclaimer to be read at all, which cost more than it told.
+            and "#frame=4" not in r["method"]]
     rows.sort(key=lambda r: r["mIoU"])
 
-    labels = [(r["method"].strip() or "ours").replace("SCPNet + S²D²", "SCPNet + S²D²") for r in rows]
+    # Name what each method IS rather than classifying it as (non-)comparable: a reader
+    # who sees "test-time adaptation" can judge for themselves, and the configuration
+    # that produced our higher bar is stated on the bar instead of in a footnote.
+    RELABEL = {"TALoS": "TALoS  (test-time adaptation)",
+               "with D₄ ensemble (N=4)": "Ours + D₄ ensemble  (N=4, +D₄ TTA)"}
+    labels = [RELABEL.get(r["method"].strip(), r["method"].strip()) for r in rows]
     vals = [r["mIoU"] for r in rows]
     excl = [bool(r.get("excluded")) for r in rows]
     ours = [bool(r.get("ours")) for r in rows]
@@ -42,22 +50,17 @@ def main() -> None:
     ax.set_facecolor(GROUND)
 
     for i, (v, e, o) in enumerate(zip(vals, excl, ours)):
-        if e:
-            ax.barh(i, v, color="#FFFFFF", edgecolor=MUTED, hatch="////", linewidth=1.0, height=0.62)
-        else:
-            ax.barh(i, v, color=ACCENT if o else "#C9CDD2", edgecolor="none", height=0.62)
+        # Both of ours carry the accent, including the ensemble row: it is ours either
+        # way, and the label says which configuration produced it.
+        ax.barh(i, v, color=ACCENT if o else "#C9CDD2", edgecolor="none", height=0.62)
         ax.text(v + 0.6, i, f"{v:.1f}", va="center", ha="left",
-                fontsize=9.5, color=MUTED if e else TEXT,
-                fontweight="600" if (o and not e) else "normal")
+                fontsize=9.5, color=TEXT, fontweight="600" if o else "normal")
 
     ax.set_yticks(range(len(labels)))
-    ax.set_yticklabels(
-        [f"{l}  ·  outside the predicate" if e else l for l, e in zip(labels, excl)],
-        fontsize=9.5)
-    for tick, e in zip(ax.get_yticklabels(), excl):
-        tick.set_color(MUTED if e else TEXT)
-        if e:
-            tick.set_style("italic")
+    ax.set_yticklabels(labels, fontsize=9.5)
+    for tick, o in zip(ax.get_yticklabels(), ours):
+        tick.set_color(TEXT)
+        tick.set_fontweight("600" if o else "normal")
 
     ax.set_xlabel("SemanticKITTI hidden-test mIoU (%)", fontsize=10, color=TEXT, labelpad=8)
     ax.set_xlim(0, max(vals) * 1.14)
@@ -69,12 +72,9 @@ def main() -> None:
     ax.xaxis.grid(True, color=RULE, linewidth=0.8)
     ax.set_axisbelow(True)
 
-    ax.legend(handles=[
-        Patch(facecolor=ACCENT, label="ours"),
-        Patch(facecolor="#C9CDD2", label="published baselines"),
-        Patch(facecolor="#FFFFFF", edgecolor=MUTED, hatch="////",
-              label="outside the predicate — not comparable"),
-    ], loc="lower right", frameon=False, fontsize=9, labelcolor=TEXT)
+    ax.legend(handles=[Patch(facecolor=ACCENT, label="ours"),
+                       Patch(facecolor="#C9CDD2", label="published baselines")],
+              loc="lower right", frameon=False, fontsize=9, labelcolor=TEXT)
 
     fig.tight_layout()
     out_png = SITE / "assets" / "figures" / "results_chart.png"

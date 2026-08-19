@@ -77,25 +77,28 @@ def site_prose() -> str:
 
 
 def captions(html: str | None = None) -> list[tuple[str, str]]:
-    """[(claimed float, the full caption that claims it)].
+    """[(claimed float, the caption text that claims it)].
 
-    Scoped to caption ELEMENTS, both <figcaption> and <caption>: a window of text
-    before the citation picks up the caption's tail (here, a TTA disclosure) rather
-    than its topical lead, and bleeds into neighbouring content.
-
-    Entities are decoded first. The markup writes "Table&nbsp;I", so matching
-    r"Table\s*[IVXL]+" against raw tag-stripped text silently found neither table.
+    The citation lives in a data-paper-float attribute, not in the visible text: a
+    reader does not need "Paper Fig. 6." at the end of every caption, but the gate
+    still needs something to check the caption against. Moving it to an attribute keeps
+    provenance verifiable while removing the clutter — the alternative was deleting the
+    citations and losing the check with them.
     """
     html = html if html is not None else (SITE / "index.html").read_text(encoding="utf-8")
     out = []
-    for m in re.finditer(r"<(figcaption|caption)\b[^>]*>(.*?)</\1>", html, re.S | re.I):
-        text = normalise(htmllib.unescape(re.sub(r"<[^>]+>", " ", m.group(2))))
-        # Two phrasings in use: "Source: paper Table I" under the results chart, and a
-        # trailing "Paper Fig. 6." on figure captions. Sub-panel refs like "Fig. 1(a)"
-        # resolve to their parent float, which is what the PDF numbers.
-        cite = re.search(r"(?:Source: paper|Paper)\s+(Fig\.\s*\d+|Table\s*[IVXL]+)", text)
+    for m in re.finditer(r"<(figcaption|caption)\b([^>]*)>(.*?)</\1>", html, re.S | re.I):
+        attrs, inner = m.group(2), m.group(3)
+        text = normalise(htmllib.unescape(re.sub(r"<[^>]+>", " ", inner)))
+        cite = re.search(r'data-paper-float="([^"]+)"', attrs)
         if cite:
-            out.append((re.sub(r"\s+", " ", cite.group(1)), text))
+            out.append((cite.group(1).strip(), text))
+            continue
+        # Legacy in-text form, still accepted so a hand-written caption is not silently
+        # dropped from the gate's coverage.
+        legacy = re.search(r"(?:Source: paper|Paper)\s+(Fig\.\s*\d+|Table\s*[IVXL]+)", text)
+        if legacy:
+            out.append((re.sub(r"\s+", " ", legacy.group(1)), text))
     return out
 
 
@@ -209,7 +212,8 @@ def check_chart(paper_dir: Path) -> list[tuple[str, bool, str]]:
         return [("results chart manifest exists", False, "run tools/make_results_chart.py")]
     manifest = json.loads(man_path.read_text(encoding="utf-8"))["rows"]
     rows = [r for r in json.loads((SITE / "data" / "results.json").read_text(encoding="utf-8"))
-            if r.get("eval") == "test" and r.get("mIoU") is not None]
+            if r.get("eval") == "test" and r.get("mIoU") is not None
+            and "#frame=4" not in r["method"]]   # dropped from the chart, see the generator
     rows.sort(key=lambda r: r["mIoU"])
     expect = [{"method": r["method"].strip(), "mIoU": r["mIoU"],
                "excluded": bool(r.get("excluded")), "ours": bool(r.get("ours"))} for r in rows]

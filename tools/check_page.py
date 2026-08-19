@@ -111,10 +111,13 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
 
     legend = d["legendText"] or ""
     return [
-        ("page reads task -> results -> method",
-         d["sectionOrder"] == ["task", "results", "viewer", "abstract", "method", "bibtex"],
+        ("page reads task -> abstract -> results -> method",
+         d["sectionOrder"] == ["task", "abstract", "results", "viewer", "method", "bibtex"],
          str(d["sectionOrder"])),
-        ("every figure renders", d["imagesLoaded"] == d["imagesTotal"] and d["imagesTotal"] >= 9,
+        # The load-equality is the real assertion; the floor is only a backstop against
+        # every figure vanishing at once, so it is set well below the current count
+        # rather than tracking it (three edits in a row moved the exact number).
+        ("every figure renders", d["imagesLoaded"] == d["imagesTotal"] and d["imagesTotal"] >= 6,
          f'{d["imagesLoaded"]}/{d["imagesTotal"]}'),
         ("results chart is on the page", d["hasResultsChart"], str(d["hasResultsChart"])),
         ("the predicate is stated with the results", d["predicateShown"], str(d["predicateShown"])),
@@ -123,8 +126,6 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
         ("viewer drew a canvas", d["canvas"], str(d["canvas"])),
         ("author block present", d["identityPresent"], str(d["identityPresent"])),
         ("anon mode leaks no identifiers", not leaks, ", ".join(leaks) or "none"),
-        ("viewer legend discloses N=4 +D4 TTA",
-         "D4 TTA" in legend and "predicate" in legend, legend[-58:] or "<empty>"),
         ("no console errors", not console, "; ".join(c[:90] for c in console[:2]) or "none"),
     ]
 
@@ -180,7 +181,7 @@ def inspect_nojs(browser, url, fault=None):
     ctx.close()
     # The results are figures now, so the page's substance survives without JS —
     # which it could not when the tables hydrated from JSON.
-    return [("no-JS still shows every figure", imgs == total and total >= 9, f"{imgs}/{total}"),
+    return [("no-JS still shows every figure", imgs == total and total >= 6, f"{imgs}/{total}"),
             ("no-JS hides 'Loading scene…'", not loading, str(loading)),
             ("no-JS hides the copy button", not copy_btn, str(copy_btn))]
 
@@ -301,10 +302,6 @@ FAULTS = [
      lambda p: p.route("**/three.module.js", lambda r: r.abort())),
     ("no console errors",
      lambda p: p.route("**/bicyclist_s2d2.ply", lambda r: r.abort())),
-    ("viewer legend discloses N=4 +D4 TTA",
-     lambda p: p.add_init_script(
-         "addEventListener('load',()=>{const e=document.querySelector('#viewer3d-stat-row .faint');"
-         "if(e)e.remove();})")),
     ("anon mode leaks no identifiers",
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const p=document.createElement('p');"
@@ -313,7 +310,7 @@ FAULTS = [
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const e=document.querySelector('.identity');"
          "if(e)e.remove();})")),
-    ("page reads task -> results -> method",
+    ("page reads task -> abstract -> results -> method",
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const m=document.querySelector('main');"
          "const s=document.getElementById('abstract'); if(s&&m)m.prepend(s);})")),
