@@ -112,10 +112,13 @@ requires it to trip. A check never seen failing is not evidence of anything.
 ```bash
 python3 -m http.server 8099 &          # check_page.py needs the site served
 python tools/check_page.py             # behaviour: structure, figures, viewer, a11y
-python tools/check_page.py --selftest   # ~3 min: proves all 16 arms can fail
+python tools/check_page.py --selftest   # ~3 min: proves all 15 arms can fail
 
 python tools/check_content.py           # site claims vs the built paper
 python tools/check_content.py --selftest
+
+python tools/check_artifact.py          # the BUILT single-file page, under a harsh CSP
+python tools/check_artifact.py --selftest
 ```
 
 `check_page.py` covers three viewports plus the print, no-JS, slow-load and
@@ -123,6 +126,14 @@ reduced-motion contexts, and deliberately pins earlier fixes: the viewer legend 
 its configuration, excluded table rows stay italic so the distinction survives
 forced-colors mode, all text clears WCAG AA contrast measured on the rendered page,
 and console errors are visible.
+
+`check_artifact.py` gates the **output** of `build_standalone.py`, which the other two
+never see: they measure `localhost:8099` and the source tree, i.e. the build's input.
+Three defects shipped from that blind spot — an `@font-face` `url()` that was never
+inlined, a tag strip that matched `<header ...>` as well as `<head>`, and a 3D viewer
+whose clouds were fetched from `data:` URIs (governed by `connect-src`, which the host
+withholds). It loads the built document under a policy harsher than the documented one,
+`connect-src 'none'`, so the page cannot depend on a header we are unable to read.
 
 `tools/make_results_chart.py` regenerates the results figure from `data/results.json`
 and writes a manifest beside it; `check_content.py` compares that manifest against the
