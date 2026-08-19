@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import json
 import re
 import subprocess
 import sys
@@ -137,18 +138,36 @@ def build(artifact: bool = False) -> str:
         if path == "scripts/viewer3d.js":
             code = bundle_viewer()
         if path == "scripts/viewer3d.js":
+            # The point clouds travel INSIDE the script, as string data, not as data:
+            # URIs. A data: URI is still fetch()ed by three's FileLoader, and a fetch
+            # is judged by connect-src -- not img-src. The published host does not
+            # admit data: under connect-src, so every scene failed there while the
+            # figures and the webfont (img-src / font-src) were fine, and the served
+            # page was healthy throughout. Measured in tools/check_artifact.py.
             # Quote-agnostic: esbuild normalises single-quoted literals to double
-            # quotes, so matching only "'path'" silently rewrote nothing. The
-            # unresolved-reference guard below is what caught that.
+            # quotes, so matching only "'path'" silently rewrote nothing.
+            embedded: dict[str, str] = {}
             for ply in sorted((SITE / "assets" / "ply").glob("*.ply")):
                 rel = f"assets/ply/{ply.name}"
-                uri = data_uri(ply.read_bytes(), "application/octet-stream")
+                key = f"gssc-embedded:{ply.name}"   # not a path, so the guard below stays strict
                 hit = False
                 for q in ("'", '"'):
                     if f"{q}{rel}{q}" in code:
-                        code = code.replace(f"{q}{rel}{q}", f"{q}{uri}{q}"); hit = True
+                        code = code.replace(f"{q}{rel}{q}", f"{q}{key}{q}"); hit = True
                 if not hit:
                     sys.exit(f"PLY reference not found in viewer code: {rel}")
+                text = ply.read_text(encoding="utf-8")
+                if not text.lstrip().startswith("ply"):
+                    sys.exit(f"not a PLY file: {rel}")
+                if "format ascii" not in text[:200]:
+                    sys.exit(f"{rel} is not ASCII PLY; embedding as text would corrupt it")
+                embedded[key] = text
+            if not embedded:
+                sys.exit("no PLY clouds found to embed")
+            # JSON is a subset of JS. "</" is escaped so a cloud can never terminate
+            # the inline <script> that carries it.
+            code = ("globalThis.__GSSC_PLY__=" + json.dumps(embedded).replace("</", "<\\/")
+                    + ";\n" + code)
         tag = '<script type="module">' if module else "<script>"
         if src_attr not in html:
             sys.exit(f"script tag not found: {src_attr}")

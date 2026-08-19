@@ -86,6 +86,21 @@ const SCENES = {
 };
 
 const stage = document.getElementById('viewer3d-stage');
+
+/* Scene geometry carried INSIDE the document, for the single-file build.
+   tools/build_standalone.py rewrites the asset paths in SCENES to sentinel keys and
+   defines this map ahead of this module; on the served page it is undefined and the
+   network path below is used unchanged.
+
+   Why not data: URIs, which is what the build used to emit: PLYLoader.load() goes
+   through three's FileLoader, i.e. fetch(), and a fetch of a data: URI is governed by
+   connect-src -- NOT by img-src, which is why figures and fonts were fine while every
+   scene failed. Measured: with `connect-src data:` the scenes load; with
+   `connect-src https:` (network allowed, data: not) they do not. The published host
+   does not admit data: there, so the viewer was dead in the artifact and healthy when
+   served. Bytes that travel inside the script have no scheme for a policy to judge.
+   This is the same fix already applied to three.js itself, one layer down. */
+const EMBEDDED_PLY = globalThis.__GSSC_PLY__ || {};
 const loadingEl = document.getElementById('viewer3d-loading');
 if (stage) boot();
 
@@ -131,6 +146,7 @@ function showNoWebGLFallback() {
 // Mirrors showNoWebGLFallback: say what happened, and point at the static figure
 // that carries the same comparison.
 function showLoadFailure() {
+  if (stage) stage.dataset.vertices = '0';
   if (!loadingEl) return;
   loadingEl.classList.remove('is-hidden');
   while (loadingEl.firstChild) loadingEl.removeChild(loadingEl.firstChild);
@@ -260,6 +276,12 @@ function boot() {
     let geometry;
     try {
       geometry = await new Promise((res, rej) => {
+        const embedded = EMBEDDED_PLY[url];
+        if (embedded !== undefined) {
+          // parse() takes the PLY text directly; no request, so no connect-src.
+          try { res(loader.parse(embedded)); } catch (e) { rej(e); }
+          return;
+        }
         loader.load(url, res, undefined, rej);
       });
     } catch (e) {
@@ -286,6 +308,7 @@ function boot() {
     // so 64 cannot reject real data and cannot accept a corrupt remnant.
     const MIN_VERTICES = 64;
     const vertexCount = geometry.attributes.position ? geometry.attributes.position.count : 0;
+    stage.dataset.vertices = String(vertexCount < MIN_VERTICES ? 0 : vertexCount);
     if (vertexCount < MIN_VERTICES) {
       console.error(`PLY ${url} parsed to ${vertexCount} vertices (floor ${MIN_VERTICES}); treating as a load failure.`);
       showLoadFailure();
