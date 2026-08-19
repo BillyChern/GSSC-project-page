@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@200;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css" />
 <link rel="stylesheet" href="styles/site.css" />
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
@@ -166,6 +166,23 @@
 </figure>
 </section>
 
+<section id="gallery" class="media">
+  <h2>Rare classes, before and after</h2>
+  <figure class="media scrollable">
+  <picture>
+    <source srcset="assets/figures/fig10_gallery.webp" type="image/webp">
+    <img src="assets/figures/fig10_gallery.png" alt="Six pairs of voxel renders, one per rare class: motorcycle, traffic-sign, person, bicyclist, other-vehicle and bicycle. In each pair the left panel is the frozen SCPNet base prediction and the right is the S2D2 refinement, with the class IoU before and after printed above." />
+  </picture>
+  <figcaption data-paper-float="Fig. 10">Six validation scenes, one per rare class, in descending order of gain. Left of each pair is the frozen base; right is S<sup>2</sup>D<sup>2</sup> in its <em>32K multi-frame&nbsp;+&nbsp;D<sub>4</sub>-TTA</em> configuration. Both views share one camera, so what differs is the prediction and not the framing. These are the scenes where the correction helps most.</figcaption>
+</figure>
+</section>
+
+<section id="ack" class="prose">
+  <h2>Acknowledgements</h2>
+  <p><span class="identity-inline">This work was supported by the National Natural Science Foundation of China under Grant&nbsp;624B1006 and by the Shanghai Science and Technology Committee under Grant&nbsp;24511103900.</span><span class="anon-inline">Funding sources are withheld while the manuscript is under review.</span></p>
+  <p>Evaluation uses the SemanticKITTI benchmark and its hidden test server; the scene renders on this page are drawn from its validation sequence.</p>
+</section>
+
 <section id="bibtex" class="prose">
   <h2>BibTeX</h2>
   <pre><code id="bibtex-code">@article{chen2026gssc,
@@ -181,7 +198,7 @@
 </main>
 
 <footer class="prose">
-  <p>This page is static: no analytics and no cookies. It fetches two third-party assets &mdash; the IBM Plex Sans webfont from Google Fonts, and the three.js library from unpkg for the 3D viewer.</p>
+  <p>This page is static: no analytics and no cookies. It fetches two third-party assets &mdash; the Hanken Grotesk webfont from Google Fonts, and the three.js library from unpkg for the 3D viewer.</p>
   <p class="anon-ctl"><button class="btn" type="button" id="anon-toggle" aria-pressed="false"><span id="anon-label">Hide authors</span></button></p>
   <p>Figures and numbers on this page are taken from the manuscript under review. Where the manuscript hedges a result, this page hedges it too.</p>
 </footer>

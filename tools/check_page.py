@@ -81,6 +81,52 @@ PROBE = """() => {
     // still lands where the predicate says it must.
     stageLabel: (q('#viewer3d-stage') || {}).ariaLabel
                 || (q('#viewer3d-stage') ? q('#viewer3d-stage').getAttribute('aria-label') : null),
+    // WCAG AA contrast, measured on the RENDERED page rather than read off the tokens.
+    // Three restyles in a row shipped a secondary grey that failed AA while a comment
+    // in tokens.css asserted it passed -- once at 2.605:1 and once at 3.54:1, the second
+    // time carrying every figure caption. A token comment is not a measurement, so this
+    // walks every element that paints its own text and computes the real ratio against
+    // the first non-transparent background behind it.
+    contrastFails: (() => {
+      const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92
+                                                        : Math.pow((c + 0.055) / 1.055, 2.4); };
+      const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+      const rgb = (s) => (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+      const alpha = (s) => { const n = (s.match(/[\d.]+/g) || []); return n.length > 3 ? +n[3] : 1; };
+      const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+                                return (hi + 0.05) / (lo + 0.05); };
+      // The effective background: the nearest ancestor that actually paints one.
+      const groundOf = (el) => {
+        for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+          const bg = getComputedStyle(n).backgroundColor;
+          if (bg && alpha(bg) > 0.05) return rgb(bg);
+        }
+        return [255, 255, 255];
+      };
+      const out = [];
+      for (const el of document.querySelectorAll('body *')) {
+        // Only elements that paint their OWN visible text, so a wrapper is not blamed
+        // for the colour of a child that sets its own.
+        const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+        if (!own) continue;
+        const cs = getComputedStyle(el);
+        if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
+        if (!el.getClientRects().length) continue;
+        const px = parseFloat(cs.fontSize);
+        const wt = parseInt(cs.fontWeight, 10) || 400;
+        // WCAG large-text exemption: >=24px, or >=18.66px when bold.
+        const need = (px >= 24 || (px >= 18.66 && wt >= 700)) ? 3.0 : 4.5;
+        const cr = ratio(rgb(cs.color), groundOf(el));
+        if (cr + 0.005 < need) {
+          out.push({ tag: el.tagName.toLowerCase(),
+                     cls: (el.className || '').toString().slice(0, 28),
+                     color: cs.color, px: px, wt: wt,
+                     ratio: Math.round(cr * 100) / 100, need: need,
+                     text: (el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 40) });
+        }
+      }
+      return out;
+    })(),
   };
 }"""
 
@@ -110,10 +156,26 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
     page.close()
 
     legend = d["legendText"] or ""
+
+    # Pin the READING ORDER the page was rebuilt around -- a non-specialist meets the
+    # task, then the abstract, then the results, and only then the method -- rather than
+    # an exact section list. An exact list has to be edited every time a section is
+    # added, and a gate edited to make it pass is not a gate. Requiring the observed
+    # order to be a SUBSEQUENCE of the canonical sequence catches every reordering while
+    # letting a canonical section be added or dropped without touching this file. An id
+    # absent from CANON fails loudly, so a NEW section has to be placed deliberately.
+    CANON = ["task", "abstract", "results", "viewer", "method", "gallery", "ack", "bibtex"]
+    order = d["sectionOrder"]
+    unplaced = [x for x in order if x not in CANON]
+    ranks = [CANON.index(x) for x in order if x in CANON]
+    order_ok = (ranks == sorted(ranks) and not unplaced
+                and {"task", "abstract", "results", "method"} <= set(order)
+                and order[-1:] == ["bibtex"])
+
     return [
-        ("page reads task -> abstract -> results -> method",
-         d["sectionOrder"] == ["task", "abstract", "results", "viewer", "method", "bibtex"],
-         str(d["sectionOrder"])),
+        ("sections read task -> abstract -> results -> method",
+         order_ok,
+         str(order) + (f"  unplaced: {unplaced}" if unplaced else "")),
         # The load-equality is the real assertion; the floor is only a backstop against
         # every figure vanishing at once, so it is set well below the current count
         # rather than tracking it (three edits in a row moved the exact number).
@@ -122,6 +184,10 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
         ("results chart is on the page", d["hasResultsChart"], str(d["hasResultsChart"])),
         ("the predicate is stated with the results", d["predicateShown"], str(d["predicateShown"])),
         ("no horizontal page scroll", not d["hscroll"], str(d["hscroll"])),
+        ("all text clears WCAG AA contrast", not d["contrastFails"],
+         "; ".join(f'{f["tag"]}.{f["cls"]} {f["color"]} {f["px"]}px/{f["wt"]} '
+                   f'{f["ratio"]}:1 <{f["need"]} "{f["text"]}"'
+                   for f in d["contrastFails"][:4]) or "0 failing elements"),
         ("no CSS keyframe animation", d["cssAnimations"] == 0, str(d["cssAnimations"])),
         ("viewer drew a canvas", d["canvas"], str(d["canvas"])),
         ("author block present", d["identityPresent"], str(d["identityPresent"])),
@@ -292,7 +358,16 @@ def _drop_chart(page):
         ".find(x=>/results_chart/.test(x.currentSrc||x.src)); if(i)i.remove();})")
 
 
+def _fade_captions(page):
+    """The exact regression this check exists for: secondary text set to the reference
+    page's #888888, which measures 3.54:1 and fails AA at caption size."""
+    page.add_init_script(
+        "addEventListener('load',()=>{const s=document.createElement('style');"
+        "s.textContent='figcaption{color:#888888}';document.head.appendChild(s);})")
+
+
 FAULTS = [
+    ("all text clears WCAG AA contrast", _fade_captions),
     ("every figure renders", _break_figure),
     ("results chart is on the page", _drop_chart),
     ("the predicate is stated with the results", _strip_predicate),
@@ -310,7 +385,7 @@ FAULTS = [
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const e=document.querySelector('.identity');"
          "if(e)e.remove();})")),
-    ("page reads task -> abstract -> results -> method",
+    ("sections read task -> abstract -> results -> method",
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const m=document.querySelector('main');"
          "const s=document.getElementById('abstract'); if(s&&m)m.prepend(s);})")),

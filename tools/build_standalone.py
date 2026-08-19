@@ -86,6 +86,32 @@ def build(artifact: bool = False) -> str:
         if pat not in html:
             sys.exit(f"stylesheet link not found: {name}")
         html = html.replace(pat, "" if name == "site.css" else "@@CSS@@", 1)
+
+    # url() inside the CSS is a relative reference too, and it was NOT being inlined:
+    # the @font-face for CMU Serif reads url('../assets/fonts/cmu-serif-roman.woff2'),
+    # so every heading in the built file silently fell back to the body sans while the
+    # build reported success. The leftover-reference guard below could not see it
+    # either -- it matched only "assets/..." in DOUBLE quotes, and this is a
+    # single-quoted ../ path inside url(). Both halves are fixed: rewrite here, and
+    # widen the guard so a url() can never slip through again.
+    def inline_css_url(m: re.Match) -> str:
+        ref = m.group("ref").strip()
+        if ref.startswith(("data:", "http:", "https:", "//", "#")):
+            return m.group(0)
+        target = (SITE / "styles" / ref).resolve()
+        if not target.is_file():
+            sys.exit(f"css url() points at a missing file: {ref}")
+        mime = {".woff2": "font/woff2", ".woff": "font/woff", ".ttf": "font/ttf",
+                ".png": "image/png", ".webp": "image/webp", ".jpg": "image/jpeg",
+                ".svg": "image/svg+xml"}.get(target.suffix.lower())
+        if not mime:
+            sys.exit(f"css url() has no known mime type: {ref}")
+        return f"url({data_uri(target.read_bytes(), mime)})"
+
+    css, n_url = re.subn(r"""url\(\s*['"]?(?P<ref>[^'")]+)['"]?\s*\)""", inline_css_url, css)
+    if n_url < 1:
+        sys.exit("expected at least the CMU Serif @font-face url() in the CSS, found none")
+
     html = html.replace("@@CSS@@", "<style>\n" + css + "\n</style>")
 
     # --- three.js: BUNDLED, not import-mapped -----------------------------
@@ -164,16 +190,31 @@ def build(artifact: bool = False) -> str:
         # the anonymity default is exactly the kind of thing that must not drift.
         body_attrs = re.search(r"<body([^>]*)>", html)
         anon = re.search(r'data-anon="([a-z]+)"', body_attrs.group(1) if body_attrs else "")
-        for pat in (r"<!DOCTYPE[^>]*>", r"</?html[^>]*>", r"</?head[^>]*>", r"</?body[^>]*>"):
+        # (?=[\s>/]) is load-bearing: r"</?head[^>]*>" also matches
+        # <header class="head prose">, so this loop was DELETING the page header. The
+        # h1 rule is .head h1, so with its ancestor gone the title silently lost the
+        # CMU Serif display face and its 48px size -- in the published artifact only,
+        # which is why the served page measured correct throughout. Requiring a tag
+        # boundary after the name is what separates <head> from <header>.
+        for pat in (r"<!DOCTYPE[^>]*>", r"</?html(?=[\s>/])[^>]*>",
+                    r"</?head(?=[\s>/])[^>]*>", r"</?body(?=[\s>/])[^>]*>"):
             html = re.sub(pat, "", html, flags=re.I)
+        # Assert the survivor, rather than trusting the regexes not to over-match again.
+        # Every selector scoped to a wrapper is invisible to a substring-level strip.
+        for survivor in ('<header class="head', '<main id="main"', '<footer'):
+            if survivor not in html:
+                sys.exit(f"artifact strip removed a required wrapper: {survivor}")
         if anon:
             html = html.replace("</style>", "</style>\n<script>document.documentElement.classList.add('js');"
                                 f"addEventListener('DOMContentLoaded',()=>{{document.body.dataset.anon='{anon.group(1)}';}});</script>", 1)
 
-    if "assets/" in html or "styles/" in html or "scripts/" in html or "data/" in html:
-        leftovers = sorted(set(re.findall(r'"(?:assets|styles|scripts|data)/[^"]+"', html)))
-        if leftovers:
-            sys.exit("unresolved relative references: " + ", ".join(leftovers[:6]))
+    # Two shapes of relative reference, because only checking the first one let the
+    # webfont ship broken: a quoted attribute value, and a bare path inside url().
+    leftovers = sorted(set(re.findall(r'"\.{0,2}/?(?:assets|styles|scripts|data)/[^"]+"', html)))
+    leftovers += sorted({m for m in re.findall(r"""url\(\s*['"]?([^'")]+)['"]?\s*\)""", html)
+                         if not m.strip().startswith(("data:", "http:", "https:", "//", "#"))})
+    if leftovers:
+        sys.exit("unresolved relative references: " + ", ".join(leftovers[:6]))
     return html
 
 
