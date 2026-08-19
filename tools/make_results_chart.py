@@ -5,10 +5,16 @@ The page used to carry two HTML tables. Measured against 15 accepted project pag
 ZERO use an HTML number table; the five that show numbers at all use a bar chart or an
 image of the paper's table. So the medium changes and the evidence stays.
 
-Generating from data/results.json rather than hand-drawing keeps the predicate
-enforceable: rows flagged `excluded` are drawn greyed and hatched and are labelled as
-outside the predicate, so the chart cannot present the D4-TTA row as the headline the
-way an earlier version of this page did.
+Generating from data/results.json rather than hand-drawing keeps the numbers honest, and
+tools/check_content.py gates the manifest this writes against that JSON.
+
+WHAT THIS CHART DOES **NOT** DO, because an earlier docstring here claimed it did and the
+page's caption was then written from the docstring rather than from the picture: excluded
+rows are NOT hatched and NOT greyed. Both of our bars carry the accent, by request, and
+the D4-TTA row is the longest bar on the chart. Nothing in the drawing marks it as outside
+the predicate -- that job belongs to its own axis label, which names the configuration
+(N=4, +D4 TTA), and to the figure caption, which says the taller bar does not count and
+why. If you ever change that division of labour, change the caption in the same commit.
 
 Usage:  python tools/make_results_chart.py
 """
@@ -24,7 +30,9 @@ from matplotlib.patches import Patch
 
 SITE = Path(__file__).resolve().parent.parent
 # The page's own tokens, so the chart belongs to the page rather than sitting on it.
-ACCENT, TEXT, MUTED, RULE, GROUND = "#B85C00", "#2E3338", "#6B7280", "#E3E5E8", "#FFFFFF"
+# ACCENT is red because that is what was asked for. The previous #B85C00 measured hue
+# 30 degrees -- the textbook midpoint of orange -- so "painted red" was not satisfied.
+ACCENT, TEXT, MUTED, RULE, GROUND = "#B3261E", "#2E3338", "#6B7280", "#E3E5E8", "#FFFFFF"
 
 
 def main() -> None:
@@ -49,9 +57,10 @@ def main() -> None:
     fig.patch.set_facecolor(GROUND)
     ax.set_facecolor(GROUND)
 
-    for i, (v, e, o) in enumerate(zip(vals, excl, ours)):
+    for i, (v, o) in enumerate(zip(vals, ours)):
         # Both of ours carry the accent, including the ensemble row: it is ours either
-        # way, and the label says which configuration produced it.
+        # way, and the label says which configuration produced it. `excl` is deliberately
+        # NOT consulted here -- see the docstring.
         ax.barh(i, v, color=ACCENT if o else "#C9CDD2", edgecolor="none", height=0.62)
         ax.text(v + 0.6, i, f"{v:.1f}", va="center", ha="left",
                 fontsize=9.5, color=TEXT, fontweight="600" if o else "normal")

@@ -305,16 +305,20 @@ def gate(paper_dir: Path) -> int:
 
 def selftest(paper_dir: Path) -> int:
     """Each fault must make some check fail. A check never seen failing proves nothing."""
+    # (label, a substring of the check this fault MUST trip, kwargs). Asserting only
+    # that *something* failed is the vacuity mode: a drifted fault plus one unrelated
+    # baseline failure still prints SELFTEST OK. The other two tools already name their
+    # target; this one did not.
     cases = [
-        ("renumbered float (Fig. 6 -> Fig. 99)",
+        ("renumbered float (Fig. 6 -> Fig. 99)", "Fig. 99",
          dict(caps=[("Fig. 99", c[1]) for c in captions() if c[0] == "Fig. 6"])),
-        ("float pointing at another topic (Fig. 6 -> Fig. 2)",
+        ("float pointing at another topic (Fig. 6 -> Fig. 2)", "Fig. 2",
          dict(caps=[("Fig. 2", c[1]) for c in captions() if c[0] == "Fig. 6"])),
         # 99.97 is VERIFIED ABSENT from both PDFs. The first draft of this fault used
         # 41.7, which is a real SGSC row in the paper -- so the gate rightly passed and
         # the selftest read that as the gate being broken. A negative control has to be
         # verified negative.
-        ("fabricated number in the prose",
+        ("fabricated number in the prose", "numeric claims",
          dict(extra_prose="a headline of 99.97 percent")),
         # The exact defect this arm was written for: the title the copy button handed
         # out was truncated to its first four words.
@@ -324,19 +328,28 @@ def selftest(paper_dir: Path) -> int:
         # The exact defect a reader reported: the scene-failure note promised the
         # qualitative comparison and linked to #abstract. All five anchors resolved, so
         # only an allowlist catches it.
-        ("fallback link pointing at the abstract",
+        ("fallback link pointing at the abstract", "allowlisted",
          dict(anchors=internal_anchors() + [("scripts/viewer3d.js", "#abstract")])),
-        ("BibTeX title longer than the paper's",
+        ("BibTeX title longer than the paper's", "title",
          dict(title_override="Generative Semantic Scene Completion through Modeling "
                              "the Underlying Geometry and Semantics in Point Clouds")),
     ]
+    # A fault is only evidence against a clean baseline. If the gate is already failing,
+    # every arm "trips" for the wrong reason.
+    baseline = [n for n, ok, _ in run(paper_dir) if not ok]
+    if baseline:
+        print(f"  BASELINE NOT CLEAN: {len(baseline)} check(s) already failing -- "
+              f"{'; '.join(baseline[:3])}")
+        return 1
     silent = 0
-    for label, kwargs in cases:
+    for label, expect, kwargs in cases:
         results = run(paper_dir, **kwargs)
-        tripped = any(not ok for _, ok, _ in results)
+        hits = [n for n, ok, _ in results if not ok]
+        tripped = any(expect in n for n in hits)
         if not tripped:
             silent += 1
-        print(f"  {'TRIPPED ' if tripped else 'SILENT  '} {label}")
+        note = "" if tripped else f"   (expected a check naming {expect!r}; got {hits or 'nothing'})"
+        print(f"  {'TRIPPED ' if tripped else 'SILENT  '} {label}{note}")
     print(f"\n{'SELFTEST FAILED' if silent else 'SELFTEST OK'}: "
           f"{len(cases) - silent}/{len(cases)} faults detected")
     return 1 if silent else 0

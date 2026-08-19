@@ -34,6 +34,8 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
+ENGINE = "chromium"
+
 SITE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SITE / "tools"))
 SERVED_URL = "http://localhost:8099/"
@@ -153,7 +155,7 @@ def gate() -> int:
     doc = build_artifact()
     print(f"built artifact: {len(doc.encode('utf-8')) / 1048576:.2f} MB")
     with sync_playwright() as pw:
-        b = pw.chromium.launch()
+        b = getattr(pw, ENGINE).launch()
         ref = served(b)
         d, console = render(b, doc)
         b.close()
@@ -198,7 +200,7 @@ def selftest() -> int:
     print("Each fault must trip its named check.\n")
     missed = []
     with sync_playwright() as pw:
-        b = pw.chromium.launch()
+        b = getattr(pw, ENGINE).launch()
         ref = served(b)
         for target, fault in FAULTS:
             mutated = fault(doc)
@@ -224,5 +226,10 @@ def selftest() -> int:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--engine", default="chromium",
+                    choices=("chromium", "firefox", "webkit"),
+                    help="both gates hardcoded chromium, so nothing outside V8 "
+                         "had ever been exercised")
     a = ap.parse_args()
+    globals()['ENGINE'] = a.engine
     sys.exit(selftest() if a.selftest else gate())

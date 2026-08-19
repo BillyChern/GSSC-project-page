@@ -32,6 +32,8 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
+ENGINE = "chromium"
+
 # Keep browser scratch off the small overlay filesystem. Playwright creates a fresh
 # browser profile per launch under the system temp dir, and a --selftest run launches
 # Chromium ~14 times. Where /tmp shares a modest overlay with /, that accumulation can
@@ -283,6 +285,57 @@ def inspect_reduced_motion(browser, url, fault=None):
             ("viewer still draws under reduced motion", canvas, str(canvas))]
 
 
+RATIO_JS = """(el) => {
+  const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92
+                                                     : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  const rgb = (s) => (s.match(/[\\d.]+/g) || []).slice(0, 3).map(Number);
+  const alpha = (s) => { const n = (s.match(/[\\d.]+/g) || []); return n.length > 3 ? +n[3] : 1; };
+  let bg = [255, 255, 255];
+  for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+    const b = getComputedStyle(n).backgroundColor;
+    if (b && alpha(b) > 0.05) { bg = rgb(b); break; }
+  }
+  const cs = getComputedStyle(el);
+  const px = parseFloat(cs.fontSize), wt = parseInt(cs.fontWeight, 10) || 400;
+  const pair = [lum(rgb(cs.color)), lum(bg)].sort((x, y) => y - x);
+  return { ratio: Math.round(((pair[0] + 0.05) / (pair[1] + 0.05)) * 100) / 100,
+           need: (px >= 24 || (px >= 18.66 && wt >= 700)) ? 3.0 : 4.5,
+           color: cs.color, text: (el.innerText || '').trim().slice(0, 26) };
+}"""
+
+
+def inspect_link_states(browser, url, fault=None):
+    """Contrast in the HOVER and FOCUS states, which the resting sweep cannot reach.
+
+    --accent-hover shipped at #888888 = 3.54:1, so every link failed AA the moment a
+    pointer touched it, and the skip link is the FIRST tab stop -- a keyboard user met
+    the failure before anything else on the page. The resting-state check passed
+    throughout, because at rest those links are #333333 at 12.63:1.
+    """
+    page = browser.new_page(viewport={"width": 1280, "height": 900})
+    if fault:
+        fault(page)
+    page.goto(url, wait_until="load")
+    page.wait_for_timeout(1200)
+    links = page.locator("a[href]")
+    total, bad = links.count(), []
+    for i in range(total):
+        el = links.nth(i)
+        for state in ("hover", "focus"):
+            try:
+                el.hover(timeout=1500) if state == "hover" else el.focus(timeout=1500)
+            except Exception:
+                continue          # off-screen or covered; the other state still measures
+            page.wait_for_timeout(60)
+            r = el.evaluate(RATIO_JS)
+            if r["ratio"] + 0.005 < r["need"]:
+                bad.append(f'{state} {r["text"]!r} {r["color"]} {r["ratio"]}:1 < {r["need"]}')
+    page.close()
+    return [("links clear WCAG AA when hovered and focused", not bad,
+             "; ".join(bad[:3]) or f"{total} links x 2 states")]
+
+
 def inspect_fallback_link(browser, url, fault=None):
     """Block the point clouds so the viewer's real failure path runs, then FOLLOW the
     link it offers and measure whether the figure it promises is actually on screen.
@@ -327,13 +380,14 @@ def inspect_fallback_link(browser, url, fault=None):
 
 CONTEXTS = (("print", inspect_print), ("no-JS", inspect_nojs), ("slow load", inspect_slowload),
             ("reduced motion", inspect_reduced_motion),
-            ("scene-failure fallback", inspect_fallback_link))
+            ("scene-failure fallback", inspect_fallback_link),
+            ("link hover/focus", inspect_link_states))
 
 
 def gate(url: str) -> int:
     failures = 0
     with sync_playwright() as pw:
-        browser = pw.chromium.launch()
+        browser = getattr(pw, ENGINE).launch()
         for w, h, tag in VIEWPORTS:
             print(f"--- {tag} {w}x{h}")
             for name, ok, detail in inspect(browser, url, w, h):
@@ -449,6 +503,12 @@ CONTEXT_FAULTS = [
     ("viewer honours prefers-reduced-motion", inspect_reduced_motion, _ignore_reduced_motion),
     # The defect a reader reported: the note promised the qualitative comparison and
     # sent them to the abstract. Restoring that one string must fail the check.
+    # The exact value that shipped: #888888 is 3.54:1 and fails AA at link size.
+    ("links clear WCAG AA when hovered and focused", inspect_link_states,
+     lambda p: p.route("**/styles/tokens.css", lambda r: r.fulfill(
+         status=200, content_type="text/css",
+         body=(CSS_PATH.parent / "tokens.css").read_text(encoding="utf-8")
+              .replace("--accent-hover:  #737373;", "--accent-hover:  #888888;", 1)))),
     ("that link lands on the qualitative figure", inspect_fallback_link,
      lambda p: _serve_js(p, "scripts/viewer3d.js",
                          lambda c: c.replace("link.href = '#results';\n  link.textContent = "
@@ -465,7 +525,7 @@ def selftest(url: str) -> int:
     print("Each fault must trip its named check.\n")
     silent = 0
     with sync_playwright() as pw:
-        browser = pw.chromium.launch()
+        browser = getattr(pw, ENGINE).launch()
         for target, fault in FAULTS:
             results = dict((n, ok) for n, ok, _ in inspect(browser, url, 1280, 900, fault))
             tripped = results.get(target) is False
@@ -491,5 +551,10 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default=DEFAULT_URL)
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--engine", default="chromium",
+                    choices=("chromium", "firefox", "webkit"),
+                    help="both gates hardcoded chromium, so nothing outside V8 "
+                         "had ever been exercised")
     a = ap.parse_args()
+    globals()['ENGINE'] = a.engine
     sys.exit(selftest(a.url) if a.selftest else gate(a.url))

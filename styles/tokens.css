@@ -66,11 +66,14 @@
 
   /* Links are body-coloured with a hairline underline, not a hue. */
   --accent:        #333333;
-  --accent-hover:  #888888;
+  /* 4.74:1. This was #888888 = 3.54:1, which failed AA on hover AND on focus -- the
+     skip link is the first tab stop, so a keyboard user met the failure immediately.
+     The fade now lives in the UNDERLINE, which is decoration and only owes 3:1. */
+  --accent-hover:  #737373;
   --underline:     #888888;
 
   /* The only chromatic values on the page, and only inside content. */
-  --chart-ours:    #B85C00;
+  --chart-ours:    #B3261E;   /* red, per request; was #B85C00 = hue 30, orange */
   --pos:           #1F7A4D;
   --neg:           #A33A3A;
 
