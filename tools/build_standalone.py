@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import base64
 import re
+import subprocess
 import sys
 import urllib.request
 from pathlib import Path
@@ -58,6 +59,22 @@ def fetch(url: str) -> bytes:
         return r.read()
 
 
+def bundle_viewer() -> str:
+    """Resolve viewer3d.js's three.js imports into one self-contained ES module."""
+    out = SITE / ".tmp" / "viewer_bundle.js"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    esbuild = SITE / "node_modules" / ".bin" / "esbuild"
+    if not esbuild.exists():
+        sys.exit("esbuild not installed: npm install --no-save esbuild three@0.160.0")
+    subprocess.run([str(esbuild), str(SITE / "scripts" / "viewer3d.js"), "--bundle",
+                    "--format=esm", "--alias:three/addons=three/examples/jsm",
+                    f"--outfile={out}"], cwd=SITE, check=True, capture_output=True)
+    code = out.read_text(encoding="utf-8")
+    if "unpkg.com" in code:
+        sys.exit("bundle still references unpkg")
+    return code
+
+
 def build(artifact: bool = False) -> str:
     html = (SITE / "index.html").read_text(encoding="utf-8")
 
@@ -71,14 +88,17 @@ def build(artifact: bool = False) -> str:
         html = html.replace(pat, "" if name == "site.css" else "@@CSS@@", 1)
     html = html.replace("@@CSS@@", "<style>\n" + css + "\n</style>")
 
-    # --- three.js and addons, vendored into the import map ---------------
-    imports = {spec: data_uri(fetch(url), "text/javascript") for spec, url in CDN.items()}
+    # --- three.js: BUNDLED, not import-mapped -----------------------------
+    # An earlier revision repointed the import map at data: URLs. That worked under a
+    # CSP that allows data: in script-src -- but import-map addresses are fetched under
+    # script-src, and the host policy is not ours to see, so the viewer's survival was
+    # riding on a guess about someone else's header. Bundling removes the question:
+    # the module graph becomes one inline script, which any policy permitting inline
+    # code will run. Deleting the import map is what makes the guess irrelevant.
     old_map = re.search(r'<script type="importmap">.*?</script>', html, re.S)
     if not old_map:
         sys.exit("import map not found")
-    entries = ",\n    ".join(f'"{k}": "{v}"' for k, v in imports.items())
-    html = html.replace(old_map.group(0),
-                        '<script type="importmap">\n{ "imports": {\n    ' + entries + '\n} }\n</script>', 1)
+    html = html.replace(old_map.group(0), "", 1)
 
     # --- JSON tables: fetch() handles data: URLs, so the loader is untouched
     for name in ("results.json", "perclass.json"):
@@ -90,17 +110,29 @@ def build(artifact: bool = False) -> str:
     def inline_script(src_attr: str, path: str, module: bool = False) -> None:
         nonlocal html
         code = (SITE / path).read_text(encoding="utf-8")
+        if path == "scripts/viewer3d.js":
+            code = bundle_viewer()
         if path == "scripts/main.js":
             for rel, uri in globals()["_json"].items():
-                if f"'{rel}'" not in code:
+                hit = False
+                for q in ("'", '"'):
+                    if f"{q}{rel}{q}" in code:
+                        code = code.replace(f"{q}{rel}{q}", f"{q}{uri}{q}"); hit = True
+                if not hit:
                     sys.exit(f"expected {rel} reference in main.js")
-                code = code.replace(f"'{rel}'", f"'{uri}'")
         if path == "scripts/viewer3d.js":
+            # Quote-agnostic: esbuild normalises single-quoted literals to double
+            # quotes, so matching only "'path'" silently rewrote nothing. The
+            # unresolved-reference guard below is what caught that.
             for ply in sorted((SITE / "assets" / "ply").glob("*.ply")):
                 rel = f"assets/ply/{ply.name}"
-                if f"'{rel}'" in code:
-                    code = code.replace(f"'{rel}'", "'" + data_uri(ply.read_bytes(),
-                                                                  "application/octet-stream") + "'")
+                uri = data_uri(ply.read_bytes(), "application/octet-stream")
+                hit = False
+                for q in ("'", '"'):
+                    if f"{q}{rel}{q}" in code:
+                        code = code.replace(f"{q}{rel}{q}", f"{q}{uri}{q}"); hit = True
+                if not hit:
+                    sys.exit(f"PLY reference not found in viewer code: {rel}")
         tag = '<script type="module">' if module else "<script>"
         if src_attr not in html:
             sys.exit(f"script tag not found: {src_attr}")
