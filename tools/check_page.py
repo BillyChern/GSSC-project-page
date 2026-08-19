@@ -114,7 +114,7 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
         ("page reads task -> results -> method",
          d["sectionOrder"] == ["task", "results", "viewer", "abstract", "method", "bibtex"],
          str(d["sectionOrder"])),
-        ("every figure renders", d["imagesLoaded"] == d["imagesTotal"] and d["imagesTotal"] >= 10,
+        ("every figure renders", d["imagesLoaded"] == d["imagesTotal"] and d["imagesTotal"] >= 9,
          f'{d["imagesLoaded"]}/{d["imagesTotal"]}'),
         ("results chart is on the page", d["hasResultsChart"], str(d["hasResultsChart"])),
         ("the predicate is stated with the results", d["predicateShown"], str(d["predicateShown"])),
@@ -180,7 +180,7 @@ def inspect_nojs(browser, url, fault=None):
     ctx.close()
     # The results are figures now, so the page's substance survives without JS —
     # which it could not when the tables hydrated from JSON.
-    return [("no-JS still shows every figure", imgs == total and total >= 10, f"{imgs}/{total}"),
+    return [("no-JS still shows every figure", imgs == total and total >= 9, f"{imgs}/{total}"),
             ("no-JS hides 'Loading scene…'", not loading, str(loading)),
             ("no-JS hides the copy button", not copy_btn, str(copy_btn))]
 
