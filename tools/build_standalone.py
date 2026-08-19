@@ -154,7 +154,6 @@ def build(artifact: bool = False) -> str:
             sys.exit(f"script tag not found: {src_attr}")
         html = html.replace(src_attr, tag + "\n" + code + "\n</script>", 1)
 
-    inline_script('<script src="scripts/anon.js"></script>', "scripts/anon.js")
     inline_script('<script src="scripts/main.js"></script>', "scripts/main.js")
     inline_script('<script type="module" src="scripts/viewer3d.js"></script>',
                   "scripts/viewer3d.js", module=True)
@@ -185,11 +184,10 @@ def build(artifact: bool = False) -> str:
 
     if artifact:
         # Artifacts supply their own <!doctype>/<head>/<body> skeleton, so ours must go.
-        # <title> is kept: the host scans the first 8 KB for it. body's data-anon
-        # attribute would be lost with the tag, so re-assert it in script instead --
-        # the anonymity default is exactly the kind of thing that must not drift.
-        body_attrs = re.search(r"<body([^>]*)>", html)
-        anon = re.search(r'data-anon="([a-z]+)"', body_attrs.group(1) if body_attrs else "")
+        # <title> is kept: the host scans the first 8 KB for it. Nothing else on
+        # <body> needs re-asserting -- the author-visibility toggle that used to live
+        # in a data-anon attribute has been removed -- and the 'js' class comes from
+        # the inline script in the head, whose CONTENT survives this strip.
         # (?=[\s>/]) is load-bearing: r"</?head[^>]*>" also matches
         # <header class="head prose">, so this loop was DELETING the page header. The
         # h1 rule is .head h1, so with its ancestor gone the title silently lost the
@@ -204,9 +202,6 @@ def build(artifact: bool = False) -> str:
         for survivor in ('<header class="head', '<main id="main"', '<footer'):
             if survivor not in html:
                 sys.exit(f"artifact strip removed a required wrapper: {survivor}")
-        if anon:
-            html = html.replace("</style>", "</style>\n<script>document.documentElement.classList.add('js');"
-                                f"addEventListener('DOMContentLoaded',()=>{{document.body.dataset.anon='{anon.group(1)}';}});</script>", 1)
 
     # Two shapes of relative reference, because only checking the first one let the
     # webfont ship broken: a quoted attribute value, and a bare path inside url().

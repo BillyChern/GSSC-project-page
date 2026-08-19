@@ -74,8 +74,8 @@ noun headings, and no page animation — motion belongs to results, not to chrom
 
 | Section | What it shows |
 |---|---|
-| Header | Title, venue, authors (**visible** by default — see *Author visibility*), four resource links |
-| **The task** | Paper Fig. 1(a): a sparse sweep at ~1% occupancy and the dense scene to be predicted. Then Fig. 1(b), five failure modes of prior methods. A reader new to the subfield learns the problem from figures before any prose |
+| Header | Title, venue, authors, four resource links |
+| **The semantic scene completion challenge** | Paper Fig. 1(a): a sparse sweep at ~1% occupancy and the dense scene to be predicted. A reader new to the subfield learns the problem from a figure before any prose |
 | **Results** | Paper Fig. 6 qualitative comparison, then a generated bar chart of hidden-test mIoU with out-of-predicate entries hatched and named |
 | Interactive comparison | Three.js viewer over four views (input / base / ours / ground truth) on two rare-class frames; the IoU chips are the N=4 +D4-TTA configuration, as the paper states |
 | Abstract | The paper's abstract **verbatim**, below the media — measured convention: of 12 top project pages diffed against their arXiv text, 10 reproduce it verbatim or near-verbatim, **0 rewrite it**, and all sit below the first figure |
@@ -90,10 +90,8 @@ that section is gone; the two honesty facts it held (S3CNet leads on safety, and
 motorcyclist gain that does not reproduce) are stated in the paper, and the page no longer
 claims to mirror every hedge.
 
-Authors are **visible** by default: `index.html` ships `<body data-anon="false">`.
-The header toggle flips it and the preference persists in `localStorage`. Set
-`data-anon="true"` to ship hidden — but read *Author visibility* below first, because
-the toggle is not blinding.
+Authors are named in the header and in the BibTeX. There is no visibility toggle;
+see *Author visibility*.
 
 ## Local preview
 
@@ -123,8 +121,8 @@ python tools/check_content.py --selftest
 `check_page.py` covers three viewports plus the print, no-JS, slow-load and
 reduced-motion contexts, and deliberately pins earlier fixes: the viewer legend still discloses
 its configuration, excluded table rows stay italic so the distinction survives
-forced-colors mode, anonymous mode leaks no identifier, and console errors are
-visible.
+forced-colors mode, all text clears WCAG AA contrast measured on the rendered page,
+and console errors are visible.
 
 `tools/make_results_chart.py` regenerates the results figure from `data/results.json`
 and writes a manifest beside it; `check_content.py` compares that manifest against the
@@ -173,20 +171,21 @@ and writes ASCII PLY files ready for `three.js` `PLYLoader`.
 
 ## Author visibility
 
-Authors are visible by default (`<body data-anon="false">`) and the BibTeX
-carries the real names. `scripts/anon.js` IS wired: the header toggle flips
-`body[data-anon]`, `styles/site.css` hides `.identity` and reveals the withheld
-notice, and the preference persists in `localStorage`. Verified: in anonymous mode
-no author identifier survives the rendered page, and the BibTeX author field
-becomes "Author names withheld".
+Authors are named, in the header and in the BibTeX. **The "Hide authors" toggle and
+everything behind it were removed** (author, 2026-08-19): `scripts/anon.js`,
+`body[data-anon]`, `.anon-note`, the paired `.identity-inline` / `.anon-inline`
+spans, and the gate check that exercised them.
 
-> **TPAMI is single-anonymous** (author, 2026-08-18), so no blinding is required and the
-> revealed default is correct. Keep the toggle anyway — it costs nothing and a future
-> venue may differ — but know its limit before relying on it anywhere else: it hides
-> on-page text only. `og:url` and `og:image` hardcode `billychern.github.io`, CSS cannot
-> reach meta tags, crawlers need them absolute and ignore JS-set metadata, and the
-> hosting URL itself carries the username. For a genuinely double-anonymous venue you
-> would need anonymous *hosting*, not this control.
+Two reasons. **TPAMI review is single-anonymous** (author, 2026-08-18) — authors are
+visible to reviewers — so the control could not serve this submission. And it never
+delivered what its label implied: it hid on-page text only, while `og:url` and
+`og:image` hardcode `billychern.github.io`, crawlers need those absolute and ignore
+JS-set metadata, and the hosting URL itself carries the username. A control that
+cannot do what it says is worse than no control.
+
+> If a future venue is double-anonymous, do not reinstate this. Blinding needs
+> anonymous **hosting** — a fresh repository under a neutral account, with the `og:*`
+> URLs and the BibTeX rewritten. No amount of CSS reaches a meta tag.
 
 ## Release links
 
@@ -285,8 +284,7 @@ s2d2_website/
 │   ├── tokens.css       design tokens (palette, type, measures)
 │   └── site.css         everything else (replaces base/layout/components)
 ├── scripts/
-│   ├── main.js          renders both paper tables from data/*.json; BibTeX copy
-│   ├── anon.js          author-anonymity toggle (default: revealed)
+│   ├── main.js          BibTeX copy button; watchdog for a three.js that never loads
 │   └── viewer3d.js      interactive voxel comparison
 ├── data/
 │   ├── results.json     test-set leaderboard table

@@ -71,21 +71,14 @@ a:hover, a:focus-visible { color: var(--accent-hover); text-decoration-color: va
 }
 .head sup { font-size: 0.72em; }
 
-/* Anonymity for double-blind review. anon.js flips body[data-anon].
-   The page ships REVEALED: index.html carries <body data-anon="false">. This comment
-   said "ANONYMOUS by default" -- the same inversion that was corrected in README.md
-   and anon.js and left uncorrected here, which is the direction that fails unsafely.
-   The toggle is not blinding in any case: og:url and og:image carry the author's
-   GitHub username and CSS cannot reach meta tags. */
-body[data-anon="true"] .identity { display: none; }
-/* The toggle must anonymise every occurrence, not only the header block; the
-   BibTeX author field named them regardless. */
-body[data-anon="true"] .identity-inline { display: none; }
-body:not([data-anon="true"]) .anon-inline { display: none; }
-body:not([data-anon="true"]) .anon-note { display: none; }
-.anon-note { margin: 0; font-size: var(--fs-affil); color: var(--muted); }
-.anon-ctl { margin: 0 0 var(--s-4); }  /* lives in the footer, not the author block */
-.anon-ctl .btn { font-size: var(--fs-micro); padding: 4px 10px; cursor: pointer; }
+/* The author-visibility toggle and everything it drove (body[data-anon], .anon-note,
+   .identity-inline / .anon-inline, scripts/anon.js) were REMOVED, not just hidden.
+   TPAMI review is single-anonymous -- authors are visible to reviewers -- so the
+   control could not serve a submission, and it was never blinding in any case:
+   og:url and og:image carry the author's GitHub username and CSS cannot reach meta
+   tags. A control that cannot do what its label implies is worse than no control.
+   Real blinding would need anonymous HOSTING. .identity itself stays: it is the
+   author block, and tools/check_page.py asserts it is present. */
 
 /* ---- link row: the only button group on the page ---- */
 .links {
@@ -93,8 +86,8 @@ body:not([data-anon="true"]) .anon-note { display: none; }
   justify-content: center; margin: var(--s-6) 0 var(--s-2);
 }
 .btn {
-  /* <button> does not inherit font-family, so the anon toggle and the BibTeX
-     copy button rendered in the browser's default UI face. */
+  /* <button> does not inherit font-family, so the BibTeX copy button
+     rendered in the browser's default UI face. */
   font-family: inherit;
   display: inline-block; padding: 7px 16px;
   border: 1px solid var(--rule-strong); border-radius: 3px;
@@ -297,7 +290,7 @@ footer p { margin: 0 0 var(--s-2); }
   body { color: #000; }
 
   /* Interactive-only chrome: meaningless on paper. */
-  .viewer-shell, .viewer-legend, .anon-ctl, #bibtex-copy, .skip-link { display: none !important; }
+  .viewer-shell, .viewer-legend, #bibtex-copy, .skip-link { display: none !important; }
 
   /* Say why the viewer is absent rather than leaving a silent gap. */
   #viewer::after {

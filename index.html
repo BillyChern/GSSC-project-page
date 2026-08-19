@@ -12,9 +12,10 @@
 <!-- Absolute URL: social scrapers do not resolve relative paths. It points at the
      documented production URL, so the card works the moment Pages is enabled. -->
 <meta property="og:url" content="https://billychern.github.io/GSSC-project-page/" />
-<!-- These absolute URLs carry the author's GitHub username. Crawlers need them absolute
-     and ignore JS-set meta, so the "Hide authors" toggle cannot anonymise them; for a
-     blinded submission, host the page somewhere anonymous instead. -->
+<!-- These absolute URLs carry the author's GitHub username, and crawlers need them
+     absolute. Nothing on the page can hide that; a blinded submission would need
+     anonymous HOSTING, not anonymous markup. TPAMI review is single-anonymous, so
+     no blinding is required here. -->
 <meta property="og:image" content="https://billychern.github.io/GSSC-project-page/assets/og-card.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -27,7 +28,7 @@
 <link rel="stylesheet" href="styles/site.css" />
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
 </head>
-<body data-anon="false">
+<body>
 <a class="skip-link" href="#main">Skip to content</a>
 
 <header class="head prose">
@@ -38,7 +39,6 @@
     <p class="affil"><sup>1</sup>College of Computer Science and Artificial Intelligence, Fudan University</p>
     <p class="corr"><sup>*</sup>Corresponding author</p>
   </div>
-  <p class="anon-note">Author names withheld while the paper is under review.</p>
 
   <nav class="links" aria-label="Resources">
     <a class="btn" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">SemanticKITTI leaderboard</a>
@@ -179,7 +179,7 @@
 
 <section id="ack" class="prose">
   <h2>Acknowledgements</h2>
-  <p><span class="identity-inline">This work was supported by the National Natural Science Foundation of China under Grant&nbsp;624B1006 and by the Shanghai Science and Technology Committee under Grant&nbsp;24511103900.</span><span class="anon-inline">Funding sources are withheld while the manuscript is under review.</span></p>
+  <p>This work was supported by the National Natural Science Foundation of China under Grant&nbsp;624B1006 and by the Shanghai Science and Technology Committee under Grant&nbsp;24511103900.</p>
   <p>Evaluation uses the SemanticKITTI benchmark and its hidden test server; the scene renders on this page are drawn from its validation sequence.</p>
 </section>
 
@@ -187,7 +187,7 @@
   <h2>BibTeX</h2>
   <pre><code id="bibtex-code">@article{chen2026gssc,
   title   = {Generative Semantic Scene Completion},
-  author  = {<span class="identity-inline">Chen, Shi and Ge, Weifeng</span><span class="anon-inline">Author names withheld</span>},
+  author  = {Chen, Shi and Ge, Weifeng},
   journal = {Under review, IEEE Transactions on Pattern Analysis and
              Machine Intelligence},
   year    = {2026}
@@ -199,15 +199,13 @@
 
 <footer class="prose">
   <p>This page is static: no analytics and no cookies. It fetches two third-party assets &mdash; the Hanken Grotesk webfont from Google Fonts, and the three.js library from unpkg for the 3D viewer.</p>
-  <p class="anon-ctl"><button class="btn" type="button" id="anon-toggle" aria-pressed="false"><span id="anon-label">Hide authors</span></button></p>
-  <p>Figures and numbers on this page are taken from the manuscript under review. Where the manuscript hedges a result, this page hedges it too.</p>
+  <p>Figures and numbers on this page are taken from the manuscript under review.</p>
 </footer>
 
 <script type="importmap">
 { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
 </script>
-<script src="scripts/anon.js"></script>
 <script src="scripts/main.js"></script>
 <script type="module" src="scripts/viewer3d.js"></script>
 </body>

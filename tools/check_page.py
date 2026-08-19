@@ -46,10 +46,6 @@ if not os.environ.get("TMPDIR"):
 DEFAULT_URL = "http://localhost:8099/"
 VIEWPORTS = ((1280, 900, "desktop"), (768, 1024, "tablet"), (375, 812, "mobile"))
 
-# Author identifiers that must not survive anonymous mode. Word-boundary matched:
-# an unanchored search hits "Ge" inside "Generative" and manufactures failures.
-IDENTIFIERS = ("Chen", "Shi", "Weifeng", "Fudan", "billychern")
-
 PROBE = """() => {
   const q = (s) => document.querySelector(s);
   const identity = q('.identity');
@@ -131,16 +127,6 @@ PROBE = """() => {
 }"""
 
 
-def anon_leaks(page) -> list[str]:
-    """Identifiers still visible after switching to anonymous mode."""
-    page.evaluate("document.body.dataset.anon = 'true'")
-    page.wait_for_timeout(150)
-    text = page.evaluate("document.body.innerText")
-    leaks = [i for i in IDENTIFIERS if re.search(rf"\b{i}\b", text, re.I)]
-    page.evaluate("document.body.dataset.anon = 'false'")
-    return leaks
-
-
 def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bool, str]]:
     """Return [(check_name, passed, detail)] for one viewport."""
     page = browser.new_page(viewport={"width": w, "height": h})
@@ -152,7 +138,6 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
     page.goto(url, wait_until="networkidle")
     page.wait_for_timeout(4000)  # let the viewer boot and the watchdog window pass
     d = page.evaluate(PROBE)
-    leaks = anon_leaks(page) if d["identityPresent"] else ["<.identity missing>"]
     page.close()
 
     legend = d["legendText"] or ""
@@ -191,7 +176,6 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
         ("no CSS keyframe animation", d["cssAnimations"] == 0, str(d["cssAnimations"])),
         ("viewer drew a canvas", d["canvas"], str(d["canvas"])),
         ("author block present", d["identityPresent"], str(d["identityPresent"])),
-        ("anon mode leaks no identifiers", not leaks, ", ".join(leaks) or "none"),
         ("no console errors", not console, "; ".join(c[:90] for c in console[:2]) or "none"),
     ]
 
@@ -377,10 +361,6 @@ FAULTS = [
      lambda p: p.route("**/three.module.js", lambda r: r.abort())),
     ("no console errors",
      lambda p: p.route("**/bicyclist_s2d2.ply", lambda r: r.abort())),
-    ("anon mode leaks no identifiers",
-     lambda p: p.add_init_script(
-         "addEventListener('load',()=>{const p=document.createElement('p');"
-         "p.textContent='Shi Chen';document.body.appendChild(p);})")),
     ("author block present",
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const e=document.querySelector('.identity');"
@@ -403,7 +383,7 @@ def _ignore_reduced_motion(page):
 CONTEXT_FAULTS = [
     ("print hides the 3D viewer", inspect_print,
      lambda p: _serve_css(p, lambda c: c.replace(
-         ".viewer-shell, .viewer-legend, .anon-ctl, #bibtex-copy, .skip-link { display: none !important; }",
+         ".viewer-shell, .viewer-legend, #bibtex-copy, .skip-link { display: none !important; }",
          ".skip-link { display: none !important; }"))),
     ("no-JS hides 'Loading scene…'", inspect_nojs,
      lambda p: _serve_css(p, lambda c: c.replace(
