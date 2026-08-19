@@ -50,3 +50,7 @@ assets/**/*.svg.*
 assets/**/*.ply.*
 assets/**/*.pdf.*
 node_modules/
+
+# Deliverable single-file build (tools/build_standalone.py -o dist/...). Regenerable,
+# 5.8 MB, and not part of the site the repo serves.
+/dist/
