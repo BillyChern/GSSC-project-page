@@ -1,0 +1,64 @@
+{
+ "rows": [
+  {
+   "method": "LMSCNet",
+   "mIoU": 17.6,
+   "excluded": false,
+   "ours": false
+  },
+  {
+   "method": "SSA-SC",
+   "mIoU": 23.5,
+   "excluded": false,
+   "ours": false
+  },
+  {
+   "method": "JS3C-Net",
+   "mIoU": 23.8,
+   "excluded": false,
+   "ours": false
+  },
+  {
+   "method": "DiffSSC",
+   "mIoU": 27.4,
+   "excluded": false,
+   "ours": false
+  },
+  {
+   "method": "S3CNet",
+   "mIoU": 29.5,
+   "excluded": false,
+   "ours": false
+  },
+  {
+   "method": "SCPNet (published)",
+   "mIoU": 36.7,
+   "excluded": false,
+   "ours": false
+  },
+  {
+   "method": "TALoS",
+   "mIoU": 37.9,
+   "excluded": true,
+   "ours": false
+  },
+  {
+   "method": "SCPNet + S\u00b2D\u00b2 (N=1)",
+   "mIoU": 38.8,
+   "excluded": false,
+   "ours": true
+  },
+  {
+   "method": "with D\u2084 ensemble (N=4)",
+   "mIoU": 39.2,
+   "excluded": true,
+   "ours": true
+  },
+  {
+   "method": "SCPNet at #frame=4",
+   "mIoU": 47.5,
+   "excluded": true,
+   "ours": false
+  }
+ ]
+}

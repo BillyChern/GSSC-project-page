@@ -75,14 +75,20 @@ noun headings, and no page animation — motion belongs to results, not to chrom
 | Section | What it shows |
 |---|---|
 | Header | Title, venue, authors (**visible** by default — see *Author visibility*), four resource links |
-| Teaser | Qualitative comparison, paper Fig. 6, immediately after the header |
-| Abstract | The paper's abstract verbatim, plus the predicate that scopes every number |
-| Method | One paragraph and the S²D² diagram, paper Fig. 5 |
-| Data augmentation | One paragraph and the PS³ pipeline, paper Fig. 2 |
-| Results | The paper's Table I in full, with rows outside the predicate greyed and named; per-class Table II with both Released and Retrain deltas |
+| **The task** | Paper Fig. 1(a): a sparse sweep at ~1% occupancy and the dense scene to be predicted. Then Fig. 1(b), five failure modes of prior methods. A reader new to the subfield learns the problem from figures before any prose |
+| **Results** | Paper Fig. 6 qualitative comparison, then a generated bar chart of hidden-test mIoU with out-of-predicate entries hatched and named |
 | Interactive comparison | Three.js viewer over four views (input / base / ours / ground truth) on two rare-class frames; the IoU chips are the N=4 +D4-TTA configuration, as the paper states |
-| Limitations | The failure case, paper Fig. 12, and the paper's own limitations paragraph |
+| Abstract | The paper's abstract **verbatim**, below the media — measured convention: of 12 top project pages diffed against their arXiv text, 10 reproduce it verbatim or near-verbatim, **0 rewrite it**, and all sit below the first figure |
+| **How it works** | The three contributions as figures: PS³ (Fig. 2) with the long-tail problem (Fig. 1c,d) and what the corpus does about it (Fig. 9); SGSC (Fig. 4); S²D² (Fig. 5) |
 | BibTeX | Copy-to-clipboard citation block |
+
+Ordering and length follow measurement, not taste. Across 15 accepted project pages the
+median is **363–379 visible words**; this page was 1,561 and is now ~760. **0 of 15 use an
+HTML number table**, and the five that show numbers use a chart or an image of the paper's
+table — hence `tools/make_results_chart.py`. **1 of 15** carries a limitations section, so
+that section is gone; the two honesty facts it held (S3CNet leads on safety, and the
+motorcyclist gain that does not reproduce) are stated in the paper, and the page no longer
+claims to mirror every hedge.
 
 Authors are **visible** by default: `index.html` ships `<body data-anon="false">`.
 The header toggle flips it and the preference persists in `localStorage`. Set
@@ -107,8 +113,8 @@ requires it to trip. A check never seen failing is not evidence of anything.
 
 ```bash
 python3 -m http.server 8099 &          # check_page.py needs the site served
-python tools/check_page.py             # 47 behaviour assertions; exit 1 on failure
-python tools/check_page.py --selftest   # ~3 min: proves all 17 arms can fail
+python tools/check_page.py             # behaviour: structure, figures, viewer, a11y
+python tools/check_page.py --selftest   # ~3 min: proves all 16 arms can fail
 
 python tools/check_content.py           # site claims vs the built paper
 python tools/check_content.py --selftest
@@ -119,6 +125,11 @@ reduced-motion contexts, and deliberately pins earlier fixes: the viewer legend 
 its configuration, excluded table rows stay italic so the distinction survives
 forced-colors mode, anonymous mode leaks no identifier, and console errors are
 visible.
+
+`tools/make_results_chart.py` regenerates the results figure from `data/results.json`
+and writes a manifest beside it; `check_content.py` compares that manifest against the
+data, so editing the numbers without regenerating the chart fails the gate rather than
+leaving a stale picture of the results on the page.
 
 `check_content.py` compares the page against `/workspace/GSSC-paper/pdf`
 (`--paper` to point elsewhere): every "Source: paper Fig. N / Table X" caption

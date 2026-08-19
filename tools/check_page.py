@@ -54,11 +54,18 @@ PROBE = """() => {
   const q = (s) => document.querySelector(s);
   const identity = q('.identity');
   const legend = q('#viewer3d-stat-row');
-  const excluded = q('#main-results-body tr.excluded td');
   return {
     hscroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-    resultRows: document.querySelectorAll('#main-results-body tr').length,
-    perclassRows: document.querySelectorAll('#perclass-body tr').length,
+    // The two HTML tables became one generated chart, so what is assertable in the
+    // DOM changed: the predicate is now enforced in tools/check_content.py, against
+    // the chart's manifest. Here we check the figures actually render and that the
+    // page still reads task -> results -> method.
+    sectionOrder: [...document.querySelectorAll('main > section')].map((s) => s.id),
+    imagesTotal: document.images.length,
+    imagesLoaded: [...document.images].filter((i) => i.naturalWidth > 0).length,
+    hasResultsChart: [...document.images].some((i) => /results_chart/.test(i.currentSrc || i.src)),
+    predicateShown: /causal, single-sweep, single-sample/.test(
+      (document.getElementById('results') || {}).innerText || ''),
     // CSS keyframes only. rAF render loops and transitions are NOT counted, so this
     // pins the corpus "no animation" convention, not the absence of all motion.
     cssAnimations: [...document.querySelectorAll('*')]
@@ -68,48 +75,14 @@ PROBE = """() => {
     // into a traceback instead of a named failure.
     identityPresent: !!identity,
     legendText: legend ? legend.innerText.replace(/\\s+/g, ' ').trim() : null,
-    excludedFontStyle: excluded ? getComputedStyle(excluded).fontStyle : null,
     // The page's founding defect was leading with an EXCLUDED row (39.2, the D4 TTA
     // entry) as if it were the headline. main.js computes the best eligible cell per
     // split rather than hard-coding one; these two readings check that the computation
     // still lands where the predicate says it must.
-    bestCells: [...document.querySelectorAll('#main-results-body .best')]
-      .map((e) => e.textContent.trim()),
-    excludedMarkedBest: document.querySelectorAll('#main-results-body tr.excluded .best').length,
     stageLabel: (q('#viewer3d-stage') || {}).ariaLabel
                 || (q('#viewer3d-stage') ? q('#viewer3d-stage').getAttribute('aria-label') : null),
   };
 }"""
-
-
-def expected_best() -> list[str]:
-    """The cells that MUST be bolded: the best eligible mIoU in each split, in the
-    order the splits appear.
-
-    Computed here from data/results.json independently of the page, so this is a real
-    cross-check rather than a restatement of whatever main.js did. Excluded rows are
-    barred from winning -- that is the whole point of the predicate, and the page's
-    original defect was presenting the excluded 39.2 as the headline.
-    """
-    rows = json.loads((Path(__file__).resolve().parent.parent / "data" / "results.json")
-                      .read_text(encoding="utf-8"))
-    out = []
-    for split in dict.fromkeys(r.get("eval") for r in rows):   # first-seen split order
-        if split not in ("test", "val"):
-            continue
-        eligible = [r["mIoU"] for r in rows
-                    if r.get("eval") == split and not r.get("excluded") and r.get("mIoU") is not None]
-        if eligible:
-            # float() first: a value written as `40` in the JSON parses as int, and
-            # int.is_integer() does not exist before Python 3.12 -- that would crash
-            # this gate with AttributeError instead of checking anything. Every value
-            # happens to carry a decimal point today, which is exactly why the trap
-            # would sit unnoticed until someone added a round number.
-            best = float(max(eligible))
-            # Match main.js's fmt(): keep the paper's precision, so 50.24 stays 50.24
-            # rather than being flattened to 50.2 and silently disagreeing with Table I.
-            out.append(f"{best:.1f}" if (best * 10).is_integer() else str(best))
-    return out
 
 
 def anon_leaks(page) -> list[str]:
@@ -138,21 +111,20 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
 
     legend = d["legendText"] or ""
     return [
-        ("results table has 19 rows", d["resultRows"] == 19, str(d["resultRows"])),
-        ("per-class table has 21 rows", d["perclassRows"] == 21, str(d["perclassRows"])),
+        ("page reads task -> results -> method",
+         d["sectionOrder"] == ["task", "results", "viewer", "abstract", "method", "bibtex"],
+         str(d["sectionOrder"])),
+        ("every figure renders", d["imagesLoaded"] == d["imagesTotal"] and d["imagesTotal"] >= 10,
+         f'{d["imagesLoaded"]}/{d["imagesTotal"]}'),
+        ("results chart is on the page", d["hasResultsChart"], str(d["hasResultsChart"])),
+        ("the predicate is stated with the results", d["predicateShown"], str(d["predicateShown"])),
         ("no horizontal page scroll", not d["hscroll"], str(d["hscroll"])),
         ("no CSS keyframe animation", d["cssAnimations"] == 0, str(d["cssAnimations"])),
         ("viewer drew a canvas", d["canvas"], str(d["canvas"])),
         ("author block present", d["identityPresent"], str(d["identityPresent"])),
         ("anon mode leaks no identifiers", not leaks, ", ".join(leaks) or "none"),
-        ("no excluded row is marked best", d["excludedMarkedBest"] == 0,
-         str(d["excludedMarkedBest"])),
-        ("bolded cells are the best ELIGIBLE per split",
-         d["bestCells"] == expected_best(),
-         f"page={d['bestCells']} expected={expected_best()}"),
         ("viewer legend discloses N=4 +D4 TTA",
          "D4 TTA" in legend and "predicate" in legend, legend[-58:] or "<empty>"),
-        ("excluded rows are italic", d["excludedFontStyle"] == "italic", str(d["excludedFontStyle"])),
         ("no console errors", not console, "; ".join(c[:90] for c in console[:2]) or "none"),
     ]
 
@@ -201,12 +173,14 @@ def inspect_nojs(browser, url, fault=None):
         fault(page)
     page.goto(url, wait_until="load")
     page.wait_for_timeout(800)
-    notes = page.locator("tbody.nojs-note").first.is_visible()
-    rows = page.locator("#main-results-body tr").count()
+    imgs = page.evaluate("[...document.images].filter(i=>i.naturalWidth>0).length")
+    total = page.evaluate("document.images.length")
     loading = page.locator("#viewer3d-loading").is_visible()
     copy_btn = page.locator("#bibtex-copy").is_visible()
     ctx.close()
-    return [("no-JS explains the empty tables", notes and rows == 0, f"notes={notes} rows={rows}"),
+    # The results are figures now, so the page's substance survives without JS —
+    # which it could not when the tables hydrated from JSON.
+    return [("no-JS still shows every figure", imgs == total and total >= 10, f"{imgs}/{total}"),
             ("no-JS hides 'Loading scene…'", not loading, str(loading)),
             ("no-JS hides the copy button", not copy_btn, str(copy_btn))]
 
@@ -299,37 +273,30 @@ def _animate(page):
         "document.head.appendChild(s);})")
 
 
-def _unexclude_d4(page):
-    """Reproduce this page's ORIGINAL defect rather than a stand-in: clear the
-    `excluded` flag on the eight-view D4 row, so 39.2 becomes the largest test cell
-    and the page bolds a configuration the paper's predicate rules out."""
-    rows = json.loads((Path(__file__).resolve().parent.parent / "data" / "results.json")
-                      .read_text(encoding="utf-8"))
-    for r in rows:
-        if r.get("mIoU") == 39.2:
-            r["excluded"] = False
-    page.route("**/data/results.json",
-               lambda route: route.fulfill(status=200, content_type="application/json",
-                                           body=json.dumps(rows)))
+def _break_figure(page):
+    """One figure fails to load — the page must not report every figure as rendering."""
+    page.route("**/fig1a_task.*", lambda r: r.abort())
+
+
+def _strip_predicate(page):
+    page.add_init_script(
+        "addEventListener('load',()=>{document.querySelectorAll('#results figcaption')"
+        ".forEach(c=>{c.textContent=c.textContent.replace("
+        "/causal, single-sweep, single-sample/g,'');});})")
+
+
+def _drop_chart(page):
+    page.add_init_script(
+        "addEventListener('load',()=>{const i=[...document.images]"
+        ".find(x=>/results_chart/.test(x.currentSrc||x.src)); if(i)i.remove();})")
 
 
 FAULTS = [
-    ("results table has 19 rows",
-     lambda p: p.route("**/data/results.json",
-                       lambda r: r.fulfill(status=200, content_type="application/json",
-                                           body='{"rows":[]}'))),
-    ("per-class table has 21 rows",
-     lambda p: p.route("**/data/perclass.json", lambda r: r.abort())),
+    ("every figure renders", _break_figure),
+    ("results chart is on the page", _drop_chart),
+    ("the predicate is stated with the results", _strip_predicate),
     ("no horizontal page scroll", _wide),
     ("no CSS keyframe animation", _animate),
-    ("bolded cells are the best ELIGIBLE per split", _unexclude_d4),
-    ("no excluded row is marked best",
-     # Force the bold onto a row that IS still flagged excluded, which is the
-     # narrower failure the other injector cannot produce.
-     lambda p: p.add_init_script(
-         "addEventListener('load',()=>{setTimeout(()=>{"
-         "const c=document.querySelector('#main-results-body tr.excluded td.num span');"
-         "if(c)c.classList.add('best');},1200);})")),
     ("viewer drew a canvas",
      lambda p: p.route("**/three.module.js", lambda r: r.abort())),
     ("no console errors",
@@ -338,11 +305,6 @@ FAULTS = [
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const e=document.querySelector('#viewer3d-stat-row .faint');"
          "if(e)e.remove();})")),
-    ("excluded rows are italic",
-     lambda p: p.add_init_script(
-         "addEventListener('load',()=>{const s=document.createElement('style');"
-         "s.textContent='tbody tr.excluded td{font-style:normal!important}';"
-         "document.head.appendChild(s);})")),
     ("anon mode leaks no identifiers",
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const p=document.createElement('p');"
@@ -351,6 +313,10 @@ FAULTS = [
      lambda p: p.add_init_script(
          "addEventListener('load',()=>{const e=document.querySelector('.identity');"
          "if(e)e.remove();})")),
+    ("page reads task -> results -> method",
+     lambda p: p.add_init_script(
+         "addEventListener('load',()=>{const m=document.querySelector('main');"
+         "const s=document.getElementById('abstract'); if(s&&m)m.prepend(s);})")),
 ]
 
 

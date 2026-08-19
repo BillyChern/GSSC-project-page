@@ -90,7 +90,10 @@ def captions(html: str | None = None) -> list[tuple[str, str]]:
     out = []
     for m in re.finditer(r"<(figcaption|caption)\b[^>]*>(.*?)</\1>", html, re.S | re.I):
         text = normalise(htmllib.unescape(re.sub(r"<[^>]+>", " ", m.group(2))))
-        cite = re.search(r"Source: paper (Fig\.\s*\d+|Table\s*[IVXL]+)", text)
+        # Two phrasings in use: "Source: paper Table I" under the results chart, and a
+        # trailing "Paper Fig. 6." on figure captions. Sub-panel refs like "Fig. 1(a)"
+        # resolve to their parent float, which is what the PDF numbers.
+        cite = re.search(r"(?:Source: paper|Paper)\s+(Fig\.\s*\d+|Table\s*[IVXL]+)", text)
         if cite:
             out.append((re.sub(r"\s+", " ", cite.group(1)), text))
     return out
@@ -100,10 +103,13 @@ def check_provenance(paper: str, caps) -> list[tuple[str, bool, str]]:
     results = []
     for claim, caption in caps:
         num = re.search(r"(\d+|[IVXL]+)$", claim).group(1)
+        # Take a WINDOW, not up-to-the-first-period: paper captions contain "val seq. 08"
+        # and "Fig. 1(a)", so a [^.] capture truncated "Qualitative comparison on val
+        # seq. 08. Three frozen sources..." to four words and left nothing to match.
         if claim.startswith("Fig"):
-            m = re.search(rf"Fig\.\s*{num}\.\s*([^.]{{6,120}})", paper)
+            m = re.search(rf"Fig\.\s*{num}\.\s*(.{{6,420}})", paper, re.S)
         else:
-            m = re.search(rf"TABLE\s+{num}\s+([A-Z][^\n]{{6,90}})", paper)
+            m = re.search(rf"TABLE\s+{num}\s+([A-Z].{{6,420}})", paper, re.S)
         if not m:
             results.append((f"{claim} exists in the paper", False, "no such float"))
             continue
@@ -194,6 +200,30 @@ def check_citation(paper_dir: Path, title_override: str | None = None) -> list[t
     ]
 
 
+def check_chart(paper_dir: Path) -> list[tuple[str, bool, str]]:
+    """The results chart replaced two HTML tables. Nothing in the DOM can now be
+    asserted about the predicate, so the check moves here: the chart's manifest must
+    match what data/results.json says, or the page is showing a stale picture."""
+    man_path = SITE / "assets" / "figures" / "results_chart.json"
+    if not man_path.exists():
+        return [("results chart manifest exists", False, "run tools/make_results_chart.py")]
+    manifest = json.loads(man_path.read_text(encoding="utf-8"))["rows"]
+    rows = [r for r in json.loads((SITE / "data" / "results.json").read_text(encoding="utf-8"))
+            if r.get("eval") == "test" and r.get("mIoU") is not None]
+    rows.sort(key=lambda r: r["mIoU"])
+    expect = [{"method": r["method"].strip(), "mIoU": r["mIoU"],
+               "excluded": bool(r.get("excluded")), "ours": bool(r.get("ours"))} for r in rows]
+    best = max((r["mIoU"] for r in rows if not r.get("excluded")), default=None)
+    top = max((r["mIoU"] for r in rows), default=None)
+    return [
+        ("results chart matches results.json", manifest == expect,
+         f"{len(manifest)} plotted vs {len(expect)} in data"),
+        ("chart's best ELIGIBLE bar is the headline, not the largest",
+         best == 38.8 and top != best,
+         f"best eligible {best}, largest overall {top}"),
+    ]
+
+
 def check_numbers(paper: str, nums: set[str]) -> list[tuple[str, bool, str]]:
     flat = paper.replace(",", "")
     missing = []
@@ -211,6 +241,7 @@ def run(paper_dir: Path, caps=None, extra_prose="", title_override=None) -> list
     paper = normalise(paper_text(paper_dir))
     return (check_provenance(paper, caps if caps is not None else captions())
             + check_citation(paper_dir, title_override)
+            + check_chart(paper_dir)
             + check_numbers(paper, site_numbers(extra_prose)))
 
 
