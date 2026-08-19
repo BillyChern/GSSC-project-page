@@ -101,6 +101,14 @@ const stage = document.getElementById('viewer3d-stage');
    served. Bytes that travel inside the script have no scheme for a policy to judge.
    This is the same fix already applied to three.js itself, one layer down. */
 const EMBEDDED_PLY = globalThis.__GSSC_PLY__ || {};
+
+/* Which way the clouds are carried, published on the stage. Every failure mode below
+   renders the SAME sentence to the reader, which is correct prose but meant a stale
+   published build and a damaged fresh one were indistinguishable from the message
+   alone -- exactly the ambiguity that cost a round of debugging. This makes the two
+   tellable apart without changing what the reader sees. */
+const PLY_CARRIAGE = Object.keys(EMBEDDED_PLY).length ? 'inline' : 'network';
+if (stage) stage.dataset.ply = PLY_CARRIAGE;
 const loadingEl = document.getElementById('viewer3d-loading');
 if (stage) boot();
 
@@ -125,7 +133,7 @@ function restoreStageLabel() {
 // (R5) No-WebGL fallback: if the browser cannot create a WebGL context the
 // spinner would otherwise spin forever. Replace the loading element with a
 // visible in-stage note that links to the static qualitative figure (the
-// #teaser panel) so a no-WebGL visitor still gets the comparison content.
+// results section) so a no-WebGL visitor still gets the comparison content.
 function showNoWebGLFallback() {
   if (!loadingEl) return;
   loadingEl.classList.remove('is-hidden');
@@ -136,7 +144,7 @@ function showNoWebGLFallback() {
   note.append('Your browser could not start WebGL, so the interactive 3D viewer is unavailable. ');
   setStageLabel('3D comparison unavailable: this browser could not start WebGL. The same comparison is in the qualitative figure above.');
   const link = document.createElement('a');
-  link.href = '#teaser';
+  link.href = '#results';
   link.textContent = 'View the static qualitative comparison instead.';
   note.appendChild(link);
   loadingEl.appendChild(note);
@@ -156,7 +164,12 @@ function showLoadFailure() {
   note.append('This scene could not be loaded, so nothing is drawn rather than a stand-in. ');
   setStageLabel('3D comparison unavailable: this scene could not be loaded. The same comparison is in the qualitative figure above.');
   const link = document.createElement('a');
-  link.href = '#abstract';
+  // '#results', not '#abstract' or '#teaser'. This promised a qualitative comparison
+  // and delivered the abstract; #teaser, used by the sibling notes, is the Fig. 1(a)
+  // TASK figure since the page was restructured. All four now point here, because a
+  // fix in one place is not a fix. Measured: #results puts the Fig. 6 figure fully in
+  // view at every viewport tested, including 390px.
+  link.href = '#results';
   link.textContent = 'The static qualitative comparison is above.';
   note.appendChild(link);
   loadingEl.appendChild(note);
@@ -266,7 +279,19 @@ function boot() {
      scene the controls no longer claim. */
   let loadGeneration = 0;
 
-  async function loadAndShow(sceneId, viewId) {
+  /* Everything after the parse -- the colour normalisation, the rare-class mask, the
+     InstancedMesh build, scene.add -- ran OUTSIDE the try below. A throw in any of it
+     left the reader looking at "Loading scene…" forever: no geometry, no failure note,
+     no way to tell the difference from a slow load. Wrapping the call is enough and
+     costs no reindentation of the body. */
+  function loadAndShow(sceneId, viewId) {
+    return loadAndShowInner(sceneId, viewId).catch((e) => {
+      console.error(`viewer: threw after parsing the cloud (carriage: ${PLY_CARRIAGE}).`, e);
+      showLoadFailure();
+    });
+  }
+
+  async function loadAndShowInner(sceneId, viewId) {
     const myGeneration = ++loadGeneration;
     currentScene = sceneId;
     currentView  = viewId;
@@ -290,7 +315,13 @@ function boot() {
       // which renders fabricated geometry inside the panel labelled with our method
       // name, where a reader has every reason to read it as model output. Showing
       // nothing is strictly better than showing something invented.
-      console.error(`PLY ${url} failed to load; not substituting synthetic geometry.`, e);
+      console.error(`PLY ${url} failed to load (carriage: ${PLY_CARRIAGE}); `
+                    + 'not substituting synthetic geometry.', e);
+      // Check the ticket BEFORE painting. A load that fails after the reader has
+      // already switched scenes must not stamp "could not be loaded" over the scene
+      // they are now looking at. Latent rather than observed -- the race needs a
+      // failure and a switch in the same window -- but the ordering was simply wrong.
+      if (myGeneration !== loadGeneration) return;
       showLoadFailure();
       return;   // draw nothing; rethrowing left an unhandled rejection
     }
@@ -308,7 +339,7 @@ function boot() {
     // so 64 cannot reject real data and cannot accept a corrupt remnant.
     const MIN_VERTICES = 64;
     const vertexCount = geometry.attributes.position ? geometry.attributes.position.count : 0;
-    stage.dataset.vertices = String(vertexCount < MIN_VERTICES ? 0 : vertexCount);
+    stage.dataset.vertices = '0';   // set to the real count once the mesh is IN the scene
     if (vertexCount < MIN_VERTICES) {
       console.error(`PLY ${url} parsed to ${vertexCount} vertices (floor ${MIN_VERTICES}); treating as a load failure.`);
       showLoadFailure();
@@ -425,6 +456,8 @@ function boot() {
     // Update stats panel
     updateStats(sceneId);
     showLoading(false);
+    // Now, and only now, does a vertex count describe something on screen.
+    if (stage) stage.dataset.vertices = String(vertexCount);
   }
 
   function showLoading(v) {

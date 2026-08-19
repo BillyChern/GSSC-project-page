@@ -55,7 +55,10 @@
       p.className = 'viewer3d__fallback-text';
       p.append('The 3D viewer could not load its library, so nothing is drawn. ');
       var a = document.createElement('a');
-      a.href = '#teaser';
+      /* '#results', not '#teaser': since the page was restructured #teaser is the
+         Fig. 1(a) task figure, and this link promises the qualitative comparison,
+         which is Fig. 6 in the results section. */
+      a.href = '#results';
       a.textContent = 'The same comparison is in the figure above.';
       p.appendChild(a);
       note.appendChild(p);

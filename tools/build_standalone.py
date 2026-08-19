@@ -76,8 +76,41 @@ def bundle_viewer() -> str:
     return code
 
 
+def build_id() -> str:
+    """A short, deterministic name for what is in this build.
+
+    Publishing is not the same as delivering: a published artifact can serve an older
+    pinned version to everyone but its owner, and for ~45 minutes that is exactly what
+    happened -- with no way to tell from the page which build a given reader had, because
+    two different builds produced byte-identical failure text. This stamp makes the
+    question answerable. Derived from the commit, not the clock, so the same tree always
+    builds the same bytes.
+    """
+    def git(*args: str) -> str:
+        try:
+            return subprocess.run(["git", *args], cwd=SITE, check=True,
+                                  capture_output=True, text=True).stdout.strip()
+        except Exception:
+            return ""
+    rev = git("rev-parse", "--short", "HEAD") or "unknown"
+    dirty = "+dirty" if git("status", "--porcelain") else ""
+    return f"{rev}{dirty}"
+
+
 def build(artifact: bool = False) -> str:
     html = (SITE / "index.html").read_text(encoding="utf-8")
+
+    # --- build stamp -----------------------------------------------------
+    # A <meta> rather than visible text: readers do not need it, and the page is
+    # deliberately spare. It survives the artifact tag strip (only the head/body TAGS
+    # are removed, not their contents) and can be read with one line in devtools:
+    #   document.querySelector('meta[name=gssc-build]').content
+    stamp = build_id()
+    anchor = '<meta name="twitter:card" content="summary_large_image" />'
+    if anchor not in html:
+        sys.exit("build-stamp anchor not found in index.html")
+    html = html.replace(
+        anchor, anchor + f'\n<meta name="gssc-build" content="{stamp}" />', 1)
 
     # --- stylesheets -----------------------------------------------------
     css = "\n".join((SITE / "styles" / n).read_text(encoding="utf-8")
@@ -166,7 +199,11 @@ def build(artifact: bool = False) -> str:
                 sys.exit("no PLY clouds found to embed")
             # JSON is a subset of JS. "</" is escaped so a cloud can never terminate
             # the inline <script> that carries it.
-            code = ("globalThis.__GSSC_PLY__=" + json.dumps(embedded).replace("</", "<\\/")
+            # The stamp travels with the data it describes, so a console one-liner
+            # reports both the version and how the clouds are carried:
+            #   [window.__GSSC_BUILD__, document.getElementById('viewer3d-stage').dataset.ply]
+            code = (f'globalThis.__GSSC_BUILD__={json.dumps(stamp)};\n'
+                    + "globalThis.__GSSC_PLY__=" + json.dumps(embedded).replace("</", "<\\/")
                     + ";\n" + code)
         tag = '<script type="module">' if module else "<script>"
         if src_attr not in html:

@@ -228,6 +228,48 @@ def check_chart(paper_dir: Path) -> list[tuple[str, bool, str]]:
     ]
 
 
+# Every in-page anchor the site may point at, and what each one is FOR. An allowlist,
+# not a resolvability check: all five anchors on the page resolved to a real id while
+# four of them landed on the wrong content, so "the target exists" would have passed
+# every one of them. #results is where the qualitative comparison (paper Fig. 6) lives;
+# #main is the skip link's target. Anything else has to be added here deliberately.
+ANCHOR_ALLOWLIST = {"#main", "#results"}
+
+
+def internal_anchors(extra: dict[str, str] | None = None) -> list[tuple[str, str]]:
+    """(source, anchor) for every in-page link, from the HTML and the script literals.
+
+    The scripts are included because three of the four wrong links were built in JS and
+    only exist once a failure path runs -- invisible to any check that reads the DOM of
+    a healthy page.
+    """
+    out: list[tuple[str, str]] = []
+    files = {"index.html": (SITE / "index.html").read_text(encoding="utf-8")}
+    for js in sorted((SITE / "scripts").glob("*.js")):
+        files[f"scripts/{js.name}"] = js.read_text(encoding="utf-8")
+    if extra:
+        files.update(extra)
+    for name, text in files.items():
+        # href="#x" in markup, and href = '#x' assigned in script.
+        for m in re.finditer(r"""href\s*=\s*["']?(#[A-Za-z][\w-]*)["']?""", text):
+            out.append((name, m.group(1)))
+    return out
+
+
+def check_anchors(anchors=None) -> list[tuple[str, bool, str]]:
+    anchors = internal_anchors() if anchors is None else anchors
+    html = (SITE / "index.html").read_text(encoding="utf-8")
+    ids = set(re.findall(r'id="([^"]+)"', html))
+    stray = [f"{src} -> {a}" for src, a in anchors if a not in ANCHOR_ALLOWLIST]
+    missing = [f"{src} -> {a}" for src, a in anchors if a.lstrip("#") not in ids]
+    return [
+        ("every in-page link points at an allowlisted target",
+         not stray, "; ".join(stray[:4]) or f"{len(anchors)} anchors, all allowlisted"),
+        ("every in-page link resolves to a real id",
+         not missing, "; ".join(missing[:4]) or "all resolve"),
+    ]
+
+
 def check_numbers(paper: str, nums: set[str]) -> list[tuple[str, bool, str]]:
     flat = paper.replace(",", "")
     missing = []
@@ -241,11 +283,13 @@ def check_numbers(paper: str, nums: set[str]) -> list[tuple[str, bool, str]]:
              ", ".join(sorted(missing)[:8]) or "none")]
 
 
-def run(paper_dir: Path, caps=None, extra_prose="", title_override=None) -> list[tuple[str, bool, str]]:
+def run(paper_dir: Path, caps=None, extra_prose="", title_override=None,
+        anchors=None) -> list[tuple[str, bool, str]]:
     paper = normalise(paper_text(paper_dir))
     return (check_provenance(paper, caps if caps is not None else captions())
             + check_citation(paper_dir, title_override)
             + check_chart(paper_dir)
+            + check_anchors(anchors)
             + check_numbers(paper, site_numbers(extra_prose)))
 
 
@@ -277,6 +321,11 @@ def selftest(paper_dir: Path) -> int:
         # The exact error I made: "correcting" the page's BibTeX to a longer working
         # title carried by README.md and the directory name, rather than the title the
         # built paper actually prints.
+        # The exact defect a reader reported: the scene-failure note promised the
+        # qualitative comparison and linked to #abstract. All five anchors resolved, so
+        # only an allowlist catches it.
+        ("fallback link pointing at the abstract",
+         dict(anchors=internal_anchors() + [("scripts/viewer3d.js", "#abstract")])),
         ("BibTeX title longer than the paper's",
          dict(title_override="Generative Semantic Scene Completion through Modeling "
                              "the Underlying Geometry and Semantics in Point Clouds")),

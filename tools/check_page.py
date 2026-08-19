@@ -283,8 +283,51 @@ def inspect_reduced_motion(browser, url, fault=None):
             ("viewer still draws under reduced motion", canvas, str(canvas))]
 
 
+def inspect_fallback_link(browser, url, fault=None):
+    """Block the point clouds so the viewer's real failure path runs, then FOLLOW the
+    link it offers and measure whether the figure it promises is actually on screen.
+
+    tools/check_content.py allowlists which anchor this link may use; that only proves
+    the code agrees with itself. This pins the promise: a note that says "the static
+    qualitative comparison is above" has to land the reader on the qualitative
+    comparison. The shipped link pointed at #abstract, leaving that figure 33% visible
+    at 1280x800 and entirely off screen at 390px, while resolving to a real id -- so
+    nothing short of measuring the destination would have caught it.
+    """
+    page = browser.new_page(viewport={"width": 1280, "height": 900})
+    if fault:
+        fault(page)
+    page.route("**/*.ply", lambda r: r.abort())
+    page.goto(url, wait_until="load")
+    page.wait_for_timeout(3500)          # the load rejects and the note is written
+    link = page.locator(".viewer3d__fallback a")
+    shown = link.count() > 0
+    href = link.first.get_attribute("href") if shown else None
+    frac, promised = -1.0, ""
+    if shown:
+        link.first.click()
+        page.wait_for_timeout(700)
+        # The figure the note promises: paper Fig. 6, located by its provenance
+        # attribute rather than a position, so moving it does not silently pass.
+        frac = page.evaluate("""() => {
+          const cap = document.querySelector('figcaption[data-paper-float="Fig. 6"]');
+          if (!cap) return -1;
+          const fig = cap.closest('figure'); const r = fig.getBoundingClientRect();
+          const vis = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
+          return r.height ? vis / r.height : -1;
+        }""")
+        promised = (link.first.text_content() or "").strip()[:38]
+    page.close()
+    return [
+        ("scene failure offers a link", shown, f"href={href}"),
+        ("that link lands on the qualitative figure", frac >= 0.9,
+         f"visible fraction {frac:.2f} of Fig. 6 after following {href!r} ({promised!r})"),
+    ]
+
+
 CONTEXTS = (("print", inspect_print), ("no-JS", inspect_nojs), ("slow load", inspect_slowload),
-            ("reduced motion", inspect_reduced_motion))
+            ("reduced motion", inspect_reduced_motion),
+            ("scene-failure fallback", inspect_fallback_link))
 
 
 def gate(url: str) -> int:
@@ -372,6 +415,16 @@ FAULTS = [
 ]
 
 
+def _serve_js(page, rel: str, edit):
+    """Serve one of our scripts with `edit` applied, so a fault can change code."""
+    src = (Path(__file__).resolve().parent.parent / rel).read_text(encoding="utf-8")
+    patched = edit(src)
+    if patched == src:
+        raise AssertionError(f"fault did not modify {rel} -- the pattern no longer matches")
+    page.route(f"**/{rel}",
+               lambda r: r.fulfill(status=200, content_type="text/javascript", body=patched))
+
+
 def _ignore_reduced_motion(page):
     """Reproduce the pre-fix viewer: damping on regardless of the preference."""
     src = (Path(__file__).resolve().parent.parent / "scripts" / "viewer3d.js").read_text(encoding="utf-8")
@@ -394,6 +447,14 @@ CONTEXT_FAULTS = [
     # The original round-18 bug, faithfully: .is-hidden declared BEFORE
     # .viewer3d__fallback loses the specificity tie, so the claim never hides.
     ("viewer honours prefers-reduced-motion", inspect_reduced_motion, _ignore_reduced_motion),
+    # The defect a reader reported: the note promised the qualitative comparison and
+    # sent them to the abstract. Restoring that one string must fail the check.
+    ("that link lands on the qualitative figure", inspect_fallback_link,
+     lambda p: _serve_js(p, "scripts/viewer3d.js",
+                         lambda c: c.replace("link.href = '#results';\n  link.textContent = "
+                                             "'The static qualitative comparison is above.';",
+                                             "link.href = '#abstract';\n  link.textContent = "
+                                             "'The static qualitative comparison is above.';", 1))),
     ("false failure claim is retracted", inspect_slowload,
      lambda p: _serve_css(p, lambda c: c.replace(
          '#viewer3d-loading.is-hidden { display: none; }', '', 1))),
