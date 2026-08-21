@@ -17,8 +17,9 @@ ensembling.
 - **38.8 %** mIoU at one step ($N{=}1$) with **no test-time augmentation** — to our knowledge the
   best *causal, single-sweep, single-sample* result on the SemanticKITTI hidden test, **+2.1 pp**
   over the previous best published score (SCPNet, 36.7 %).
-- **39.2 %** with four correction steps and an eight-view $D_4$ ensemble. This row is **excluded
-  by the predicate** and is not the headline.
+- **39.2 %** with four correction steps and an eight-view $D_4$ ensemble — the entry Codabench
+  displays, since the platform lists each team's best score. Four steps plus the ensemble sit
+  outside the predicate the superlative is indexed on.
 - Excluded for the same reason, and not comparable to ours: TALoS (37.9 %, test-time adaptation)
   and SCPNet at four sweeps (47.5 %).
 - **+2.36 pp** added on top of the frozen SCPNet base on validation (36.17 → 38.54 %). The

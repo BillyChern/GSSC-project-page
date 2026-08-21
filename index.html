@@ -7,7 +7,7 @@
 <title>Generative Semantic Scene Completion</title>
 <meta name="description" content="Generative semantic scene completion for outdoor LiDAR: one discrete-diffusion formulation in three roles — PS3 paired sparse-dense synthesis, SGSC from-noise completion, and S2D2 one-step refinement of a frozen base." />
 <meta property="og:title" content="Generative Semantic Scene Completion" />
-<meta property="og:description" content="38.8% mIoU on the SemanticKITTI hidden test at one step, no test-time augmentation — to our knowledge the best causal, single-sweep, single-sample result on that leaderboard." />
+<meta property="og:description" content="38.8% mIoU on the SemanticKITTI hidden test at one step, no test-time augmentation — to our knowledge the best causal, single-sweep, single-sample result on that leaderboard — and 39.2% with four correction steps and eight-view D4 TTA, the entry Codabench displays." />
 <meta property="og:type" content="website" />
 <!-- Absolute URL: social scrapers do not resolve relative paths. It points at the
      documented production URL, so the card works the moment Pages is enabled. -->
@@ -46,7 +46,7 @@
     <span class="btn" role="link" aria-disabled="true" title="Released upon publication.">Code &mdash; on publication</span>
     <span class="btn" role="link" aria-disabled="true" title="Released upon publication.">Models &amp; PS&sup3; data &mdash; on publication</span>
   </nav>
-  <p class="links-note">The leaderboard entry is live and independently verifiable. Code, models and the PS&sup3; corpus are released on publication.</p>
+  <p class="links-note">Both hidden-test scores came back from the blind evaluation server and are independently verifiable. Codabench lists each team&rsquo;s best entry, so its results tab shows our four-step, eight-view D<sub>4</sub> row at 39.2% mIoU / 59.0% completion IoU; the single-step submission with no test-time augmentation scored 38.8% / 58.9%. Code, models and the PS&sup3; corpus are released on publication.</p>
 </header>
 
 <!-- Main opens before the first figure: the teaser is the page's primary visual and
@@ -76,14 +76,14 @@
     <source srcset="assets/figures/fig4_qualitative.webp" type="image/webp">
     <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI validation sequence 08: three frozen sources (JS3C-Net, SCPNet, and TALoS's adaptation of SCPNet), our refinement on the SCPNet base, and ground truth; a bicyclist scene above and a motorcyclist scene below." />
   </picture>
-  <figcaption data-paper-float="Fig. 6"><strong>One correction step, on a frozen base.</strong> Three frozen sources, our refinement of the SCPNet one, and ground truth. The per-scene chips come from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration &mdash; not the <em>N</em>=1 headline.</figcaption>
+  <figcaption data-paper-float="Fig. 6"><strong>One correction step, on a frozen base.</strong> Three frozen sources, our refinement of the SCPNet one, and ground truth. The per-scene chips come from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration &mdash; the entry on the leaderboard &mdash; while the superlative is indexed on the <em>N</em>=1 single-step row.</figcaption>
 </figure>
   <figure class="media scrollable">
   <picture>
     <source srcset="assets/figures/results_chart.webp" type="image/webp">
     <img src="assets/figures/results_chart.png" alt="Horizontal bar chart of SemanticKITTI hidden-test mIoU, one bar per method. The two red bars are ours: 38.8 at one step with no test-time augmentation, and a longer bar at 39.2 whose label reads N=4, +D4 TTA. The grey bars are published baselines, the longest being TALoS at 37.9, labelled as test-time adaptation." />
   </picture>
-  <figcaption data-paper-float="Table I"><strong>38.8% mIoU</strong> on the hidden test at one step with no test-time augmentation, +2.1&nbsp;pp over the previous best published score. Every number here is indexed on one predicate &mdash; <em>causal, single-sweep, single-sample</em>. Our other red bar is longer, at 39.2, and falls outside that predicate: its label says why, <em>N</em>=4 with eight-view D<sub>4</sub> test-time augmentation.</figcaption>
+  <figcaption data-paper-float="Table I"><strong>Two scores from the blind test server, both ours, both in red.</strong> <strong>38.8% mIoU</strong> at one step with no test-time augmentation: to our knowledge the best <em>causal, single-sweep, single-sample</em> result on this leaderboard, +2.1&nbsp;pp over the previous best published score under that restriction. <strong>39.2%</strong> &mdash; the longest bar, four correction steps with an eight-view D<sub>4</sub> ensemble &mdash; is the entry Codabench displays, since the platform lists each team&rsquo;s best score. The superlative is indexed on the 38.8 row because four steps and an ensemble fall outside its restriction.</figcaption>
 </figure>
 </section>
 
