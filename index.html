@@ -7,7 +7,7 @@
 <title>Generative Semantic Scene Completion</title>
 <meta name="description" content="Generative semantic scene completion for outdoor LiDAR: one discrete-diffusion formulation in three roles — PS3 paired sparse-dense synthesis, SGSC from-noise completion, and S2D2 one-step refinement of a frozen base." />
 <meta property="og:title" content="Generative Semantic Scene Completion" />
-<meta property="og:description" content="One discrete-diffusion formulation in three roles. 38.8% SemanticKITTI hidden-test mIoU at one step with no test-time augmentation — to our knowledge the best causal, single-sweep, single-sample result to date, +2.1 pp over the previous best published score." />
+<meta property="og:description" content="38.8% mIoU on the SemanticKITTI hidden test at one step, no test-time augmentation — to our knowledge the best causal, single-sweep, single-sample result on that leaderboard." />
 <meta property="og:type" content="website" />
 <!-- Absolute URL: social scrapers do not resolve relative paths. It points at the
      documented production URL, so the card works the moment Pages is enabled. -->
@@ -142,9 +142,9 @@
   <figure class="media scrollable">
   <picture>
     <source srcset="assets/figures/fig9_longtail.webp" type="image/webp">
-    <img src="assets/figures/fig9_longtail.png" alt="Grouped log-scale bar chart of per-class voxel frequency, real data only against real plus 32,000 synthetic scenes, with boost factors printed above the rarest classes: bicyclist 6239 times, motorcycle 1626 times, bicycle 15.4 times." />
+    <img src="assets/figures/fig9_longtail.png" alt="Grouped log-scale bar chart of per-class voxel frequency, real data only against real plus 32,000 synthetic scenes, with the synthetic pool's own frequency against real-only printed above the rarest classes: bicyclist 6239 times, motorcycle 1626 times, bicycle 15.4 times." />
   </picture>
-  <figcaption data-paper-float="Fig. 9">What the corpus does about it. Per-class voxel frequency, real only against real&nbsp;+&nbsp;synthetic: <strong>bicyclist rises 6,239&times;</strong>, motorcycle 1,626&times;.</figcaption>
+  <figcaption data-paper-float="Fig. 9">What the corpus does about it. Per-class voxel frequency, real&nbsp;only against real&nbsp;+&nbsp;synth-32K. The printed factors are the <em>synthetic pool&rsquo;s own</em> frequency against real-only &mdash; <strong>bicyclist 6,239&times;</strong>, motorcycle 1,626&times;; the pooled bars gain 3.2&times;&ndash;3,907&times;.</figcaption>
 </figure>
 
   <h3>SGSC &mdash; completion from noise</h3>
