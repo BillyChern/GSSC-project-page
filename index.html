@@ -35,8 +35,8 @@
   <h1>Generative Semantic Scene Completion</h1>
   <p class="venue">Under review, IEEE Transactions on Pattern Analysis and Machine Intelligence</p>
   <div class="identity">
-    <p class="authors">Shi Chen<sup>1</sup> &nbsp;&middot;&nbsp; Weifeng Ge<sup>1,*</sup></p>
-    <p class="affil"><sup>1</sup>College of Computer Science and Artificial Intelligence, Fudan University</p>
+    <p class="authors">Shi Chen<sup>1,2</sup> &nbsp;&middot;&nbsp; Weifeng Ge<sup>1,*</sup></p>
+    <p class="affil"><sup>1</sup>College of Computer Science and Artificial Intelligence, Fudan University &nbsp;&middot;&nbsp; <sup>2</sup>Robotics Institute, Carnegie Mellon University</p>
     <p class="corr"><sup>*</sup>Corresponding author</p>
   </div>
 
@@ -66,7 +66,7 @@
 
 <section id="abstract" class="prose">
   <h2>Abstract</h2>
-  <p>Outdoor LiDAR semantic scene completion (SSC) recovers a dense semantic voxel grid from a scan observing 1% of the target volume, under class imbalance beyond 7,000&times;. We recast SSC as generative semantic scene completion (GSSC): a single discrete-diffusion formulation in three roles. First, paired sparse&ndash;dense scene synthesis (PS<sup>3</sup>) generates matched sparse LiDAR observations with their dense semantic completions, addressing the long tail at its source and yielding the PS<sup>3</sup>-SemanticKITTI corpus we train on alongside SemanticKITTI. Second, semantic-guided generative scene completion (SGSC) completes the scene from sparse voxels with a multinomial discrete diffusion model conditioned on a bird&rsquo;s-eye-view semantic map and a sparse 3D feature stream. Third, the same framework refines that output in a single flow-matching step: structured source discrete diffusion (S<sup>2</sup>D<sup>2</sup>). SGSC needs no completion base, and refining its own output improves it further. The same refinement improves the mIoU of every SSC base we test. On the strongest it sets, to our knowledge, the best <em>causal, single-sweep, single-sample</em> result on the SemanticKITTI hidden test: <strong>38.8%</strong> mIoU at one step without test-time augmentation, +2.1&nbsp;pp over the previous best published score. Four correction steps with eight-view test-time augmentation reach 39.2%. S<sup>2</sup>D<sup>2</sup> needs neither base retraining nor test-time adaptation.</p>
+  <p>Outdoor LiDAR semantic scene completion (SSC) recovers a dense semantic voxel grid from a scan observing 1% of the target volume, under class imbalance beyond 7,000&times;. We recast SSC as generative semantic scene completion (GSSC): a single discrete-diffusion formulation in three roles. First, paired sparse&ndash;dense scene synthesis (PS<sup>3</sup>) generates matched sparse LiDAR observations with their dense semantic completions, addressing the long tail at its source and yielding the PS<sup>3</sup>-SemanticKITTI corpus we train on alongside SemanticKITTI. Second, semantic-guided generative scene completion (SGSC) generates the scene from noise with multinomial discrete diffusion, conditioned on the sparse scan through a bird&rsquo;s-eye-view semantic map and a sparse 3D feature stream. Third, the same framework instead refines an existing completion in one flow-matching step: structured source discrete diffusion (S<sup>2</sup>D<sup>2</sup>). It improves the mIoU of SGSC&rsquo;s own output and every external SSC base tested, without base retraining or test-time adaptation. On the strongest base, one step without test-time augmentation reaches <strong>38.8%</strong> mIoU on the SemanticKITTI hidden test. To our knowledge that is the best <em>causal, single-sweep, single-sample</em> result on that leaderboard, +2.1&nbsp;pp over the previous best published score under the same restriction. Four correction steps with eight-view test-time augmentation reach 39.2%, outside that restriction.</p>
 </section>
 
 <section id="results" class="media">
