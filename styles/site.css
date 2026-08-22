@@ -43,7 +43,7 @@ a:hover, a:focus-visible { color: var(--accent-hover); text-decoration-color: va
 
 /* ---- the two measures ---- */
 .prose { max-width: var(--w-prose); margin-inline: auto; padding-inline: var(--s-5); }
-/* A lede sitting above a table aligns with that table's left edge rather than
+/* A lede sitting above a media block aligns with that block's left edge rather than
    being centred, so the eye reads one column. The Abstract keeps the centred
    narrow measure, which is what the corpus does for the abstract specifically. */
 .media > .lede { max-width: var(--w-prose); margin: 0 0 var(--s-4); }
@@ -160,31 +160,15 @@ figcaption strong { color: var(--text); font-weight: 500; }
 .scrollable { overflow-x: auto; }
 .scrollable img { min-width: 640px; }
 
-/* ---- tables: the paper's tables, not a dashboard ---- */
-.table-wrap { overflow-x: auto; margin-bottom: var(--s-3); }
-table {
-  width: 100%; border-collapse: collapse;
-  font-size: var(--fs-small); font-variant-numeric: tabular-nums;
-}
-caption { text-align: left; }
-th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--rule); }
-thead th {
-  font-weight: 600; background: var(--ground-sunk);
-  border-bottom: 1px solid var(--rule-strong); white-space: nowrap;
-}
-td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-tbody tr.ours td { background: rgba(184, 92, 0, 0.045); }
-tbody tr.split th { background: var(--ground-sunk); font-weight: 600; padding-top: 10px; }
-/* Italic as well as grey: in forced-colors mode the muted colour is replaced by
-   the system foreground, and "outside the predicate" would otherwise be carried
-   by the Note text alone. Font style survives the override. */
-tbody tr.excluded td { color: var(--muted); font-style: italic; }
-td .best { font-weight: 600; }
-.pos { color: var(--pos); }
-.neg { color: var(--neg); }
-.disclaimed { text-decoration: line-through; text-decoration-thickness: 1px; }
+/* The page's two HTML results tables became one generated figure, and the ~20 rules
+   that styled them are gone with them -- including `tbody tr.excluded td`, whose
+   forced-colors italics README.md went on advertising as a gated invariant long after
+   the last <table> was deleted. Dead selectors are not free: they are what a stale
+   sentence points at when someone checks whether it is still true. The predicate
+   distinction those rules carried now lives in the chart's axis labels and caption,
+   and in tools/check_content.py's manifest comparison.
 
-/* Shown only when scripting is off: the two tables hydrate from JSON. */
+   Shown only when scripting is off: the viewer's fallback note. */
 .js .nojs-note { display: none; }
 
 /* ---- BibTeX ---- */
@@ -313,13 +297,11 @@ footer p { margin: 0 0 var(--s-2); }
   /* A printed link a reader cannot follow is a dead end. */
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; word-break: break-all; }
 
-  /* Keep tables and figures whole across page breaks. */
-  table, figure, .triptych { break-inside: avoid; page-break-inside: avoid; }
-  thead { display: table-header-group; }
+  /* Keep figures whole across page breaks. */
+  figure, .triptych { break-inside: avoid; page-break-inside: avoid; }
   h2 { break-after: avoid; page-break-after: avoid; }
 
   /* Ink economy and legibility on paper. */
   .btn { border: 1px solid #999; }
-  tbody tr.ours td { background: transparent; box-shadow: inset 3px 0 0 #000; }
   pre { border: 1px solid #999; background: transparent; }
 }

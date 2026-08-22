@@ -81,9 +81,9 @@
   <figure class="media scrollable">
   <picture>
     <source srcset="assets/figures/results_chart.webp" type="image/webp">
-    <img src="assets/figures/results_chart.png" alt="Horizontal bar chart of SemanticKITTI hidden-test mIoU, one bar per method. The two red bars are ours: 38.8 at one step with no test-time augmentation, and a longer bar at 39.2 whose label reads N=4, +D4 TTA. The grey bars are published baselines, the longest being TALoS at 37.9, labelled as test-time adaptation." />
+    <img src="assets/figures/results_chart.png" alt="Horizontal bar chart of SemanticKITTI hidden-test mIoU, one bar for each of the ten test rows of the paper&rsquo;s Table I. All ten, longest bar first: double-dagger SCPNet (four sweeps) 47.5; double-dagger Ours + D4 ensemble (N=4, +D4 TTA) 39.2; SCPNet + S2D2 (N=1) 38.8; double-dagger TALoS (test-time adaptation) 37.9; SCPNet (published) 36.7; S3CNet 29.5; DiffSSC 27.4; JS3C-Net 23.8; SSA-SC 23.5; LMSCNet 17.6. The two bars that are ours, 38.8 and 39.2, are red; the other eight are grey published baselines. The leading double-dagger on three of the labels is explained under the axis as outside the headline predicate: multi-sweep, test-time adaptation, or ensembling. The best bar inside the predicate is our 38.8, above SCPNet&rsquo;s published 36.7." />
   </picture>
-  <figcaption data-paper-float="Table I"><strong>Two scores from the blind test server, both ours, both in red.</strong> <strong>38.8% mIoU</strong> at one step with no test-time augmentation: to our knowledge the best <em>causal, single-sweep, single-sample</em> result on this leaderboard, +2.1&nbsp;pp over the previous best published score under that restriction. <strong>39.2%</strong> &mdash; the longest bar, four correction steps with an eight-view D<sub>4</sub> ensemble &mdash; is the entry Codabench displays, since the platform lists each team&rsquo;s best score. The superlative is indexed on the 38.8 row because four steps and an ensemble fall outside its restriction.</figcaption>
+  <figcaption data-paper-float="Table I"><strong>Two scores from the blind test server, both ours, both in red.</strong> <strong>38.8% mIoU</strong> at one step with no test-time augmentation: to our knowledge the best <em>causal, single-sweep, single-sample</em> result on this leaderboard, +2.1&nbsp;pp over the previous best published score under that restriction. <strong>39.2%</strong> &mdash; four correction steps with an eight-view D<sub>4</sub> ensemble &mdash; is the entry Codabench displays, since the platform lists each team&rsquo;s best score. The superlative is indexed on the 38.8 row because four steps and an ensemble fall outside its restriction. Every test row of the paper&rsquo;s Table I is plotted, the three outside that restriction marked &ldquo;&Dagger;&rdquo; here; Table I footnotes those same three rows one symbol at a time (&Dagger;&nbsp;four sweeps, &parallel;&nbsp;test-time adaptation, &sect;&nbsp;D<sub>4</sub> ensemble). Among them is the longest bar on the chart, <strong>SCPNet at four sweeps, 47.5%</strong>, which reads four LiDAR moments where we read one.</figcaption>
 </figure>
 </section>
 
@@ -124,6 +124,15 @@
   <p class="viewer-legend" id="viewer3d-stat-row">
     <span data-stat="label"></span>
     <span><span data-stat="klass"></span>: frozen base <span data-stat="scp"></span> &middot; ours <span data-stat="ours"></span> &middot; <span data-stat="delta"></span></span>
+    <!-- The configuration these chips come from, stated where the chips are. They are
+         paper Fig. 6's chips, i.e. the N=4 +D4-TTA run, NOT the single-step headline
+         row; a reader looking at a +25.6 pp gain must not have to reconstruct that from
+         a caption in the previous section. This disclosure was deleted at d2f6999 on the
+         argument that Fig. 6's caption covers it -- but that caption is grammatically
+         about that figure, and the results chart sits between the two. Asserted by
+         tools/check_page.py ("viewer legend discloses its configuration"); do not remove
+         it without removing that check and its selftest arm in the same commit. -->
+    <span>Chips: <em>N</em>=4, +D<sub>4</sub> TTA &mdash; outside the headline predicate</span>
   </p>
   <noscript><p class="note">The 3D comparison needs JavaScript and WebGL. The same scenes appear in the figure above.</p></noscript>
 </section>
@@ -142,7 +151,7 @@
   <figure class="media scrollable">
   <picture>
     <source srcset="assets/figures/fig9_longtail.webp" type="image/webp">
-    <img src="assets/figures/fig9_longtail.png" alt="Grouped log-scale bar chart of per-class voxel frequency, real data only against real plus 32,000 synthetic scenes, with the synthetic pool's own frequency against real-only printed above the rarest classes: bicyclist 6239 times, motorcycle 1626 times, bicycle 15.4 times." />
+    <img src="assets/figures/fig9_longtail.png" alt="Grouped log-scale bar chart of per-class voxel frequency, real only against real + synth-32K, with the synthetic pool's own frequency against real-only printed above the rarest classes: bicyclist 6239 times, motorcycle 1626 times, bicycle 15.4 times." />
   </picture>
   <figcaption data-paper-float="Fig. 9">What the corpus does about it. Per-class voxel frequency, real&nbsp;only against real&nbsp;+&nbsp;synth-32K. The printed factors are the <em>synthetic pool&rsquo;s own</em> frequency against real-only &mdash; <strong>bicyclist 6,239&times;</strong>, motorcycle 1,626&times;; the pooled bars gain 3.2&times;&ndash;3,907&times;.</figcaption>
 </figure>
@@ -180,7 +189,8 @@
 <section id="ack" class="prose">
   <h2>Acknowledgements</h2>
   <p>This work was supported by the National Natural Science Foundation of China under Grant&nbsp;624B1006 and by the Shanghai Science and Technology Committee under Grant&nbsp;24511103900.</p>
-  <p>Evaluation uses the SemanticKITTI benchmark and its hidden test server; the scene renders on this page are drawn from its validation sequence.</p>
+  <p>Evaluation uses the SemanticKITTI benchmark and its hidden test server. The comparison renders on this page &mdash; the qualitative figure, the rare-class gallery and the 3D viewer &mdash; are drawn from its validation sequence, seq.&nbsp;08. Nothing inside the PS<sup>3</sup> figure comes from that sequence: it shows a training-split frame, scenes the generator synthesised after being trained on that split, and real rare-class crops taken from the same split.</p>
+  <p>Those renders show SemanticKITTI ground-truth annotations, and the point clouds the 3D viewer loads are voxelised, class-recoloured exports of them &mdash; modified material, redistributed here. SemanticKITTI is &copy; its authors and is licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC&nbsp;BY-NC-SA&nbsp;4.0</a>: credit the creators, non-commercial use only, and the same licence on anything built from it. Those terms travel with these exports, which are therefore offered under CC&nbsp;BY-NC-SA&nbsp;4.0 and not under this page&rsquo;s own terms. The dataset&rsquo;s home is <a href="http://www.semantic-kitti.org/dataset.html" target="_blank" rel="noopener">semantic-kitti.org</a>, which asks that both the SemanticKITTI paper (Behley&nbsp;et&nbsp;al.) and the original KITTI Vision Benchmark (Geiger&nbsp;et&nbsp;al.) be cited; BibTeX for both is below, beside ours.</p>
 </section>
 
 <section id="bibtex" class="prose">
@@ -192,6 +202,27 @@
   year    = {2026}
 }</code></pre>
   <p class="links-note" style="text-align:left"><button class="btn" id="bibtex-copy" type="button" hidden><span id="bibtex-copy-label">Copy</span></button></p>
+  <p class="note">The SemanticKITTI material shown on this page carries its own citation requirement. Both of these must accompany any reuse of it:</p>
+  <pre><code>@inproceedings{behley2019semantickitti,
+  title     = {{SemanticKITTI}: A Dataset for Semantic Scene
+               Understanding of {LiDAR} Sequences},
+  author    = {Behley, Jens and Garbade, Martin and Milioto, Andres
+               and Quenzel, Jan and Behnke, Sven and Stachniss, Cyrill
+               and Gall, Juergen},
+  booktitle = {Proc. IEEE/CVF Int. Conf. on Computer Vision (ICCV)},
+  pages     = {9297--9307},
+  year      = {2019}
+}
+
+@inproceedings{geiger2012kitti,
+  title     = {Are We Ready for Autonomous Driving? The {KITTI}
+               Vision Benchmark Suite},
+  author    = {Geiger, Andreas and Lenz, Philip and Urtasun, Raquel},
+  booktitle = {Proc. IEEE Conf. on Computer Vision and Pattern
+               Recognition (CVPR)},
+  pages     = {3354--3361},
+  year      = {2012}
+}</code></pre>
 </section>
 
 </main>

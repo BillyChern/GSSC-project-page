@@ -187,11 +187,33 @@ def _break_figure(doc: str) -> str:
     return doc.replace('src="data:image/webp;base64,', 'src="data:image/webp;base64,ZZZ', 1)
 
 
+def _console_error(doc: str) -> str:
+    """A script that logs an error, for the check that says none are logged.
+
+    Without this arm "no console errors" had never been seen failing -- and it is the
+    check that made the SCRIPT this file replaced worthless: that script filtered on
+    `pageerror` alone, so every console error was invisible while it reported none.
+    """
+    return doc + '<script>console.error("selftest: injected console error");</script>'
+
+
+def _break_parity(doc: str) -> str:
+    """Make the artifact render differently from the served page.
+
+    Parity is the check that catches a build which is fine on its own terms but no
+    longer the page we gated. A style that only exists in the built file is exactly
+    that defect, and until this arm existed the comparison had never been seen failing.
+    """
+    return doc + "<style>header.head h1{font-size:11px}</style>"
+
+
 FAULTS = [
     ("viewer renders a scene with no network", _drop_embedded_ply),
     ("page header survived the artifact strip", _eat_header),
     ("title keeps the display face", _drop_font),
     ("every figure renders", _break_figure),
+    ("no console errors", _console_error),
+    ("parity with the served page", _break_parity),
 ]
 
 
@@ -202,6 +224,16 @@ def selftest() -> int:
     with sync_playwright() as pw:
         b = getattr(pw, ENGINE).launch()
         ref = served(b)
+        # A fault proves something only against a clean baseline. The parity arm needs
+        # this most: with the served page unreachable, parity fails on every arm and on
+        # none of them for its own reason.
+        base_d, base_console = render(b, doc)
+        baseline = [n for n, ok, _ in checks(base_d, base_console, ref) if not ok]
+        if baseline:
+            b.close()
+            print(f"  BASELINE NOT CLEAN: {len(baseline)} check(s) already failing -- "
+                  f"{'; '.join(baseline)}")
+            return 1
         for target, fault in FAULTS:
             mutated = fault(doc)
             if mutated == doc:

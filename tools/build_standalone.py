@@ -203,7 +203,8 @@ def build(artifact: bool = False) -> str:
                 hit = False
                 for q in ("'", '"'):
                     if f"{q}{rel}{q}" in code:
-                        code = code.replace(f"{q}{rel}{q}", f"{q}{key}{q}"); hit = True
+                        code = code.replace(f"{q}{rel}{q}", f"{q}{key}{q}")
+                        hit = True
                 if not hit:
                     sys.exit(f"PLY reference not found in viewer code: {rel}")
                 text = ply.read_text(encoding="utf-8")

@@ -16,17 +16,15 @@ Usage:
     python tools/check_page.py --selftest      # prove every check can fail
     python tools/check_page.py --url http://localhost:8099/
 
-47 assertions: 12 x 3 viewports, plus print, no-JS, slow-load and reduced-motion
-contexts. ~50s;
---selftest ~3min, because the slow-load check must outwait an 8s watchdog twice.
+47 assertions over 25 unique names: 11 x 3 viewports, plus the print, no-JS, slow-load,
+reduced-motion, scene-failure and link-state contexts. ~50s;
+--selftest ~3min (18 arms), because the slow-load check must outwait an 8s watchdog twice.
 
 """
 from __future__ import annotations
 
 import argparse
-import json
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -160,6 +158,16 @@ def inspect(browser, url: str, w: int, h: int, fault=None) -> list[tuple[str, bo
                 and order[-1:] == ["bibtex"])
 
     return [
+        # The viewer prints per-scene IoU chips with double-digit "ours" gains. They are
+        # paper Fig. 6's chips -- the N=4, +D4-TTA run -- not the single-step row the
+        # headline is indexed on, and the legend has to say so where the numbers are.
+        # This assertion existed, and d2f6999 deleted it together with the sentence it
+        # pinned, leaving `legend` assigned and never read (ruff F841) as the only trace
+        # while README.md went on advertising the safeguard. Asserting the CONTENT of
+        # the disclosure, not merely that a legend exists, is the difference.
+        ("viewer legend discloses its configuration",
+         "D" in legend and ("TTA" in legend or "N=4" in legend),
+         legend[-72:] or "<empty legend>"),
         ("sections read task -> abstract -> results -> method",
          order_ok,
          str(order) + (f"  unplaced: {unplaced}" if unplaced else "")),
@@ -447,7 +455,17 @@ def _fade_captions(page):
         "s.textContent='figcaption{color:#888888}';document.head.appendChild(s);})")
 
 
+def _strip_legend_config(page):
+    """Reproduce d2f6999 exactly: the configuration sentence gone from the legend,
+    leaving the gains on the page with nothing to say where they came from."""
+    page.add_init_script(
+        "addEventListener('load',()=>{const r=document.getElementById('viewer3d-stat-row');"
+        "if(r)[...r.querySelectorAll('span')].filter(s=>/TTA/.test(s.textContent))"
+        ".forEach(s=>s.remove());})")
+
+
 FAULTS = [
+    ("viewer legend discloses its configuration", _strip_legend_config),
     ("all text clears WCAG AA contrast", _fade_captions),
     ("every figure renders", _break_figure),
     ("results chart is on the page", _drop_chart),

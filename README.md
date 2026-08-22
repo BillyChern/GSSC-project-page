@@ -60,6 +60,13 @@ What remains before going public is a judgement call, not a hold:
 - Repository: <https://github.com/BillyChern/GSSC-project-page> (private)
 - Intended URL once released: <https://billychern.github.io/GSSC-project-page/>
 
+**Licence: MIT** — `LICENSE` at the repo root, © 2026 Shi Chen, Weifeng Ge, identical to
+the release repo's. It covers this page's own material: the HTML, CSS, JS, `tools/` and
+the generated charts. It does **not** cover the SemanticKITTI-derived files —
+`assets/ply/*_gt.ply` and the ground-truth renders inside the qualitative, gallery and
+viewer figures — which stay under CC BY-NC-SA 4.0 for the reasons in *Third-party data*
+below. Until this file existed the page's own code shipped with no licence at all.
+
 A `.nojekyll` sentinel sits at the repo root so `assets/` is served as-is. Note the
 consequence: with Jekyll disabled, Pages serves dotdirs verbatim, so anything like
 `.audit/` that gets committed becomes publicly fetchable. It is gitignored for
@@ -70,18 +77,25 @@ exactly that reason.
 Structure and styling follow the conventions measured across 30 accepted-paper project pages,
 including 11 from this subfield (PaSCo, MonoScene, SceneRF, LiDPM, SemCity, TPVFormer, OccWorld,
 SelfOcc, SurroundOcc, Occ3D, XCube): white ground, one accent used only for links, a single
-humanist sans at 16 px, one centred column with prose at 760 px inside media at 1040 px, plain
-noun headings, and no page animation — motion belongs to results, not to chrome.
+humanist sans at 16 px, one centred column with prose at 720 px inside media at 960 px
+(`--w-prose` / `--w-media` in `styles/tokens.css` — those two tokens are the source of
+truth, not this sentence), plain noun headings, and no page animation — motion belongs to
+results, not to chrome.
+
+The rows below are in the order the page reads them, which is also the order
+`tools/check_page.py` pins (`CANON` in that file).
 
 | Section | What it shows |
 |---|---|
-| Header | Title, venue, authors, four resource links |
-| **The semantic scene completion challenge** | Paper Fig. 1(a): a sparse sweep at ~1% occupancy and the dense scene to be predicted. A reader new to the subfield learns the problem from a figure before any prose |
-| **Results** | Paper Fig. 6 qualitative comparison, then a generated bar chart of hidden-test mIoU with out-of-predicate entries hatched and named |
-| Interactive comparison | Three.js viewer over four views (input / base / ours / ground truth) on two rare-class frames; the IoU chips are the N=4 +D4-TTA configuration, as the paper states |
-| Abstract | The paper's abstract **verbatim**, below the media — measured convention: of 12 top project pages diffed against their arXiv text, 10 reproduce it verbatim or near-verbatim, **0 rewrite it**, and all sit below the first figure |
-| **How it works** | The three contributions as figures: PS³ (Fig. 2) with the long-tail problem (Fig. 1c,d) and what the corpus does about it (Fig. 9); SGSC (Fig. 4); S²D² (Fig. 5) |
-| BibTeX | Copy-to-clipboard citation block |
+| Header | Title, venue, authors, four resource slots (one live link, three inert labels) |
+| **The semantic scene completion challenge** (`#task`) | Paper Fig. 1(a): a sparse sweep at ~1% occupancy and the dense scene to be predicted. A reader new to the subfield learns the problem from a figure before any prose |
+| Abstract (`#abstract`) | The paper's abstract **verbatim**, below the media — measured convention: of 12 top project pages diffed against their arXiv text, 10 reproduce it verbatim or near-verbatim, **0 rewrite it**, and all sit below the first figure |
+| **Results** (`#results`) | Paper Fig. 6 qualitative comparison, then a generated bar chart of hidden-test mIoU. The chart plots **all ten** test rows of paper Table I; the three outside the headline predicate (TALoS, our D₄ row, and SCPNet at four sweeps — the longest bar) carry a leading `‡`, explained on the second line of the x-axis. The paper marks those same three rows individually rather than with one symbol (`‡` four sweeps, `‖` test-time adaptation, `§` D₄ ensemble), so the single `‡` is this chart's simplification, not Table I's notation |
+| Interactive comparison (`#viewer`) | Three.js viewer over four views (input / base / ours / ground truth) on two rare-class frames. Its legend states the configuration the chips come from — N=4, +D₄ TTA, outside the headline predicate — and `check_page.py` asserts that string is present |
+| **How it works** (`#method`) | The three contributions as figures: PS³ (Fig. 2) and what the corpus does about the long tail (Fig. 9); SGSC (Fig. 4); S²D² (Fig. 5) |
+| Rare classes, before and after (`#gallery`) | Paper Fig. 10: six validation scenes, base against refinement, one per rare class |
+| Acknowledgements (`#ack`) | Funding, the provenance of the renders, and the SemanticKITTI licence and attribution (see *Third-party data*) |
+| BibTeX (`#bibtex`) | Copy-to-clipboard citation block for this paper, plus the two dataset citations SemanticKITTI requires |
 
 Ordering and length follow measurement, not taste. Across 15 accepted project pages the
 median is **363–379 visible words**; this page was 1,561 and is now ~760. **0 of 15 use an
@@ -107,13 +121,20 @@ default the checks below expect.
 
 ## Checks
 
-Two gates, each with a `--selftest` that injects one fault per assertion and
-requires it to trip. A check never seen failing is not evidence of anything.
+Three gates, each with a `--selftest` that injects faults and requires each one to trip
+the check it names. A check never seen failing is not evidence of anything — and not
+every check has an arm yet, so the counts are stated rather than implied:
+
+| Gate | checks | `--selftest` arms |
+|---|---|---|
+| `check_artifact.py` | 6 | **6 — complete.** `no console errors` and `parity with the served page` had none until this round; the parity arm is guarded by a clean-baseline run, since with the served page down parity fails on every arm and for none of their own reasons |
+| `check_content.py` | 17 | 8 + an allowlist control. Unarmed: `README citation title is the paper's title`, `chart's best ELIGIBLE bar is the headline`, `every in-page link resolves to a real id` |
+| `check_page.py` | 47 assertions over 25 names | 18. Unarmed: `watchdog fires while three.js is held`, `late-arriving viewer still draws`, `truthful aria-label restored`, `no-JS still shows every figure`, `print hides the copy button`, `scene failure offers a link`, `viewer still draws under reduced motion` |
 
 ```bash
-python3 -m http.server 8099 &          # check_page.py needs the site served
+python3 -m http.server 8099 &          # check_page.py, and check_artifact.py's parity check, need the site served
 python tools/check_page.py             # behaviour: structure, figures, viewer, a11y
-python tools/check_page.py --selftest   # ~3 min: proves all 15 arms can fail
+python tools/check_page.py --selftest   # ~3 min: proves all 18 arms can fail
 
 python tools/check_content.py           # site claims vs the built paper
 python tools/check_content.py --selftest
@@ -122,11 +143,14 @@ python tools/check_artifact.py          # the BUILT single-file page, under a ha
 python tools/check_artifact.py --selftest
 ```
 
-`check_page.py` covers three viewports plus the print, no-JS, slow-load and
-reduced-motion contexts, and deliberately pins earlier fixes: the viewer legend still discloses
-its configuration, excluded table rows stay italic so the distinction survives
-forced-colors mode, all text clears WCAG AA contrast measured on the rendered page,
-and console errors are visible.
+`check_page.py` emits **47 assertions over 25 distinct names** — 11 per viewport across
+three viewports, plus the print, no-JS, slow-load, reduced-motion, scene-failure and
+link-hover/focus contexts — and deliberately pins earlier fixes: the reading order, the
+viewer legend still discloses the configuration its IoU chips come from, all text clears
+WCAG AA contrast measured on the rendered page (not read off the tokens), a late-arriving
+three.js retracts the watchdog's failure claim, the scene-failure link lands on the
+qualitative figure, and console errors are visible. It no longer checks table styling:
+the page has carried no HTML table since the results became a chart.
 
 `check_artifact.py` gates the **output** of `build_standalone.py`, which the other two
 never see: they measure `localhost:8099` and the source tree, i.e. the build's input.
@@ -139,14 +163,31 @@ withholds). It loads the built document under a policy harsher than the document
 `tools/make_results_chart.py` regenerates the results figure from `data/results.json`
 and writes a manifest beside it; `check_content.py` compares that manifest against the
 data, so editing the numbers without regenerating the chart fails the gate rather than
-leaving a stale picture of the results on the page.
+leaving a stale picture of the results on the page. That comparison is against the
+**unfiltered** test split plus an explicit (currently empty) `CHART_OMISSIONS`
+allowlist. It used to apply the same filter the generator did, which is how the chart
+came to drop SCPNet at four sweeps — 47.5, the one published test row above ours — with
+every check still green. Omitting a row now means naming it in that allowlist, and the
+allowlist now bites in **both** places it has to: the row-by-row comparison and the
+`every test row is plotted unless allowlisted` check, which counted an allowlisted row as
+unplotted and so turned red on the very diff it was meant to make reviewable. Two
+`--selftest` arms pin that: deleting a row from a healthy manifest must fail the check,
+and the same deletion, named in `CHART_OMISSIONS`, must be accepted.
 
 `check_content.py` compares the page against `/workspace/GSSC-paper/pdf`
-(`--paper` to point elsewhere): every "Source: paper Fig. N / Table X" caption
-must resolve to a float whose caption is about the same thing, and every number
-in the prose and `data/*.json` must appear in the paper. **Run it after any float
-moves in the manuscript** — moving one float renumbers every figure after it, and
-these captions cite six floats by number.
+(`--paper` to point elsewhere): every caption's `data-paper-float` citation must resolve
+to a float whose real caption is about the same thing, the chart's manifest must match
+`data/results.json` row for row, and every number in the page — prose **and** `alt` /
+`aria-label` / `title` / `<meta content>` attribute text, which the sweep used to drop
+along with the tags — plus `data/*.json` must appear in the paper or supplement.
+**Run it after any float moves in the manuscript** — moving one float renumbers every
+figure after it, and these captions cite eight floats by number.
+
+Two coverage limits are stated in that file rather than left implicit: numbers rendered
+*inside* images are invisible to it, and `<pre>` citation blocks are exempt from the
+numeric sweep because the page must carry SemanticKITTI's required references and
+"CVPR 2012, pp. 3354–3361" is not in our reference list. The exemption is itself gated —
+a `<pre>` that is not a citation block fails the run — so it cannot quietly widen.
 
 ## Regenerating the 3D viewer's PLY assets
 
@@ -168,8 +209,11 @@ Provenance worth knowing before you regenerate: the `*_s2d2.ply` files are the
 **N=4, +D₄-TTA** prediction, verified by recomputing per-class IoU across every
 local prediction variant — it is the only one reproducing Fig. 6's own chips
 (frame 003096: TP 2724 / FP 1956 → 56.9%; frame 001417: 255 / 94 → 62.3%). That
-configuration sits outside the paper's headline predicate, which is why the
-viewer's legend says so on the page.
+configuration sits outside the paper's headline predicate, which is why the viewer's
+legend names it — "Chips: N=4, +D₄ TTA — outside the headline predicate" — and why
+`check_page.py` asserts that disclosure is present. It was removed once, silently, and
+this README went on claiming it was gated; do not remove it again without removing the
+assertion and its selftest arm in the same commit.
 
 Regenerate from source voxel data:
 
@@ -180,6 +224,24 @@ python tools/export_ply.py
 The exporter reads SemanticKITTI GT voxel labels, SCPNet pre-computed
 predictions, and our S²D² label outputs, colour-codes each voxel by class,
 and writes ASCII PLY files ready for `three.js` `PLYLoader`.
+
+### Third-party data — read before republishing anything under `assets/`
+
+`*_gt.ply` are voxelised, class-recoloured exports of SemanticKITTI's ground-truth
+annotations (seq 08, frames 003096 and 001417), and the qualitative and gallery figures
+render the same annotations. That is **modified SemanticKITTI material, redistributed**,
+not merely a picture of it: the point clouds are machine-readable and ship inside the
+single-file build as well.
+
+SemanticKITTI is licensed **CC BY-NC-SA 4.0**
+(<https://creativecommons.org/licenses/by-nc-sa/4.0/>): credit the creators, non-commercial
+use only, share-alike, and indicate that the material was modified. Its
+[dataset page](http://www.semantic-kitti.org/dataset.html) additionally requires citing
+**both** the SemanticKITTI paper (Behley et al., ICCV 2019) and the original KITTI Vision
+Benchmark (Geiger et al., CVPR 2012). The page carries all of this in its Acknowledgements
+and both BibTeX entries in the BibTeX section; naming "SemanticKITTI" in prose is not the
+attribution the licence asks for, which is why it says the rest explicitly. Keep that
+notice with the assets if either is ever moved, re-exported or vendored elsewhere.
 
 ## Author visibility
 
@@ -217,12 +279,17 @@ returns 404, and the honest inert state is deliberate.
 - **Main comparison**: `data/results.json` — 17 rows across both splits, mirroring
   paper Table I. Keys: `eval` (`test`|`val`), `ours`, and `excluded` for rows
   outside the paper's predicate (TALoS, our D₄ row, the four-sweep entry). There is
-  no `best` flag: `scripts/main.js` COMPUTES the best eligible cell per split, so
-  the table cannot drift from the predicate it claims to apply. Never hand-bold a
-  row, and never mark an `excluded` row as best — the 39.2 D₄ row is excluded.
-- **Per-class table**: `data/perclass.json` — paper Table II: base IoU plus both
+  no `best` flag and nothing in the browser reads this file: `tools/make_results_chart.py`
+  draws every test row from it, and `tools/check_content.py` RECOMPUTES which row is the
+  best eligible one and fails if that is not 38.8. Never hand-bold a row, and never mark
+  an `excluded` row as best — the 39.2 D₄ row is excluded. **Editing this file means
+  re-running the generator**, or the manifest check fails on the next run.
+- **Per-class figures**: `data/perclass.json` — paper Table II: base IoU plus both
   the Released Δ and the Retrain Δ, the VRU-IoU row, and `disclaimed: true` on
-  motorcyclist, whose released +8.3 does not reproduce (retrain recovers +0.3).
+  motorcyclist, whose released +8.3 does not reproduce (retrain recovers +0.3). Nothing
+  renders this file any more — the per-class table came off the page with the other one.
+  It is kept because `check_content.py` still sweeps its numbers against the paper, so it
+  stays a live claim: correct it if the manuscript's Table II moves.
 
 ## Deploying to GitHub Pages
 
@@ -256,10 +323,17 @@ jobs:
 ## Tech stack
 
 - **three.js** r160, import map from unpkg, for the voxel viewer
-- **Google Fonts**: IBM Plex Sans only (400/500/600). Monospace comes from the
-  system stack; the display serif and JetBrains Mono were dropped in the rebuild
+- **Google Fonts**: Hanken Grotesk (200/400/500), the body face, and the only webfont
+  fetched from a third party
+- **Display face**: CMU Serif, **self-hosted** at `assets/fonts/cmu-serif-roman.woff2`
+  and vendored deliberately — the single-file build has to render under a CSP that
+  admits no font host but Google Fonts, which does not serve Computer Modern. Licence
+  and provenance in `assets/fonts/NOTICE.md`. Monospace comes from the system stack
 - Vanilla CSS, tokens in `styles/tokens.css`, everything else in `styles/site.css`
-- Vanilla JS: `fetch` for the two JSON tables, Clipboard API for BibTeX. No build step
+- Vanilla JS, no build step: `scripts/main.js` is the BibTeX copy button plus a watchdog
+  for a three.js that never arrives, and `scripts/viewer3d.js` is the viewer. **Neither
+  fetches `data/*.json`** — the results tables became a generated figure, so that JSON is
+  now read at build time by `tools/make_results_chart.py`, not in the browser
 - No tracker, no analytics, no cookies. Two third-party fetches: the webfont and three.js
 
 ## Accessibility notes
@@ -281,7 +355,11 @@ jobs:
   `role="application"`, which would claim to handle keyboard input it does not.) The
   label is rewritten on every failure path, and `#viewer3d-loading` is a
   `role="status" aria-live="polite"` region so failures are announced, not just drawn
-- Every table has a `<caption>`; numeric cells use `tabular-nums`
+- The page carries no HTML table; the results are a generated figure with a
+  figcaption, and all ten of its bars are named with their values in the image's
+  `alt` text, so a screen-reader user gets the same numbers a sighted reader does.
+  Checked by counting: each of the ten `mIoU` values in `data/results.json` whose
+  `eval` is `test` appears in that `alt` string
 - Contrast: every text/background pair used meets WCAG AA on white. Disabled link
   labels were lifted from 2.61:1 to 4.83:1; state is carried by the dashed border
 
@@ -292,6 +370,7 @@ s2d2_website/
 ├── index.html
 ├── .nojekyll
 ├── README.md
+├── LICENSE              MIT — this page's own code (see Publication status)
 ├── styles/
 │   ├── tokens.css       design tokens (palette, type, measures)
 │   └── site.css         everything else (replaces base/layout/components)
@@ -303,22 +382,34 @@ s2d2_website/
 │   └── perclass.json    val per-class IoU table
 ├── assets/
 │   ├── favicon.svg
-│   ├── figures/         PNG+WebP exports of paper Fig 2 / Fig 5 / Fig 6 / Fig 12
+│   ├── og-card.jpg
+│   ├── fonts/           cmu-serif-roman.woff2 + NOTICE.md (licence, provenance)
+│   ├── figures/         PNG+WebP for every figure the page shows — paper Fig 1(a), 2,
+│   │                    4, 5, 6, 9, 10 — plus results_chart.{png,webp,json}, generated
 │   └── ply/             8 PLY point clouds (2 scenes × 4 views)
 └── tools/
-    ├── export_ply.py       voxel-grid → colored PLY exporter
-    ├── check_page.py       39 behaviour assertions + --selftest
-    ├── check_content.py    site claims vs the built paper + --selftest
-    └── push_to_github.sh   publish (gated: see Publication status)
+    ├── export_ply.py           voxel-grid → colored PLY exporter
+    ├── make_results_chart.py   data/results.json → the results figure + its manifest
+    ├── build_standalone.py     the site → one self-contained HTML file
+    ├── check_page.py           47 behaviour assertions, 25 names + --selftest (18 arms)
+    ├── check_content.py        site claims vs the built paper + --selftest (8 arms + 1 control)
+    ├── check_artifact.py       the built single-file page under a harsh CSP + --selftest (6 arms)
+    └── push_to_github.sh       publish (gated: see Publication status)
 ```
+
+Nothing in `assets/figures/` is unreferenced. Ten orphaned exports — paper Fig. 1(c)/(d)
+and the Fig. 12 failure triptych, 2.3 MB left behind when those panels came off the page
+— were deleted rather than shipped as publicly fetchable files no caption explains. If a
+limitations figure goes back on the page, re-export it then.
 
 ## Develop locally
 
-The page is build-free — just serve the repo root over HTTP. Opening
-`index.html` directly via `file://` will NOT populate the leaderboard or
-per-class tables, because `scripts/main.js` loads `data/results.json` and
-`data/perclass.json` via `fetch()`, which browsers block over the local
-file scheme.
+The page is build-free — just serve the repo root over HTTP. Opening `index.html`
+directly via `file://` still renders the text and every figure (the results are a static
+image now, not a hydrated table), but the **3D viewer will not run**: browsers refuse ES
+module scripts over the file scheme, and the viewer's point clouds are fetched. The page
+degrades to its documented failure note rather than breaking silently, and that path is
+gated by `check_page.py`.
 
 ```bash
 cd GSSC-project-page

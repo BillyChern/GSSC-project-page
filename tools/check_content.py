@@ -16,8 +16,21 @@ Two arms:
    ASCII-hyphen search reports a present number missing; and `bool` is a subclass of
    `int` in Python, so JSON true/false leak into a naive numeric walk as fake claims.
 
-Numbers rendered INSIDE images are invisible here (assets/og-card.jpg asserts fourteen);
-they were checked by hand and are noted in the project memory.
+   ATTRIBUTE TEXT IS SWEPT TOO. It was not: stripping tags with <[^>]+> takes every
+   attribute with them, so no number in an alt, aria-label, title or <meta content>
+   was ever checked -- and alt text is exactly where a screen-reader user gets a
+   figure's numbers. Twelve of the page's fifteen attribute numbers were invisible
+   while this file printed "all N numeric claims appear in the paper".
+
+Coverage limits, stated rather than assumed:
+ - Numbers rendered INSIDE images are invisible here (assets/og-card.jpg asserts
+   fourteen); they were checked by hand and are noted in the project memory.
+ - <pre> citation blocks are excluded, because the page must carry the SemanticKITTI
+   licence's required references and those are OTHER PEOPLE'S papers: "CVPR 2012,
+   pp. 3354-3361" cannot be expected to appear in our own reference list. The exclusion
+   is not blind -- check_code_blocks() fails if any <pre> on the page is not a citation
+   block, so the exemption cannot quietly widen to cover a results table -- and the one
+   block that matters, our own BibTeX entry, is gated separately by check_citation().
 
 Usage:
     python tools/check_content.py
@@ -61,7 +74,40 @@ def normalise(text: str) -> str:
     return re.sub(r"[\s ]+", " ", text)
 
 
-def site_prose() -> str:
+# Attributes that carry text a reader is shown -- by a screen reader, on hover, or in a
+# social card. Named individually rather than swept by pattern so a new attribute has to
+# be added deliberately. `title` is matched with a guard so data-title does not qualify.
+SWEPT_ATTRS = ("alt", "aria-label", "title")
+
+# The only <meta> numbers on the page that are not claims: the social card's pixel
+# dimensions. Named, not pattern-filtered -- a filter is where the next defect hides,
+# and a new meta claim must be swept by default rather than exempted by resemblance.
+UNSWEPT_META = {"og:image:width", "og:image:height"}
+
+
+def attribute_text(html: str) -> str:
+    """Text carried in attributes, which tag-stripping deletes along with the tag."""
+    out: list[str] = []
+    for m in re.finditer(r"<meta\b([^>]*)>", html, re.I):
+        attrs = m.group(1)
+        key = re.search(r'(?:property|name)\s*=\s*"([^"]*)"', attrs, re.I)
+        if key and key.group(1).strip().lower() in UNSWEPT_META:
+            continue
+        val = re.search(r'content\s*=\s*"([^"]*)"', attrs, re.I)
+        if val:
+            out.append(val.group(1))
+    for attr in SWEPT_ATTRS:
+        for m in re.finditer(rf'(?<![-\w]){attr}\s*=\s*"([^"]*)"', html, re.I):
+            out.append(m.group(1))
+    return " ".join(out)
+
+
+def code_blocks(html: str | None = None) -> list[str]:
+    html = html if html is not None else (SITE / "index.html").read_text(encoding="utf-8")
+    return [m.group(1) for m in re.finditer(r"<pre\b[^>]*>(.*?)</pre>", html, re.S | re.I)]
+
+
+def site_prose(html: str | None = None) -> str:
     # README.md is deliberately NOT swept. It repeats result numbers, but it also
     # documents the implementation -- CSS token widths, contrast ratios, an HTTP
     # status, a port -- and requiring those to appear in the paper produced 8 false
@@ -69,11 +115,15 @@ def site_prose() -> str:
     # gate, which is where defects hide. Its result numbers duplicate the page's and
     # are swept there; they were also checked directly once (107 ms, 3.23 FPS: both
     # present). Re-check by hand if the README ever states a result the page does not.
-    html = (SITE / "index.html").read_text(encoding="utf-8")
+    html = html if html is not None else (SITE / "index.html").read_text(encoding="utf-8")
     # Drop <script>/<style> first: tag-stripping alone leaves the importmap behind, and
     # "three@0.160.0" is a dependency version, not a numeric claim about results.
     html = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.S | re.I)
-    return normalise(htmllib.unescape(re.sub(r"<[^>]+>", " ", html)))
+    attrs = attribute_text(html)
+    # Citation blocks carry third-party years and page ranges; see the module docstring,
+    # and check_code_blocks() for the assertion that keeps this exemption honest.
+    html = re.sub(r"<pre\b[^>]*>.*?</pre>", " ", html, flags=re.S | re.I)
+    return normalise(htmllib.unescape(re.sub(r"<[^>]+>", " ", html) + " " + attrs))
 
 
 def captions(html: str | None = None) -> list[tuple[str, str]]:
@@ -128,9 +178,9 @@ def check_provenance(paper: str, caps) -> list[tuple[str, bool, str]]:
     return results
 
 
-def site_numbers(extra_prose: str = "") -> set[str]:
+def site_numbers(extra_prose: str = "", html: str | None = None) -> set[str]:
     nums: set[str] = set()
-    for m in re.finditer(r"-?\d+(?:,\d{3})*(?:\.\d+)?", site_prose() + " " + extra_prose):
+    for m in re.finditer(r"-?\d+(?:,\d{3})*(?:\.\d+)?", site_prose(html) + " " + extra_prose):
         nums.add(m.group(0))
 
     def walk(o):
@@ -162,11 +212,11 @@ def paper_title(paper_dir: Path) -> str | None:
     page got "fixed" into a wrong one. Anchor on the artifact, not on a derivative.
     """
     with fitz.open(paper_dir / "main.pdf") as doc:
-        lines = [l.strip() for l in doc[0].get_text().splitlines()]
-    for l in lines:
-        if not l or l.upper().startswith("IEEE TRANSACTIONS") or l.isdigit():
+        lines = [ln.strip() for ln in doc[0].get_text().splitlines()]
+    for ln in lines:
+        if not ln or ln.upper().startswith("IEEE TRANSACTIONS") or ln.isdigit():
             continue
-        return normalise(l)
+        return normalise(ln)
     return None
 
 
@@ -203,29 +253,79 @@ def check_citation(paper_dir: Path, title_override: str | None = None) -> list[t
     ]
 
 
-def check_chart(paper_dir: Path) -> list[tuple[str, bool, str]]:
+# Test rows of data/results.json the chart is allowed NOT to plot, by method name.
+# It is EMPTY, and that is the point. This gate used to recompute its expectation with
+# the same `"#frame=4" not in method` filter the generator applied, so the one row the
+# chart dropped -- SCPNet at four sweeps, 47.5, the only published test row above ours --
+# was dropped from the expectation too, and the check passed while the picture was
+# missing it. A shared filter is a gate agreeing with the thing it is gating. Omitting a
+# row now means naming it here, in a diff someone reviews.
+CHART_OMISSIONS: set[str] = set()
+
+# The row selftest() deletes to prove the row-drop check can go red, and re-adds to the
+# allowlist to prove an allowlisted omission is accepted. It is the row that was actually
+# dropped once: SCPNet at four sweeps, the only published test row above ours.
+DROP_FIXTURE = "SCPNet at #frame=4"
+
+
+def check_chart(paper_dir: Path, manifest=None,
+                omissions: set[str] | None = None) -> list[tuple[str, bool, str]]:
     """The results chart replaced two HTML tables. Nothing in the DOM can now be
     asserted about the predicate, so the check moves here: the chart's manifest must
-    match what data/results.json says, or the page is showing a stale picture."""
-    man_path = SITE / "assets" / "figures" / "results_chart.json"
-    if not man_path.exists():
-        return [("results chart manifest exists", False, "run tools/make_results_chart.py")]
-    manifest = json.loads(man_path.read_text(encoding="utf-8"))["rows"]
-    rows = [r for r in json.loads((SITE / "data" / "results.json").read_text(encoding="utf-8"))
-            if r.get("eval") == "test" and r.get("mIoU") is not None
-            and "#frame=4" not in r["method"]]   # dropped from the chart, see the generator
+    match what data/results.json says, or the page is showing a stale picture.
+
+    `manifest` and `omissions` exist so selftest() can run this against a fixture. Until
+    they did, the row-drop arm below could not be written at all, and the one check
+    standing between a silent omission and the public page had never been seen failing.
+    """
+    if manifest is None:
+        man_path = SITE / "assets" / "figures" / "results_chart.json"
+        if not man_path.exists():
+            return [("results chart manifest exists", False, "run tools/make_results_chart.py")]
+        manifest = json.loads(man_path.read_text(encoding="utf-8"))["rows"]
+    omit = CHART_OMISSIONS if omissions is None else omissions
+    all_rows = [r for r in json.loads((SITE / "data" / "results.json").read_text(encoding="utf-8"))
+                if r.get("eval") == "test" and r.get("mIoU") is not None]
+    rows = [r for r in all_rows if r["method"].strip() not in omit]
     rows.sort(key=lambda r: r["mIoU"])
     expect = [{"method": r["method"].strip(), "mIoU": r["mIoU"],
                "excluded": bool(r.get("excluded")), "ours": bool(r.get("ours"))} for r in rows]
+    plotted = {r["method"].strip() for r in manifest}
+    # The allowlist has to bite HERE too, not only in `expect`. It did not: a row named in
+    # CHART_OMISSIONS was still counted unplotted, so the documented one-line way to omit a
+    # row -- name it in a diff someone reviews -- turned the gate red anyway, and the check
+    # called "unless allowlisted" had no allowlist in it. The control arm in selftest()
+    # pins the repaired behaviour.
+    unplotted = [m for m in (r["method"].strip() for r in all_rows)
+                 if m not in plotted and m not in omit]
     best = max((r["mIoU"] for r in rows if not r.get("excluded")), default=None)
     top = max((r["mIoU"] for r in rows), default=None)
     return [
         ("results chart matches results.json", manifest == expect,
-         f"{len(manifest)} plotted vs {len(expect)} in data"),
+         f"{len(manifest)} plotted vs {len(expect)} expected"),
+        ("every test row is plotted unless allowlisted", not unplotted,
+         ", ".join(unplotted) or (f"{len(all_rows)} test rows, " + (
+             f"{len(omit)} allowlisted: {', '.join(sorted(omit))}" if omit else "none omitted"))),
         ("chart's best ELIGIBLE bar is the headline, not the largest",
          best == 38.8 and top != best,
          f"best eligible {best}, largest overall {top}"),
     ]
+
+
+def check_code_blocks(html: str | None = None) -> list[tuple[str, bool, str]]:
+    """Keep the numeric sweep's <pre> exemption from widening.
+
+    site_prose() drops <pre> blocks because the page has to carry the SemanticKITTI
+    licence's required references, whose years and page ranges are not in our paper.
+    That is only safe while every <pre> on the page IS a citation block, so this asserts
+    it rather than trusting it -- an exemption nobody re-checks is how a claim ends up
+    somewhere no gate can see it.
+    """
+    blocks = code_blocks(html)
+    bad = [normalise(re.sub(r"<[^>]+>", " ", b)).strip()[:44]
+           for b in blocks if "@" not in b or "title" not in b]
+    return [("every <pre> block is a citation block, so the numeric exemption holds",
+             not bad, "; ".join(bad[:3]) or f"{len(blocks)} citation block(s)")]
 
 
 # Every in-page anchor the site may point at, and what each one is FOR. An allowlist,
@@ -284,13 +384,15 @@ def check_numbers(paper: str, nums: set[str]) -> list[tuple[str, bool, str]]:
 
 
 def run(paper_dir: Path, caps=None, extra_prose="", title_override=None,
-        anchors=None) -> list[tuple[str, bool, str]]:
+        anchors=None, html=None, manifest=None,
+        omissions: set[str] | None = None) -> list[tuple[str, bool, str]]:
     paper = normalise(paper_text(paper_dir))
     return (check_provenance(paper, caps if caps is not None else captions())
             + check_citation(paper_dir, title_override)
-            + check_chart(paper_dir)
+            + check_chart(paper_dir, manifest, omissions)
             + check_anchors(anchors)
-            + check_numbers(paper, site_numbers(extra_prose)))
+            + check_code_blocks(html)
+            + check_numbers(paper, site_numbers(extra_prose, html)))
 
 
 def gate(paper_dir: Path) -> int:
@@ -301,6 +403,42 @@ def gate(paper_dir: Path) -> int:
         print(f"  {'PASS' if ok else 'FAIL'}  {name}" + ("" if ok else f"  -> {detail}"))
     print(f"\n{'FAILED' if failures else 'OK'}: {failures} failing check(s)")
     return 1 if failures else 0
+
+
+def _inject_alt(prefix: str) -> str:
+    """index.html with `prefix` prepended to the results chart's alt text.
+
+    A fault that silently fails to modify anything is a fault that always passes, so
+    this raises instead of returning the file unchanged.
+    """
+    html = (SITE / "index.html").read_text(encoding="utf-8")
+    needle = 'alt="Horizontal bar chart'
+    if needle not in html:
+        raise AssertionError(f"selftest fault is stale: {needle!r} is no longer in index.html")
+    return html.replace(needle, f'alt="{prefix}Horizontal bar chart', 1)
+
+
+def _chart_manifest(drop: str | None = None) -> list[dict]:
+    """A HEALTHY chart manifest, built from data/results.json, optionally missing one row.
+
+    Built rather than copied: a fixture cloned from the shipped file would freeze whatever
+    that file happens to say, so the arm would be asserting today's state instead of a
+    fault. Here the only difference between the healthy fixture and the faulty one is the
+    deletion, and selftest() runs the healthy one first to prove the gate is green on it.
+
+    A deletion that deletes nothing always passes, so an unknown `drop` raises.
+    """
+    rows = [r for r in json.loads((SITE / "data" / "results.json").read_text(encoding="utf-8"))
+            if r.get("eval") == "test" and r.get("mIoU") is not None]
+    rows.sort(key=lambda r: r["mIoU"])
+    man = [{"method": r["method"].strip(), "mIoU": r["mIoU"],
+            "excluded": bool(r.get("excluded")), "ours": bool(r.get("ours"))} for r in rows]
+    if drop is None:
+        return man
+    kept = [r for r in man if r["method"] != drop]
+    if len(kept) == len(man):
+        raise AssertionError(f"selftest fault is stale: no test row named {drop!r} to drop")
+    return kept
 
 
 def selftest(paper_dir: Path) -> int:
@@ -333,6 +471,21 @@ def selftest(paper_dir: Path) -> int:
         ("BibTeX title longer than the paper's", "title",
          dict(title_override="Generative Semantic Scene Completion through Modeling "
                              "the Underlying Geometry and Semantics in Point Clouds")),
+        # Attribute text was invisible to the sweep for the whole life of this file, so
+        # this arm exists to prove it no longer is. It injects into an ALT, the channel
+        # a screen-reader user reads the figure's numbers from.
+        ("fabricated number in an alt attribute", "numeric claims",
+         dict(html=_inject_alt("99.97 percent. "))),
+        # The defect this gate was written for and had never been seen catching: the
+        # chart quietly stops plotting the one published test row above ours. The
+        # fixture is healthy apart from that one deletion (see _chart_manifest).
+        ("results row dropped from the chart with no allowlist entry", "is plotted",
+         dict(manifest=_chart_manifest(drop=DROP_FIXTURE))),
+        # And the exemption that pays for the licence citations: a <pre> that is not a
+        # citation block must fail, or the exemption has quietly widened.
+        ("non-citation <pre> block on the page", "citation block",
+         dict(html=(SITE / "index.html").read_text(encoding="utf-8").replace(
+             "</main>", "<pre>headline 99.97</pre></main>", 1))),
     ]
     # A fault is only evidence against a clean baseline. If the gate is already failing,
     # every arm "trips" for the wrong reason.
@@ -340,6 +493,13 @@ def selftest(paper_dir: Path) -> int:
     if baseline:
         print(f"  BASELINE NOT CLEAN: {len(baseline)} check(s) already failing -- "
               f"{'; '.join(baseline[:3])}")
+        return 1
+    # The chart arm injects a fixture, so the fixture needs its own clean baseline: if
+    # the healthy manifest already failed, the deletion would prove nothing.
+    unhealthy = [n for n, ok, _ in run(paper_dir, manifest=_chart_manifest()) if not ok]
+    if unhealthy:
+        print(f"  CHART FIXTURE NOT HEALTHY: {len(unhealthy)} check(s) failing on the "
+              f"undeleted manifest -- {'; '.join(unhealthy[:3])}")
         return 1
     silent = 0
     for label, expect, kwargs in cases:
@@ -350,9 +510,23 @@ def selftest(paper_dir: Path) -> int:
             silent += 1
         note = "" if tripped else f"   (expected a check naming {expect!r}; got {hits or 'nothing'})"
         print(f"  {'TRIPPED ' if tripped else 'SILENT  '} {label}{note}")
-    print(f"\n{'SELFTEST FAILED' if silent else 'SELFTEST OK'}: "
-          f"{len(cases) - silent}/{len(cases)} faults detected")
-    return 1 if silent else 0
+    # Positive control on the allowlist, not a fault: the SAME deletion, named in
+    # CHART_OMISSIONS, must be ACCEPTED. Without this the arm above could be satisfied by
+    # a check that simply always fails on any omission, and the documented reviewable
+    # one-line lever -- name the row in a diff -- would not exist.
+    ctl = check_chart(paper_dir, manifest=_chart_manifest(drop=DROP_FIXTURE),
+                      omissions={DROP_FIXTURE})
+    ctl_red = [n for n, ok, _ in ctl if not ok]
+    if ctl_red:
+        print(f"  CONTROL FAILED  an ALLOWLISTED omission still turns the gate red "
+              f"-- {'; '.join(ctl_red)}")
+    else:
+        print(f"  CONTROL OK      the same omission, allowlisted, is accepted "
+              f"({len(ctl)} chart check(s) green)")
+    print(f"\n{'SELFTEST FAILED' if silent or ctl_red else 'SELFTEST OK'}: "
+          f"{len(cases) - silent}/{len(cases)} faults detected, "
+          f"allowlist control {'FAILED' if ctl_red else 'passed'}")
+    return 1 if (silent or ctl_red) else 0
 
 
 if __name__ == "__main__":

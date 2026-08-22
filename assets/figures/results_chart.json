@@ -53,6 +53,12 @@
    "mIoU": 39.2,
    "excluded": true,
    "ours": true
+  },
+  {
+   "method": "SCPNet at #frame=4",
+   "mIoU": 47.5,
+   "excluded": true,
+   "ours": false
   }
  ]
 }

@@ -8,13 +8,29 @@ image of the paper's table. So the medium changes and the evidence stays.
 Generating from data/results.json rather than hand-drawing keeps the numbers honest, and
 tools/check_content.py gates the manifest this writes against that JSON.
 
+EVERY test row of the paper's Table I is plotted, including the ones outside the headline
+predicate. An earlier version silently dropped one of them -- SCPNet at #frame=4, 47.5 --
+on the argument that at 47.5 it towered over the single-sweep bars and needed a disclaimer
+to be read at all. That argument does not survive measurement (47.5/39.2 = 1.21x, so the
+other bars lose 17.5% of their length, not their legibility), and it applied to exactly one
+row: the only published test row above ours. The other out-of-predicate row, TALoS at 37.9,
+stayed. An omission that runs one way is the thing a reader who later opens Table I reads as
+cherry-picking, so the row is back and the chart now shows the table it is cited against.
+
 WHAT THIS CHART DOES **NOT** DO, because an earlier docstring here claimed it did and the
 page's caption was then written from the docstring rather than from the picture: excluded
-rows are NOT hatched and NOT greyed. Both of our bars carry the accent, by request, and
-the D4-TTA row is the longest bar on the chart. Nothing in the drawing marks it as outside
-the predicate -- that job belongs to its own axis label, which names the configuration
-(N=4, +D4 TTA), and to the figure caption, which says the taller bar does not count and
-why. If you ever change that division of labour, change the caption in the same commit.
+rows are NOT hatched and NOT greyed. Both of our bars carry the accent, by request. What
+marks a row as outside the predicate is its AXIS LABEL: a leading double-dagger, plus the
+configuration spelled out in words (four sweeps / test-time adaptation / N=4, +D4 TTA). The
+double-dagger is explained on the second line of the x-axis label. It is THIS CHART'S mark,
+not a quotation of the paper's: Table I gives each of the three rows a symbol of its own --
+‡ four sweeps, ‖ test-time adaptation, § the D4 ensemble, per its
+"Excluded from bolding" footnote -- so any wording that calls the single dagger "the paper's
+mark" is false. Collapsing three symbols to one is a fine simplification; describing it as
+the paper's notation is not. If you ever change that division of labour, change
+index.html's figcaption AND alt text AND README.md's "What's on the page" row in the same
+commit -- naming only the caption is how README.md:80 spent three commits claiming a
+hatching this chart had stopped drawing.
 
 Usage:  python tools/make_results_chart.py
 """
@@ -36,19 +52,25 @@ ACCENT, TEXT, MUTED, RULE, GROUND = "#B3261E", "#2E3338", "#6B7280", "#E3E5E8", 
 
 
 def main() -> None:
+    # No filter. Every test row in the data is plotted; tools/check_content.py asserts
+    # that against the UNFILTERED data plus an explicit (currently empty) omission
+    # allowlist, so a future silent drop fails the gate instead of being mirrored by it.
     rows = [r for r in json.loads((SITE / "data" / "results.json").read_text(encoding="utf-8"))
-            if r.get("eval") == "test" and r.get("mIoU") is not None
-            # The four-sweep entry is dropped: at 47.5 it towered over every single-sweep
-            # bar and needed a disclaimer to be read at all, which cost more than it told.
-            and "#frame=4" not in r["method"]]
+            if r.get("eval") == "test" and r.get("mIoU") is not None]
     rows.sort(key=lambda r: r["mIoU"])
 
     # Name what each method IS rather than classifying it as (non-)comparable: a reader
     # who sees "test-time adaptation" can judge for themselves, and the configuration
     # that produced our higher bar is stated on the bar instead of in a footnote.
     RELABEL = {"TALoS": "TALoS  (test-time adaptation)",
-               "with D₄ ensemble (N=4)": "Ours + D₄ ensemble  (N=4, +D₄ TTA)"}
-    labels = [RELABEL.get(r["method"].strip(), r["method"].strip()) for r in rows]
+               "with D₄ ensemble (N=4)": "Ours + D₄ ensemble  (N=4, +D₄ TTA)",
+               "SCPNet at #frame=4": "SCPNet  (four sweeps)"}
+    # One double-dagger for all three out-of-predicate rows -- this chart's own mark,
+    # not the paper's (see the docstring) -- explained on the x-axis. It goes on ALL
+    # THREE including ours, so the mark reads as a property of the configuration and
+    # not as a way of discounting somebody else's number.
+    labels = ["\u2021 " * bool(r.get("excluded")) + RELABEL.get(r["method"].strip(), r["method"].strip())
+              for r in rows]
     vals = [r["mIoU"] for r in rows]
     excl = [bool(r.get("excluded")) for r in rows]
     ours = [bool(r.get("ours")) for r in rows]
@@ -71,7 +93,10 @@ def main() -> None:
         tick.set_color(TEXT)
         tick.set_fontweight("600" if o else "normal")
 
-    ax.set_xlabel("SemanticKITTI hidden-test mIoU (%)", fontsize=10, color=TEXT, labelpad=8)
+    ax.set_xlabel("SemanticKITTI hidden-test mIoU (%)\n"
+                  "\u2021 outside the headline predicate: multi-sweep, test-time adaptation, "
+                  "or ensembling",
+                  fontsize=10, color=TEXT, labelpad=8)
     ax.set_xlim(0, max(vals) * 1.14)
     ax.tick_params(axis="x", colors=MUTED, labelsize=9)
     ax.tick_params(axis="y", length=0)
