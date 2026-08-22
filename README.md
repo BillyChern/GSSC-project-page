@@ -44,7 +44,7 @@ and of `tools/push_to_github.sh` said *"Do NOT enable GitHub Pages until the pat
 filed"* — that instruction is now spent, and it is recorded here rather than silently
 deleted so nobody re-applies it from an old checkout.
 
-**TPAMI review is single-anonymous** (author, 2026-08-18): reviewers are anonymous to
+**Review here is single-anonymous** (author, 2026-08-18): reviewers are anonymous to
 the authors, authors are not anonymous to reviewers. Nothing about the submission
 requires this page to hide author identity, so the revealed default is correct and no
 blinding step is needed before release. See *Author visibility*.
@@ -188,7 +188,7 @@ everything behind it were removed** (author, 2026-08-19): `scripts/anon.js`,
 `body[data-anon]`, `.anon-note`, the paired `.identity-inline` / `.anon-inline`
 spans, and the gate check that exercised them.
 
-Two reasons. **TPAMI review is single-anonymous** (author, 2026-08-18) — authors are
+Two reasons. **Review here is single-anonymous** (author, 2026-08-18) — authors are
 visible to reviewers — so the control could not serve this submission. And it never
 delivered what its label implied: it hid on-page text only, while `og:url` and
 `og:image` hardcode `billychern.github.io`, crawlers need those absolute and ignore
@@ -331,10 +331,10 @@ checks above expect; stop later with `pkill -f "http.server 8099"`.
 ## Citation
 
 ```bibtex
-@article{chen2026gssc,
+@unpublished{chen2026gssc,
   title   = {Generative Semantic Scene Completion},
   author  = {Chen, Shi and Ge, Weifeng},
-  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence (under review)},
+  note    = {Under review},
   year    = {2026}
 }
 ```

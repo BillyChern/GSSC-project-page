@@ -73,7 +73,7 @@ a:hover, a:focus-visible { color: var(--accent-hover); text-decoration-color: va
 
 /* The author-visibility toggle and everything it drove (body[data-anon], .anon-note,
    .identity-inline / .anon-inline, scripts/anon.js) were REMOVED, not just hidden.
-   TPAMI review is single-anonymous -- authors are visible to reviewers -- so the
+   Review here is single-anonymous -- authors are visible to reviewers -- so the
    control could not serve a submission, and it was never blinding in any case:
    og:url and og:image carry the author's GitHub username and CSS cannot reach meta
    tags. A control that cannot do what its label implies is worse than no control.
