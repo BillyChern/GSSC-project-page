@@ -19,8 +19,9 @@ Two arms:
    ATTRIBUTE TEXT IS SWEPT TOO. It was not: stripping tags with <[^>]+> takes every
    attribute with them, so no number in an alt, aria-label, title or <meta content>
    was ever checked -- and alt text is exactly where a screen-reader user gets a
-   figure's numbers. Twelve of the page's fifteen attribute numbers were invisible
-   while this file printed "all N numeric claims appear in the paper".
+   figure's numbers. Every number carried only in an alt, aria-label, title or
+   <meta content> was invisible while this file printed "all N numeric claims
+   appear in the paper".
 
 Coverage limits, stated rather than assumed:
  - Numbers rendered INSIDE images are invisible here (assets/og-card.jpg asserts

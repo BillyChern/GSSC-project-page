@@ -54,8 +54,12 @@ What remains before going public is a judgement call, not a hold:
 - `github.com/BillyChern/GSSC-S2D2` (code) and the model/data releases are still 404.
   The page presents them as inert "on publication" labels rather than dead links, which
   is honest either way — but a reader arriving from the paper will look for them.
-- This repository's **history** still carries material the checkout does not (see below).
-  Decide the snapshot-vs-rewrite question before the repo becomes public.
+- This repository's **history has been rewritten and re-pushed**: the `.audit/` screenshots
+  it once carried are gone from the object graph. Measured 2026-08-23 —
+  `git rev-list --objects --all` lists 82 distinct paths and none under `.audit/`, and
+  `origin/main` is the same commit as local `HEAD`. A fresh clone therefore gets nothing the
+  checkout does not. (GitHub may still serve an unreachable blob to anyone who already knows
+  its SHA; that is a property of the forge, not of this history.)
 
 - Repository: <https://github.com/BillyChern/GSSC-project-page> (private)
 - Intended URL once released: <https://billychern.github.io/GSSC-project-page/>
@@ -128,7 +132,7 @@ every check has an arm yet, so the counts are stated rather than implied:
 | Gate | checks | `--selftest` arms |
 |---|---|---|
 | `check_artifact.py` | 6 | **6 — complete.** `no console errors` and `parity with the served page` had none until this round; the parity arm is guarded by a clean-baseline run, since with the served page down parity fails on every arm and for none of their own reasons |
-| `check_content.py` | 17 | 8 + an allowlist control. Unarmed: `README citation title is the paper's title`, `chart's best ELIGIBLE bar is the headline`, `every in-page link resolves to a real id` |
+| `check_content.py` | 17 | 8 arms + an allowlist control. Measured 2026-08-23 by running every arm and collecting the failing names: **6 of the 17 printed names** go red, plus 2 names that exist only under injection (`Fig. 99 exists in the paper`, and the numeric-claims check, whose name carries the live count so it reads `all 122...` when red and `all 121...` when clean — armed, despite never appearing red under its clean name). `check_provenance` is armed once (Fig. 6 → Fig. 2) and then runs unarmed over the other seven floats. Never seen failing: those seven `Fig. N / Table I is the float the caption describes` checks, `README citation title is the paper's title`, `chart's best ELIGIBLE bar is the headline`, and `every in-page link resolves to a real id` |
 | `check_page.py` | 47 assertions over 25 names | 18. Unarmed: `watchdog fires while three.js is held`, `late-arriving viewer still draws`, `truthful aria-label restored`, `no-JS still shows every figure`, `print hides the copy button`, `scene failure offers a link`, `viewer still draws under reduced motion` |
 
 ```bash
@@ -293,10 +297,9 @@ returns 404, and the honest inert state is deliberate.
 
 ## Deploying to GitHub Pages
 
-> **Ungated as of 2026-08-18** — the patent is approved. Before running these steps,
-> settle the git-history question in *Publication status*: enabling Pages on a repo
-> whose history holds 69 screenshots of an earlier, over-claiming version of this page
-> publishes that history to anyone who clones.
+> **Ungated as of 2026-08-18** — the patent is approved, and the 69 `.audit/` screenshots
+> of this page's over-claiming predecessor have been removed from the history and the repo
+> re-pushed (see *Publication status*), so enabling Pages no longer republishes them.
 
 1. Push this directory to the repo's default branch (`main`).
 2. Settings → Pages → Source = **Deploy from a branch**, branch = `main`, folder = `/ (root)`.
@@ -394,7 +397,7 @@ s2d2_website/
     ├── check_page.py           47 behaviour assertions, 25 names + --selftest (18 arms)
     ├── check_content.py        site claims vs the built paper + --selftest (8 arms + 1 control)
     ├── check_artifact.py       the built single-file page under a harsh CSP + --selftest (6 arms)
-    └── push_to_github.sh       publish (gated: see Publication status)
+    └── push_to_github.sh       publish (ungated since 2026-08-18: see Publication status)
 ```
 
 Nothing in `assets/figures/` is unreferenced. Ten orphaned exports — paper Fig. 1(c)/(d)
