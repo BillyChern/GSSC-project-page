@@ -8,29 +8,45 @@ image of the paper's table. So the medium changes and the evidence stays.
 Generating from data/results.json rather than hand-drawing keeps the numbers honest, and
 tools/check_content.py gates the manifest this writes against that JSON.
 
-EVERY test row of the paper's Table I is plotted, including the ones outside the headline
-predicate. An earlier version silently dropped one of them -- SCPNet at #frame=4, 47.5 --
-on the argument that at 47.5 it towered over the single-sweep bars and needed a disclaimer
-to be read at all. That argument does not survive measurement (47.5/39.2 = 1.21x, so the
-other bars lose 17.5% of their length, not their legibility), and it applied to exactly one
-row: the only published test row above ours. The other out-of-predicate row, TALoS at 37.9,
-stayed. An omission that runs one way is the thing a reader who later opens Table I reads as
-cherry-picking, so the row is back and the chart now shows the table it is cited against.
+WHAT THIS CHART PLOTS: every test row in data/results.json, unfiltered. There is no filter
+in this file and there must not be one -- a filter here is invisible to the gate, which is
+how the chart once dropped a row while every check stayed green.
+
+The row that is NOT in the data: SCPNet at #frame=4, 47.5, the only published test row above
+ours. It was REMOVED FROM data/results.json BY AUTHOR DECISION (2026-08-25), taken with the
+counter-argument in front of the author -- that it is the one published test row above ours,
+and that dropping it once before was reverted here as cherry-picking. That is the author's
+call to make and it is recorded, not re-argued. What follows from it, and must stay true:
+
+  * The paper still carries the row. This page's chart and the paper's Table I are no
+    longer the same set of rows, so no caption, alt text or README line may say the chart
+    plots "every test row of Table I". They said exactly that until this decision landed.
+  * data/results.json is the single source of truth for the chart, and tools/check_content.py
+    compares this chart's manifest against it. The row is gone from the DATA, not hidden by a
+    filter or an allowlist entry, so CHART_OMISSIONS stays empty and nothing here special-cases
+    a method name.
 
 WHAT THIS CHART DOES **NOT** DO, because an earlier docstring here claimed it did and the
 page's caption was then written from the docstring rather than from the picture: excluded
 rows are NOT hatched and NOT greyed. Both of our bars carry the accent, by request. What
 marks a row as outside the predicate is its AXIS LABEL: a leading double-dagger, plus the
-configuration spelled out in words (four sweeps / test-time adaptation / N=4, +D4 TTA). The
+configuration spelled out in words (test-time adaptation / N=4, +D4 TTA). The
 double-dagger is explained on the second line of the x-axis label. It is THIS CHART'S mark,
-not a quotation of the paper's: Table I gives each of the three rows a symbol of its own --
-‡ four sweeps, ‖ test-time adaptation, § the D4 ensemble, per its
-"Excluded from bolding" footnote -- so any wording that calls the single dagger "the paper's
-mark" is false. Collapsing three symbols to one is a fine simplification; describing it as
-the paper's notation is not. If you ever change that division of labour, change
-index.html's figcaption AND alt text AND README.md's "What's on the page" row in the same
-commit -- naming only the caption is how README.md:80 spent three commits claiming a
-hatching this chart had stopped drawing.
+not a quotation of the paper's: Table I gives each marked row a symbol of its own --
+‖ test-time adaptation, § the D4 ensemble, per its "Excluded from bolding" footnote --
+so any wording that calls the single dagger "the paper's mark" is false. Collapsing the
+symbols to one is a fine simplification; describing it as the paper's notation is not.
+
+THE MARK STAYS, and losing 47.5 is the reason it now matters MORE, not less. Two marked rows
+remain, TALoS at 37.9 and our own D4 row at 39.2, and BOTH are longer than the 38.8 bar the
+headline is indexed on -- so the longest bar on this chart is now OURS and is outside the
+predicate. Unmarked, the picture would read 39.2 as the headline number. The dropped word is
+"multi-sweep": no multi-sweep row is plotted any more, so the axis line names test-time
+adaptation and ensembling only.
+
+If you ever change that division of labour, change index.html's figcaption AND alt text AND
+README.md's "What's on the page" row in the same commit -- naming only the caption is how
+this file once spent three commits claiming a hatching the chart had stopped drawing.
 
 Usage:  python tools/make_results_chart.py
 """
@@ -63,12 +79,12 @@ def main() -> None:
     # who sees "test-time adaptation" can judge for themselves, and the configuration
     # that produced our higher bar is stated on the bar instead of in a footnote.
     RELABEL = {"TALoS": "TALoS  (test-time adaptation)",
-               "with D₄ ensemble (N=4)": "Ours + D₄ ensemble  (N=4, +D₄ TTA)",
-               "SCPNet at #frame=4": "SCPNet  (four sweeps)"}
-    # One double-dagger for all three out-of-predicate rows -- this chart's own mark,
-    # not the paper's (see the docstring) -- explained on the x-axis. It goes on ALL
-    # THREE including ours, so the mark reads as a property of the configuration and
-    # not as a way of discounting somebody else's number.
+               "with D₄ ensemble (N=4)": "Ours + D₄ ensemble  (N=4, +D₄ TTA)"}
+    # One double-dagger for every out-of-predicate row -- this chart's own mark, not the
+    # paper's (see the docstring) -- explained on the x-axis. It goes on OURS too, so the
+    # mark reads as a property of the configuration and not as a way of discounting
+    # somebody else's number. Both marked rows now sit ABOVE our headline bar, one of them
+    # ours, so the mark is what stops the longest bar reading as the headline number.
     labels = ["\u2021 " * bool(r.get("excluded")) + RELABEL.get(r["method"].strip(), r["method"].strip())
               for r in rows]
     vals = [r["mIoU"] for r in rows]
@@ -94,8 +110,7 @@ def main() -> None:
         tick.set_fontweight("600" if o else "normal")
 
     ax.set_xlabel("SemanticKITTI hidden-test mIoU (%)\n"
-                  "\u2021 outside the headline predicate: multi-sweep, test-time adaptation, "
-                  "or ensembling",
+                  "\u2021 outside the headline predicate: test-time adaptation or ensembling",
                   fontsize=10, color=TEXT, labelpad=8)
     ax.set_xlim(0, max(vals) * 1.14)
     ax.tick_params(axis="x", colors=MUTED, labelsize=9)

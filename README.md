@@ -51,9 +51,12 @@ blinding step is needed before release. See *Author visibility*.
 
 What remains before going public is a judgement call, not a hold:
 
-- `github.com/BillyChern/GSSC-S2D2` (code) and the model/data releases are still 404.
-  The page presents them as inert "on publication" labels rather than dead links, which
-  is honest either way — but a reader arriving from the paper will look for them.
+- ~~`github.com/BillyChern/GSSC-S2D2` (code) and the model/data releases are still 404.~~
+  **Spent, 2026-08-25.** Code, checkpoints, the PS³ corpus (Hugging Face *and* the IEEE
+  DataPort deposit) and the baseline-prediction release are all public and all return 200
+  unauthenticated, and all six are linked from the page — see *Release links* for the
+  table and the checks. Nothing on the page says any artefact arrives "on publication"
+  any more; that wording is recorded here only so nobody restores it from an old checkout.
 - This repository's **history has been rewritten and re-pushed**: the `.audit/` screenshots
   it once carried are gone from the object graph. Measured 2026-08-23 —
   `git rev-list --objects --all` lists 82 distinct paths and none under `.audit/`, and
@@ -93,10 +96,10 @@ The rows below are in the order the page reads them, which is also the order
 
 | Section | What it shows |
 |---|---|
-| Header | Title, venue, authors, four resource slots (one live link, three inert labels) |
+| Header | Title, venue, authors, and the resource row: **seven slots in two tiers**, six live links and one inert label. Tier 1 is the paper and what runs it (Paper — inert, no preprint URL exists yet; SemanticKITTI leaderboard; Code; Checkpoints), tier 2 the three data releases (PS³ corpus; PS³ on IEEE DataPort; baseline predictions & object bank). See *Release links* for why it is two tiers and not one row |
 | **The semantic scene completion challenge** (`#task`) | Paper Fig. 1(a): a sparse sweep at ~1% occupancy and the dense scene to be predicted. A reader new to the subfield learns the problem from a figure before any prose |
 | Abstract (`#abstract`) | The paper's abstract **verbatim**, below the media — measured convention: of 12 top project pages diffed against their arXiv text, 10 reproduce it verbatim or near-verbatim, **0 rewrite it**, and all sit below the first figure |
-| **Results** (`#results`) | Paper Fig. 6 qualitative comparison, then a generated bar chart of hidden-test mIoU. The chart plots **all ten** test rows of paper Table I; the three outside the headline predicate (TALoS, our D₄ row, and SCPNet at four sweeps — the longest bar) carry a leading `‡`, explained on the second line of the x-axis. The paper marks those same three rows individually rather than with one symbol (`‡` four sweeps, `‖` test-time adaptation, `§` D₄ ensemble), so the single `‡` is this chart's simplification, not Table I's notation |
+| **Results** (`#results`) | Paper Fig. 6 qualitative comparison, then a generated bar chart of hidden-test mIoU. The chart plots the **nine** test rows in `data/results.json`; the two outside the headline predicate — TALoS (test-time adaptation) and our own D₄ row — carry a leading `‡`, explained on the second line of the x-axis. **That is not all of paper Table I.** SCPNet at four sweeps (47.5, the one published test row above ours) was removed from `data/results.json` **by author decision, 2026-08-25**, taken with the counter-argument in hand; the paper still carries the row, this chart does not, and no caption, `alt` string or line here may say the chart plots every test row of Table I. The paper marks its excluded rows individually (`‖` test-time adaptation, `§` D₄ ensemble), so the single `‡` is this chart's simplification, not Table I's notation |
 | Interactive comparison (`#viewer`) | Three.js viewer over four views (input / base / ours / ground truth) on two rare-class frames. Its legend states the configuration the chips come from — N=4, +D₄ TTA, outside the headline predicate — and `check_page.py` asserts that string is present |
 | **How it works** (`#method`) | The three contributions as figures: PS³ (Fig. 2) and what the corpus does about the long tail (Fig. 9); SGSC (Fig. 4); S²D² (Fig. 5) |
 | Rare classes, before and after (`#gallery`) | Paper Fig. 10: six validation scenes, base against refinement, one per rare class |
@@ -104,12 +107,37 @@ The rows below are in the order the page reads them, which is also the order
 | BibTeX (`#bibtex`) | Copy-to-clipboard citation block for this paper, plus the two dataset citations SemanticKITTI requires |
 
 Ordering and length follow measurement, not taste. Across 15 accepted project pages the
-median is **363–379 visible words**; this page was 1,561 and is now ~760. **0 of 15 use an
-HTML number table**, and the five that show numbers use a chart or an image of the paper's
-table — hence `tools/make_results_chart.py`. **1 of 15** carries a limitations section, so
-that section is gone; the two honesty facts it held (S3CNet leads on safety, and the
-motorcyclist gain that does not reproduce) are stated in the paper, and the page no longer
-claims to mirror every hedge.
+median is **363–379 visible words**. This page was 1,561, was trimmed to ~760, drifted back
+to **1,132**, and is now **885** — measured the same way each time: `document.body.innerText`
+of the served page, tokens containing a letter or a digit, Chromium at 1280×900.
+
+885 is above the band and stays there on purpose. Four blocks account for 429 of it and none
+of them is running text a corpus page has to carry:
+
+| Block | Words | Why it cannot be cut |
+|---|---:|---|
+| Abstract, verbatim | 200 | 0 of 12 corpus pages rewrite theirs; rewriting it is how claims drift |
+| Three BibTeX entries | 123 | Two of them — Behley et al. and Geiger et al. — are required by SemanticKITTI's own terms |
+| CC BY-NC-SA attribution | 80 | The page redistributes modified SemanticKITTI material; see *Third-party data* |
+| Grant acknowledgement | 26 | Named grants, 624B1006 and 24511103900 |
+
+The **112** left over is chrome the counter cannot tell from prose: the title block
+(43 — title, venue, authors, affiliations and the seven button labels), the skip link, the
+section headings outside the two fixed sections, the viewer's control labels, and the
+viewer's generated IoU readout (23). Which puts the actual **running
+text — the eight figcaptions (245), the viewer note (20), the render-provenance paragraph
+(47) and the footer (32) — at 344**, *below* the corpus median for an entire page. Measured
+2026-08-25, per element, by the same counter. The page is long because of what it is
+obliged to say, not because of how it says it.
+
+`885 = 429 fixed + 344 running + 112 chrome`. If a future round needs it shorter, the only
+places left are the four fixed blocks, and each one costs something real.
+
+**0 of 15 use an HTML number table**, and the five that show numbers use a chart or an image
+of the paper's table — hence `tools/make_results_chart.py`. **1 of 15** carries a limitations
+section, so that section is gone; the two honesty facts it held (S3CNet leads on safety, and
+the motorcyclist gain that does not reproduce) are stated in the paper, and the page no
+longer claims to mirror every hedge.
 
 Authors are named in the header and in the BibTeX. There is no visibility toggle;
 see *Author visibility*.
@@ -134,7 +162,7 @@ every check has an arm yet, so the counts are stated rather than implied:
 | Gate | checks | `--selftest` arms |
 |---|---|---|
 | `check_artifact.py` | 6 | **6 — complete.** `no console errors` and `parity with the served page` had none until this round; the parity arm is guarded by a clean-baseline run, since with the served page down parity fails on every arm and for none of their own reasons |
-| `check_content.py` | 17 | 8 arms + an allowlist control. Measured 2026-08-23 by running every arm and collecting the failing names: **6 of the 17 printed names** go red, plus 2 names that exist only under injection (`Fig. 99 exists in the paper`, and the numeric-claims check, whose name carries the live count so it reads `all 122...` when red and `all 121...` when clean — armed, despite never appearing red under its clean name). `check_provenance` is armed once (Fig. 6 → Fig. 2) and then runs unarmed over the other seven floats. Never seen failing: those seven `Fig. N / Table I is the float the caption describes` checks, `README citation title is the paper's title`, `chart's best ELIGIBLE bar is the headline`, and `every in-page link resolves to a real id` |
+| `check_content.py` | 17 | 8 arms + an allowlist control. Measured 2026-08-23 by running every arm and collecting the failing names: **6 of the 17 printed names** go red, plus 2 names that exist only under injection (`Fig. 99 exists in the paper`, and the numeric-claims check, whose name carries the LIVE count — `all N numeric claims appear in the paper` — so an injected claim makes it print `N+1` and it never appears red under the name it prints when clean. That count is not a constant: it was 121 clean on 2026-08-23 and is 116 on 2026-08-25, because the trim took numbers off the page. Do not pin it here; read it off a run). `check_provenance` is armed once (Fig. 6 → Fig. 2) and then runs unarmed over the other seven floats. Never seen failing: those seven `Fig. N / Table I is the float the caption describes` checks, `README citation title is the paper's title`, `chart's best ELIGIBLE bar is the headline`, and `every in-page link resolves to a real id` |
 | `check_page.py` | 47 assertions over 25 names | 18. Unarmed: `watchdog fires while three.js is held`, `late-arriving viewer still draws`, `truthful aria-label restored`, `no-JS still shows every figure`, `print hides the copy button`, `scene failure offers a link`, `viewer still draws under reduced motion` |
 
 ```bash
@@ -178,7 +206,12 @@ allowlist now bites in **both** places it has to: the row-by-row comparison and 
 `every test row is plotted unless allowlisted` check, which counted an allowlisted row as
 unplotted and so turned red on the very diff it was meant to make reviewable. Two
 `--selftest` arms pin that: deleting a row from a healthy manifest must fail the check,
-and the same deletion, named in `CHART_OMISSIONS`, must be accepted.
+and the same deletion, named in `CHART_OMISSIONS`, must be accepted. The row those arms
+delete (`DROP_FIXTURE`) **was** SCPNet at four sweeps and is now **`SCPNet (published)`**,
+36.7 — the previous best under the paper's own predicate, the number our "+2.1 pp" is
+measured against, and so the remaining row whose silent disappearance would flatter us
+most. The fixture had to move because the old one is no longer in the data; it did not
+rot silently, because `_chart_manifest()` raises on a deletion that deletes nothing.
 
 `check_content.py` compares the page against `/workspace/GSSC-paper/pdf`
 (`--paper` to point elsewhere): every caption's `data-paper-float` citation must resolve
@@ -271,25 +304,60 @@ cannot do what it says is worse than no control.
 
 ## Release links
 
-Five slots sit under the author block. Four are live `<a>` elements — the
-SemanticKITTI leaderboard, Code, Checkpoints and the PS³ dataset. One is still an
-inert `<span class="btn" role="link" aria-disabled="true">`: **Paper**, because
-no preprint URL exists yet.
+**Seven slots sit under the author block: every released artefact of this project is
+linked from the page** (author, 2026-08-25 — "everything related to our project should be
+well linked and well shown on the webpage"). Six are live `<a>` elements. One is still an
+inert `<span class="btn" role="link" aria-disabled="true">`: **Paper**, because no
+preprint URL exists yet.
 
-Converted 2026-08-25, when the four targets went public. Each was checked
-unauthenticated before it was linked — the rule is that a control which cannot do
-what it says is worse than no control, so nothing here gets an `href` until it
+| Slot | Target | Live |
+|---|---|:--:|
+| Paper — under review | *(none; no preprint URL exists)* | inert |
+| SemanticKITTI leaderboard | `codabench.org/competitions/13814` | ✓ |
+| Code | `github.com/BillyChern/GSSC-S2D2` | ✓ |
+| Checkpoints | `huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints` | ✓ |
+| PS³ corpus | `huggingface.co/datasets/Stone-Chern/PS3-SemanticKITTI` | ✓ |
+| PS³ on IEEE DataPort | `dx.doi.org/10.21227/nqgf-9k39` | ✓ |
+| Baseline predictions & object bank | `huggingface.co/datasets/Stone-Chern/GSSC-S2D2-datasets` | ✓ |
+
+Each was checked unauthenticated before it was linked — the rule is that a control which
+cannot do what it says is worse than no control, so nothing here gets an `href` until it
 returns 200 to a logged-out request:
 
 ```
-github.com/BillyChern/GSSC-S2D2                        200
-huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints       200
-huggingface.co/datasets/Stone-Chern/PS3-SemanticKITTI  200
-dx.doi.org/10.21227/nqgf-9k39                          200
+github.com/BillyChern/GSSC-S2D2                            200
+huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints           200
+huggingface.co/datasets/Stone-Chern/PS3-SemanticKITTI      200
+huggingface.co/datasets/Stone-Chern/GSSC-S2D2-datasets     200
+dx.doi.org/10.21227/nqgf-9k39                              200
 ```
 
-The single "Models & PS³ data" slot was split in two, because one button cannot
-point at two hosts.
+The single "Models & PS³ data" slot was split in two, because one button cannot point at
+two hosts; the PS³ corpus then took a second slot for the same reason — the Hugging Face
+copy is the free mirror, the IEEE DataPort deposit is the citable record, and they are
+different hosts.
+
+**Why two tiers and not one row.** Seven buttons do not fit one line at the 720 px prose
+measure: tier 1 alone measures 652 px against 672 px of content width (`.link-tier`
+in `styles/site.css`, measured in Chromium at 1280 px). Left as a single wrapping row the
+break would land wherever the box ran out and read as an accident. So the split is made
+deliberately and given a reason — tier 1 is the paper and what runs it, tier 2 the three
+data releases — and proximity carries it: **24 px between tiers against 12 px within**, a
+2:1 ratio. Measured at 1440/1024/390 px: one line per tier at 1440 and 1024 (652 px and
+588 px), and at 390 px each tier stacks *inside itself*, so the grouping survives the
+stack and the page still has no horizontal scroll. The corpus is no help above four
+buttons — PaSCo, Occ3D, LiDPM and SceneRF each carry three or four in one flat row — so
+what is followed from them is the label convention (short, specific nouns; Occ3D names its
+two dataset downloads outright) rather than a layout none of them has to solve.
+
+**The DataPort DOI lives in the `href`, not in the label.** `check_content.py` sweeps every
+number in visible text *and* in `alt` / `aria-label` / `title` / `<meta content>` against
+the paper, and `10.21227` is an identifier that no paper can contain — it failed the gate
+for as long as the old links-note printed `doi:10.21227/nqgf-9k39` as link text. The fix is
+the button, not an exemption in the gate: the DOI is reachable in one click and the sweep
+keeps its full reach. **Do not put the DOI back into a label or a `title`** without adding
+a gated exemption for it, and prefer not adding one — a filter in front of a gate is where
+the next defect hides.
 
 **Still to do:** when the preprint is posted, replace the Paper `<span>` with
 `<a class="btn" href="https://arxiv.org/abs/..." target="_blank" rel="noopener">Paper</a>`.
@@ -297,9 +365,13 @@ That is the last inert control on the page.
 
 ## Editing numbers
 
-- **Main comparison**: `data/results.json` — 17 rows across both splits, mirroring
-  paper Table I. Keys: `eval` (`test`|`val`), `ours`, and `excluded` for rows
-  outside the paper's predicate (TALoS, our D₄ row, the four-sweep entry). There is
+- **Main comparison**: `data/results.json` — **16 rows** across both splits, drawn from
+  paper Table I but **no longer the whole of it**: SCPNet at four sweeps (47.5) was
+  deleted from this file by author decision on 2026-08-25, so the page's chart and the
+  paper's Table I are now different sets of rows. The deletion is in the data, in a
+  reviewable one-line diff — not behind a filter in the generator and not behind
+  `CHART_OMISSIONS`, which stays empty. Keys: `eval` (`test`|`val`), `ours`, and
+  `excluded` for rows outside the paper's predicate (now TALoS and our D₄ row). There is
   no `best` flag and nothing in the browser reads this file: `tools/make_results_chart.py`
   draws every test row from it, and `tools/check_content.py` RECOMPUTES which row is the
   best eligible one and fails if that is not 38.8. Never hand-bold a row, and never mark
@@ -404,10 +476,11 @@ problem with the URL.
   label is rewritten on every failure path, and `#viewer3d-loading` is a
   `role="status" aria-live="polite"` region so failures are announced, not just drawn
 - The page carries no HTML table; the results are a generated figure with a
-  figcaption, and all ten of its bars are named with their values in the image's
+  figcaption, and all **nine** of its bars are named with their values in the image's
   `alt` text, so a screen-reader user gets the same numbers a sighted reader does.
-  Checked by counting: each of the ten `mIoU` values in `data/results.json` whose
-  `eval` is `test` appears in that `alt` string
+  Checked by counting: each of the nine `mIoU` values in `data/results.json` whose
+  `eval` is `test` appears in that `alt` string. It was ten until the four-sweep row
+  came out of the data (see *Editing numbers*)
 - Contrast: every text/background pair used meets WCAG AA on white. Disabled link
   labels were lifted from 2.61:1 to 4.83:1; state is carried by the dashed border
 

@@ -261,12 +261,26 @@ def check_citation(paper_dir: Path, title_override: str | None = None) -> list[t
 # was dropped from the expectation too, and the check passed while the picture was
 # missing it. A shared filter is a gate agreeing with the thing it is gating. Omitting a
 # row now means naming it here, in a diff someone reviews.
+#
+# That row is no longer in data/results.json at all: the author decided on 2026-08-25 to
+# drop it from the DATA, which is a visible one-line deletion in a reviewable diff and not
+# an omission this allowlist has to carry. So this set stays EMPTY -- if you find yourself
+# adding a name to it, ask first whether the honest edit is to the data instead.
 CHART_OMISSIONS: set[str] = set()
 
 # The row selftest() deletes to prove the row-drop check can go red, and re-adds to the
-# allowlist to prove an allowlisted omission is accepted. It is the row that was actually
-# dropped once: SCPNet at four sweeps, the only published test row above ours.
-DROP_FIXTURE = "SCPNet at #frame=4"
+# allowlist to prove an allowlisted omission is accepted.
+#
+# It was "SCPNet at #frame=4" -- the row that was actually dropped once, the only published
+# test row above ours. That row was REMOVED FROM data/results.json by author decision
+# (2026-08-25), so the fixture went stale and _chart_manifest()'s guard raised rather than
+# deleting nothing and passing vacuously. The replacement is "SCPNet (published)": 36.7, the
+# previous best score under the paper's own predicate and the number our "+2.1 pp" is
+# measured against. Of the rows left, that is the one whose silent disappearance would
+# flatter us most, so it is the one this arm should be built on. It is not `excluded`, so
+# deleting it leaves best-eligible at 38.8 and the control arm tests the allowlist rather
+# than a changed headline.
+DROP_FIXTURE = "SCPNet (published)"
 
 
 def check_chart(paper_dir: Path, manifest=None,

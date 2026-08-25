@@ -46,14 +46,28 @@
     <p class="corr"><sup>*</sup>Corresponding author</p>
   </div>
 
+  <!-- Seven resources, two deliberate tiers, not one row left to wrap where it lands:
+       the paper and what runs it, then the three data releases. The split is the
+       grouping cue and the gap ratio carries it (24px between tiers, 12px within), so
+       the second line reads as a group and not as an overflow. Every href here was
+       checked unauthenticated for a 200 before it was written; nothing gets an href
+       until it does. Paper is the one inert control -- no preprint URL exists yet. -->
   <nav class="links" aria-label="Resources">
-    <a class="btn" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">SemanticKITTI leaderboard</a>
-    <span class="btn" role="link" aria-disabled="true" title="Under peer review; preprint not yet public.">Paper &mdash; under review</span>
-    <a class="btn" href="https://github.com/BillyChern/GSSC-S2D2" target="_blank" rel="noopener">Code</a>
-    <a class="btn" href="https://huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints" target="_blank" rel="noopener">Checkpoints</a>
-    <a class="btn" href="https://huggingface.co/datasets/Stone-Chern/PS3-SemanticKITTI" target="_blank" rel="noopener">PS&sup3; dataset</a>
+    <div class="link-tier">
+      <span class="btn" role="link" aria-disabled="true" title="Under peer review; preprint not yet public.">Paper &mdash; under review</span>
+      <a class="btn" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">SemanticKITTI leaderboard</a>
+      <a class="btn" href="https://github.com/BillyChern/GSSC-S2D2" target="_blank" rel="noopener">Code</a>
+      <a class="btn" href="https://huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints" target="_blank" rel="noopener">Checkpoints</a>
+    </div>
+    <div class="link-tier">
+      <a class="btn" href="https://huggingface.co/datasets/Stone-Chern/PS3-SemanticKITTI" target="_blank" rel="noopener" title="The PS&sup3;-SemanticKITTI corpus, free mirror on Hugging Face.">PS&sup3; corpus</a>
+      <!-- The citable deposit. Its DOI is carried in the href, not in the label: the
+           page's numeric gate sweeps visible text and attribute text against the paper,
+           and a DOI is an identifier rather than a claim the paper can contain. -->
+      <a class="btn" href="https://dx.doi.org/10.21227/nqgf-9k39" target="_blank" rel="noopener" title="The same corpus, deposited at IEEE DataPort as the citable record.">PS&sup3; on IEEE DataPort</a>
+      <a class="btn" href="https://huggingface.co/datasets/Stone-Chern/GSSC-S2D2-datasets" target="_blank" rel="noopener" title="The frozen SCPNet, JS3C-Net and LMSCNet predictions S&sup2;D&sup2; refines, plus the rare-class object bank PS&sup3; draws from.">Baseline predictions &amp; object bank</a>
+    </div>
   </nav>
-  <p class="links-note">Both hidden-test scores came back from the blind evaluation server and are independently verifiable. Codabench lists each team&rsquo;s best entry, so its results tab shows our four-step, eight-view D<sub>4</sub> row at 39.2% mIoU / 59.0% completion IoU; the single-step submission with no test-time augmentation scored 38.8% / 58.9%. Code, checkpoints and the PS&sup3; corpus are available now; the corpus is also deposited at <a href="https://dx.doi.org/10.21227/nqgf-9k39" target="_blank" rel="noopener">doi:10.21227/nqgf-9k39</a>.</p>
 </header>
 
 <!-- Main opens before the first figure: the teaser is the page's primary visual and
@@ -67,7 +81,7 @@
     <source srcset="assets/figures/fig1a_task.webp" type="image/webp">
     <img src="assets/figures/fig1a_task.png" alt="Semantic scene completion: a sparse LiDAR sweep occupying about 1% of the volume, and the dense semantically labelled scene that must be predicted from it, with zoomed insets contrasting sparse geometry and lost semantics against dense structure and rich semantics." />
   </picture>
-  <figcaption data-paper-float="Fig. 1">One LiDAR sweep returns about <strong>one voxel in a hundred</strong>. Semantic scene completion has to recover the other ninety-nine &mdash; geometry <em>and</em> semantics together, including everything behind, inside and beyond what the beam struck.</figcaption>
+  <figcaption data-paper-float="Fig. 1">One LiDAR sweep returns about <strong>one voxel in a hundred</strong>. Semantic scene completion has to recover the other ninety-nine &mdash; geometry <em>and</em> semantics together.</figcaption>
 </figure>
 </section>
 
@@ -83,21 +97,21 @@
     <source srcset="assets/figures/fig4_qualitative.webp" type="image/webp">
     <img src="assets/figures/fig4_qualitative.png" alt="Qualitative comparison on SemanticKITTI validation sequence 08: three frozen sources (JS3C-Net, SCPNet, and TALoS's adaptation of SCPNet), our refinement on the SCPNet base, and ground truth; a bicyclist scene above and a motorcyclist scene below." />
   </picture>
-  <figcaption data-paper-float="Fig. 6"><strong>One correction step, on a frozen base.</strong> Three frozen sources, our refinement of the SCPNet one, and ground truth. The per-scene chips come from the <em>N</em>=4, +D<sub>4</sub>-TTA configuration &mdash; the entry on the leaderboard &mdash; while the superlative is indexed on the <em>N</em>=1 single-step row.</figcaption>
+  <figcaption data-paper-float="Fig. 6"><strong>One correction step, on a frozen base.</strong> Three frozen sources, our refinement of the SCPNet one, ground truth. Chips come from the <em>N</em>=4, +D<sub>4</sub>-TTA run, not the <em>N</em>=1 row the headline is indexed on.</figcaption>
 </figure>
   <figure class="media scrollable">
   <picture>
     <source srcset="assets/figures/results_chart.webp" type="image/webp">
-    <img src="assets/figures/results_chart.png" alt="Horizontal bar chart of SemanticKITTI hidden-test mIoU, one bar for each of the ten test rows of the paper&rsquo;s Table I. All ten, longest bar first: double-dagger SCPNet (four sweeps) 47.5; double-dagger Ours + D4 ensemble (N=4, +D4 TTA) 39.2; SCPNet + S2D2 (N=1) 38.8; double-dagger TALoS (test-time adaptation) 37.9; SCPNet (published) 36.7; S3CNet 29.5; DiffSSC 27.4; JS3C-Net 23.8; SSA-SC 23.5; LMSCNet 17.6. The two bars that are ours, 38.8 and 39.2, are red; the other eight are grey published baselines. The leading double-dagger on three of the labels is explained under the axis as outside the headline predicate: multi-sweep, test-time adaptation, or ensembling. The best bar inside the predicate is our 38.8, above SCPNet&rsquo;s published 36.7." />
+    <img src="assets/figures/results_chart.png" alt="Horizontal bar chart of SemanticKITTI hidden-test mIoU, nine bars. Longest first: double-dagger Ours + D4 ensemble (N=4, +D4 TTA) 39.2; SCPNet + S2D2 (N=1) 38.8; double-dagger TALoS (test-time adaptation) 37.9; SCPNet (published) 36.7; S3CNet 29.5; DiffSSC 27.4; JS3C-Net 23.8; SSA-SC 23.5; LMSCNet 17.6. The two bars that are ours, 38.8 and 39.2, are red; the other seven are grey published baselines. A leading double-dagger marks the two rows outside the headline predicate, our own ensemble row among them, and is explained under the axis as test-time adaptation or ensembling. The best bar inside the predicate is our 38.8, above SCPNet&rsquo;s published 36.7." />
   </picture>
-  <figcaption data-paper-float="Table I"><strong>Two scores from the blind test server, both ours, both in red.</strong> <strong>38.8% mIoU</strong> at one step with no test-time augmentation: to our knowledge the best <em>causal, single-sweep, single-sample</em> result on this leaderboard, +2.1&nbsp;pp over the previous best published score under that restriction. <strong>39.2%</strong> &mdash; four correction steps with an eight-view D<sub>4</sub> ensemble &mdash; is the entry Codabench displays, since the platform lists each team&rsquo;s best score. The superlative is indexed on the 38.8 row because four steps and an ensemble fall outside its restriction. Every test row of the paper&rsquo;s Table I is plotted, the three outside that restriction marked &ldquo;&Dagger;&rdquo; here; Table I footnotes those same three rows one symbol at a time (&Dagger;&nbsp;four sweeps, &parallel;&nbsp;test-time adaptation, &sect;&nbsp;D<sub>4</sub> ensemble). Among them is the longest bar on the chart, <strong>SCPNet at four sweeps, 47.5%</strong>, which reads four LiDAR moments where we read one.</figcaption>
+  <figcaption data-paper-float="Table I"><strong>38.8% mIoU</strong> at one step, no test-time augmentation: to our knowledge the best <em>causal, single-sweep, single-sample</em> result on this leaderboard, +2.1&nbsp;pp over the previous best published score under that restriction. <strong>39.2%</strong> &mdash; four steps with an eight-view D<sub>4</sub> ensemble &mdash; is the entry Codabench displays, since the platform lists each team&rsquo;s best score; it falls outside that restriction, as &Dagger; marks.</figcaption>
 </figure>
 </section>
 
 <section id="viewer" class="media">
   <h2>Interactive comparison</h2>
   <div class="lede">
-    <p class="note">Switch scene and view; the camera holds, so the four views line up. The sparse input carries no labels, so it is painted one colour.</p>
+    <p class="note">Switch scene and view; the camera holds, so the four views line up. The unlabelled input is painted one colour.</p>
   </div>
   <div class="viewer-shell">
     <div id="viewer3d-stage" role="img" aria-label="Interactive 3D comparison of sparse input, the frozen base, our refinement, and ground truth. Mouse or touch: drag to orbit, scroll to zoom. Not keyboard-operable; the same comparison is in the figure above.">
@@ -153,14 +167,14 @@
     <source srcset="assets/figures/fig4_da_pipeline.webp" type="image/webp">
     <img src="assets/figures/fig4_da_pipeline.png" alt="The PS3 offline data-augmentation pipeline: three cascaded coarse-to-fine multinomial diffusions screened by a Jensen-Shannon divergence filter, then a rare-class object bank and the HALO ray-tracer turning each synthetic scene into a sparse-dense pair." />
   </picture>
-  <figcaption data-paper-float="Fig. 2">Generate complete labelled scenes, then ray-trace them back into sparse sweeps &mdash; giving matched pairs the recorder never drove past.</figcaption>
+  <figcaption data-paper-float="Fig. 2">Generate complete labelled scenes, then ray-trace them back into sparse sweeps &mdash; matched pairs the recorder never drove past.</figcaption>
 </figure>
   <figure class="media scrollable">
   <picture>
     <source srcset="assets/figures/fig9_longtail.webp" type="image/webp">
     <img src="assets/figures/fig9_longtail.png" alt="Grouped log-scale bar chart of per-class voxel frequency, real only against real + synth-32K, with the synthetic pool's own frequency against real-only printed above the rarest classes: bicyclist 6239 times, motorcycle 1626 times, bicycle 15.4 times." />
   </picture>
-  <figcaption data-paper-float="Fig. 9">What the corpus does about it. Per-class voxel frequency, real&nbsp;only against real&nbsp;+&nbsp;synth-32K. The printed factors are the <em>synthetic pool&rsquo;s own</em> frequency against real-only &mdash; <strong>bicyclist 6,239&times;</strong>, motorcycle 1,626&times;; the pooled bars gain 3.2&times;&ndash;3,907&times;.</figcaption>
+  <figcaption data-paper-float="Fig. 9">Per-class voxel frequency, real&nbsp;only against real&nbsp;+&nbsp;synth-32K. The printed factors are the <em>synthetic pool&rsquo;s own</em> frequency against real-only &mdash; <strong>bicyclist 6,239&times;</strong> &mdash; while the pooled bars gain 3.2&times;&ndash;3,907&times;.</figcaption>
 </figure>
 
   <h3>SGSC &mdash; completion from noise</h3>
@@ -169,7 +183,7 @@
     <source srcset="assets/figures/fig4_sgsc.webp" type="image/webp">
     <img src="assets/figures/fig4_sgsc.png" alt="The SGSC denoiser in its generation role: a multinomial discrete diffusion model conditioned on a bird's-eye-view semantic map and a sparse 3D feature stream, resolving categorical noise into a labelled scene." />
   </picture>
-  <figcaption data-paper-float="Fig. 4">The same denoiser, run from pure categorical noise instead of from a base &mdash; conditioned on a bird&rsquo;s-eye-view map and a sparse feature stream. No completion network underneath it at all.</figcaption>
+  <figcaption data-paper-float="Fig. 4">The same denoiser run from pure categorical noise instead of from a base, conditioned on a bird&rsquo;s-eye-view map and a sparse feature stream. No completion network underneath.</figcaption>
 </figure>
 
   <h3>S<sup>2</sup>D<sup>2</sup> &mdash; one-step refinement</h3>
@@ -178,7 +192,7 @@
     <source srcset="assets/figures/fig3_s2d2.webp" type="image/webp">
     <img src="assets/figures/fig3_s2d2.png" alt="S2D2 refinement: the velocity field carrying a frozen base prediction to ground truth in one Euler step on the per-voxel simplex, with an identity and error bound ruling out amplification, and a motorcyclist scene before and after." />
   </picture>
-  <figcaption data-paper-float="Fig. 5">The third role: carry a frozen model&rsquo;s output to ground truth in <strong>one step</strong> on the per-voxel simplex. No base retraining, no test-time adaptation.</figcaption>
+  <figcaption data-paper-float="Fig. 5">Carry a frozen model&rsquo;s output to ground truth in <strong>one step</strong> on the per-voxel simplex. No base retraining, no test-time adaptation.</figcaption>
 </figure>
 </section>
 
@@ -189,15 +203,15 @@
     <source srcset="assets/figures/fig10_gallery.webp" type="image/webp">
     <img src="assets/figures/fig10_gallery.png" alt="Six pairs of voxel renders, one per rare class: motorcycle, traffic-sign, person, bicyclist, other-vehicle and bicycle. In each pair the left panel is the frozen SCPNet base prediction and the right is the S2D2 refinement, with the class IoU before and after printed above." />
   </picture>
-  <figcaption data-paper-float="Fig. 10">Six validation scenes, one per rare class, in descending order of gain. Left of each pair is the frozen base; right is S<sup>2</sup>D<sup>2</sup> in its <em>32K multi-frame&nbsp;+&nbsp;D<sub>4</sub>-TTA</em> configuration. Both views share one camera, so what differs is the prediction and not the framing. These are the scenes where the correction helps most.</figcaption>
+  <figcaption data-paper-float="Fig. 10">Six validation scenes, one per rare class, in descending order of gain &mdash; the scenes where the correction helps most. Left is the frozen base, right S<sup>2</sup>D<sup>2</sup> in its <em>32K multi-frame&nbsp;+&nbsp;D<sub>4</sub>-TTA</em> configuration, both under one camera.</figcaption>
 </figure>
 </section>
 
 <section id="ack" class="prose">
   <h2>Acknowledgements</h2>
   <p>This work was supported by the National Natural Science Foundation of China under Grant&nbsp;624B1006 and by the Shanghai Science and Technology Committee under Grant&nbsp;24511103900.</p>
-  <p>Evaluation uses the SemanticKITTI benchmark and its hidden test server. The comparison renders on this page &mdash; the qualitative figure, the rare-class gallery and the 3D viewer &mdash; are drawn from its validation sequence, seq.&nbsp;08. Nothing inside the PS<sup>3</sup> figure comes from that sequence: it shows a training-split frame, scenes the generator synthesised after being trained on that split, and real rare-class crops taken from the same split.</p>
-  <p>Those renders show SemanticKITTI ground-truth annotations, and the point clouds the 3D viewer loads are voxelised, class-recoloured exports of them &mdash; modified material, redistributed here. SemanticKITTI is &copy; its authors and is licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC&nbsp;BY-NC-SA&nbsp;4.0</a>: credit the creators, non-commercial use only, and the same licence on anything built from it. Those terms travel with these exports, which are therefore offered under CC&nbsp;BY-NC-SA&nbsp;4.0 and not under this page&rsquo;s own terms. The dataset&rsquo;s home is <a href="http://www.semantic-kitti.org/dataset.html" target="_blank" rel="noopener">semantic-kitti.org</a>, which asks that both the SemanticKITTI paper (Behley&nbsp;et&nbsp;al.) and the original KITTI Vision Benchmark (Geiger&nbsp;et&nbsp;al.) be cited; BibTeX for both is below, beside ours.</p>
+  <p>Evaluation uses the SemanticKITTI benchmark and its hidden test server. The comparison renders here &mdash; qualitative figure, gallery, 3D viewer &mdash; come from validation seq.&nbsp;08. Nothing in the PS<sup>3</sup> figure does: it shows a training-split frame, scenes synthesised after training on that split, and rare-class crops from it.</p>
+  <p>Those renders, and the point clouds the viewer loads, are voxelised and class-recoloured exports of SemanticKITTI ground-truth annotations &mdash; modified material, redistributed here. SemanticKITTI is &copy; its authors under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC&nbsp;BY-NC-SA&nbsp;4.0</a>: credit the creators, non-commercial use only, share-alike. Those terms travel with these exports, which are offered under that licence and not this page&rsquo;s own. <a href="http://www.semantic-kitti.org/dataset.html" target="_blank" rel="noopener">semantic-kitti.org</a> asks that both the SemanticKITTI paper (Behley&nbsp;et&nbsp;al.) and the original KITTI Vision Benchmark (Geiger&nbsp;et&nbsp;al.) be cited; BibTeX for both is below.</p>
 </section>
 
 <section id="bibtex" class="prose">
@@ -235,8 +249,8 @@
 </main>
 
 <footer class="prose">
-  <p>This page is static: no analytics and no cookies. It fetches two third-party assets &mdash; the Hanken Grotesk webfont from Google Fonts, and the three.js library from unpkg for the 3D viewer.</p>
-  <p>Figures and numbers on this page are taken from the manuscript under review.</p>
+  <p>Static page: no analytics, no cookies. Two third-party fetches &mdash; the Hanken Grotesk webfont from Google Fonts, and three.js from unpkg for the viewer.</p>
+  <p>Figures and numbers come from the manuscript under review.</p>
 </footer>
 
 <script type="importmap">

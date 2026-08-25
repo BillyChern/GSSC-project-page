@@ -167,15 +167,15 @@ def build(artifact: bool = False) -> str:
     # is inlined -- measured: the only external requests a built page makes are the two
     # Google Fonts URLs. A page that documents its own network behaviour has to be right
     # about it, so the sentence is rewritten rather than left to rot.
-    served_claim = ("It fetches two third-party assets &mdash; the Hanken Grotesk webfont "
-                    "from Google Fonts, and the three.js library from unpkg for the 3D viewer.")
+    served_claim = ("Two third-party fetches &mdash; the Hanken Grotesk webfont from "
+                    "Google Fonts, and three.js from unpkg for the viewer.")
     if served_claim not in html:
         sys.exit("footer third-party disclosure not found -- it was reworded without "
                  "updating tools/build_standalone.py, and the built page would now lie")
     html = html.replace(served_claim,
-                        "It fetches one third-party asset &mdash; the Hanken Grotesk webfont "
-                        "from Google Fonts. The 3D viewer, its point clouds and every figure "
-                        "are carried inside this file.", 1)
+                        "One third-party fetch &mdash; the Hanken Grotesk webfont from "
+                        "Google Fonts. The viewer, its point clouds and every figure are "
+                        "carried inside this file.", 1)
 
     # The page no longer fetches JSON at runtime: the results are a generated figure
     # (tools/make_results_chart.py), so there is nothing to inline here. data/*.json

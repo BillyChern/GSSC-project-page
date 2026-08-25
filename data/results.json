@@ -99,17 +99,6 @@
     "note": "eight-view D₄ ensemble — outside the predicate"
   },
   {
-    "method": "SCPNet at #frame=4",
-    "eval": "test",
-    "mIoU": 47.5,
-    "comp": 68.5,
-    "scm": 43.9,
-    "vru": 31.0,
-    "ours": false,
-    "excluded": true,
-    "note": "four sweeps — outside the predicate"
-  },
-  {
     "method": "PaSCo (3 subnets)",
     "eval": "val",
     "mIoU": 30.1,

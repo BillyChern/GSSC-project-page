@@ -80,10 +80,22 @@ a:hover, a:focus-visible { color: var(--accent-hover); text-decoration-color: va
    Real blinding would need anonymous HOSTING. .identity itself stays: it is the
    author block, and tools/check_page.py asserts it is present. */
 
-/* ---- link row: the only button group on the page ---- */
+/* ---- link row: the only button group on the page ----
+   Seven resources do not sit in one row at the 720px prose measure -- the four in the
+   first tier alone measure 652px against 672px of content width -- so the row is split
+   into two TIERS rather than left to wrap wherever the box runs out. The split is
+   semantic (the paper and what runs it; then the three data releases), and proximity
+   carries it: 24px between tiers against 12px within, a 2:1 ratio, which is what makes
+   the second line read as a group instead of an overflow. A tier that does overflow --
+   a webfont failure widens the labels, and a 390px viewport stacks everything -- wraps
+   INSIDE its own tier, so the grouping survives the degraded case too. */
 .links {
+  display: flex; flex-direction: column; gap: var(--s-5);
+  align-items: center; margin: var(--s-6) 0 var(--s-2);
+}
+.link-tier {
   display: flex; flex-wrap: wrap; gap: var(--s-3);
-  justify-content: center; margin: var(--s-6) 0 var(--s-2);
+  justify-content: center;
 }
 .btn {
   /* <button> does not inherit font-family, so the BibTeX copy button
