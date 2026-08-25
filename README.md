@@ -271,16 +271,29 @@ cannot do what it says is worse than no control.
 
 ## Release links
 
-Four slots sit under the author block. Three are inert
-`<span class="btn" role="link" aria-disabled="true">` elements — they are not
-anchors and carry no `href`, so there is no dead link to click. The fourth, the
-SemanticKITTI leaderboard, is a live `<a>`.
+Five slots sit under the author block. Four are live `<a>` elements — the
+SemanticKITTI leaderboard, Code, Checkpoints and the PS³ dataset. One is still an
+inert `<span class="btn" role="link" aria-disabled="true">`: **Paper**, because
+no preprint URL exists yet.
 
-To publish one, replace the `<span>` with
-`<a class="btn" href="..." target="_blank" rel="noopener">Code</a>` and drop the
-sentence under the row that says the release happens on publication. Do not link
-`github.com/BillyChern/GSSC-S2D2` until it actually resolves; it currently
-returns 404, and the honest inert state is deliberate.
+Converted 2026-08-25, when the four targets went public. Each was checked
+unauthenticated before it was linked — the rule is that a control which cannot do
+what it says is worse than no control, so nothing here gets an `href` until it
+returns 200 to a logged-out request:
+
+```
+github.com/BillyChern/GSSC-S2D2                        200
+huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints       200
+huggingface.co/datasets/Stone-Chern/PS3-SemanticKITTI  200
+dx.doi.org/10.21227/nqgf-9k39                          200
+```
+
+The single "Models & PS³ data" slot was split in two, because one button cannot
+point at two hosts.
+
+**Still to do:** when the preprint is posted, replace the Paper `<span>` with
+`<a class="btn" href="https://arxiv.org/abs/..." target="_blank" rel="noopener">Paper</a>`.
+That is the last inert control on the page.
 
 ## Editing numbers
 
