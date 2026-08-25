@@ -62,7 +62,9 @@ What remains before going public is a judgement call, not a hold:
   its SHA; that is a property of the forge, not of this history.)
 
 - Repository: <https://github.com/BillyChern/GSSC-project-page> (private)
-- Intended URL once released: <https://billychern.github.io/GSSC-project-page/>
+- Intended URL once released: <https://shichen.world/GSSC-project-page/>
+  (**not** the `billychern.github.io` form — that 301-redirects; see
+  *Hosting URL and the account-wide redirect*)
 
 **Licence: MIT** — `LICENSE` at the repo root, © 2026 Shi Chen, Weifeng Ge, identical to
 the release repo's. It covers this page's own material: the HTML, CSS, JS, `tools/` and
@@ -257,8 +259,10 @@ spans, and the gate check that exercised them.
 Two reasons. **Review here is single-anonymous** (author, 2026-08-18) — authors are
 visible to reviewers — so the control could not serve this submission. And it never
 delivered what its label implied: it hid on-page text only, while `og:url` and
-`og:image` hardcode `billychern.github.io`, crawlers need those absolute and ignore
-JS-set metadata, and the hosting URL itself carries the username. A control that
+`og:image` hardcode the author's own domain (`shichen.world`; they named
+`billychern.github.io` until 2026-08-25 — see *Hosting URL and the account-wide
+redirect*), crawlers need those absolute and ignore JS-set metadata, and the hosting
+URL itself carries the author's identity under either form. A control that
 cannot do what it says is worse than no control.
 
 > If a future venue is double-anonymous, do not reinstate this. Blinding needs
@@ -322,6 +326,34 @@ jobs:
         with: { path: . }
       - uses: actions/deploy-pages@v4
 ```
+
+### Hosting URL and the account-wide redirect
+
+The live URL is **<https://shichen.world/GSSC-project-page/>**, not the
+`billychern.github.io` form. The account has a verified custom domain
+(`shichen.world`) with HTTPS enforced, so GitHub answers *every* project-page path
+under `billychern.github.io` with a permanent redirect to it. Measured 2026-08-25:
+
+```
+$ curl -sSI https://billychern.github.io/GSSC-project-page/
+HTTP/2 301
+location: https://shichen.world/GSSC-project-page/
+```
+
+There is no `CNAME` file anywhere in this repository. The domain is configured at the
+**account** level, so the redirect applies to this repo whether or not it opts in, and
+adding or removing a file here will not change it — `https://billychern.github.io/<anything>/`
+redirects the same way (verified against a path that does not exist).
+
+So record the `shichen.world` form in anything absolute: `og:url` and `og:image` in
+`index.html`, the `"Project page"` entry in the release repo's `pyproject.toml`, and any
+URL printed in the paper. The `github.io` form is not broken — browsers follow the 301 —
+but social-card scrapers that do not follow redirects will drop the card, and a redirect
+sitting inside a published citation is one more thing that can go stale.
+
+Both forms return 404 today because Pages has not been enabled on this repo yet
+(`has_pages: false`, measured 2026-08-25). That is the deploy step above; it is not a
+problem with the URL.
 
 ## Tech stack
 

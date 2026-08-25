@@ -10,13 +10,19 @@
 <meta property="og:description" content="38.8% mIoU on the SemanticKITTI hidden test at one step, no test-time augmentation — to our knowledge the best causal, single-sweep, single-sample result on that leaderboard — and 39.2% with four correction steps and eight-view D4 TTA, the entry Codabench displays." />
 <meta property="og:type" content="website" />
 <!-- Absolute URL: social scrapers do not resolve relative paths. It points at the
-     documented production URL, so the card works the moment Pages is enabled. -->
-<meta property="og:url" content="https://billychern.github.io/GSSC-project-page/" />
-<!-- These absolute URLs carry the author's GitHub username, and crawlers need them
+     documented production URL, so the card works the moment Pages is enabled.
+     Deliberately NOT the billychern.github.io form. The account has a verified
+     custom domain (shichen.world) with HTTPS enforced, so GitHub answers every
+     project-page path under billychern.github.io with a 301 to shichen.world --
+     measured 2026-08-25, "location: https://shichen.world/GSSC-project-page/".
+     A scraper that does not follow redirects would drop the card. See README,
+     "Hosting URL and the account-wide redirect". -->
+<meta property="og:url" content="https://shichen.world/GSSC-project-page/" />
+<!-- These absolute URLs carry the author's personal domain, and crawlers need them
      absolute. Nothing on the page can hide that; a blinded submission would need
      anonymous HOSTING, not anonymous markup. Review here is single-anonymous
      (author, 2026-08-18), so no blinding is required. -->
-<meta property="og:image" content="https://billychern.github.io/GSSC-project-page/assets/og-card.jpg" />
+<meta property="og:image" content="https://shichen.world/GSSC-project-page/assets/og-card.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="Qualitative comparison on SemanticKITTI: three frozen sources, our refinement, and ground truth, on a bicyclist and a motorcyclist scene." />
