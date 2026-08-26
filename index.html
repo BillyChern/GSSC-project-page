@@ -249,13 +249,13 @@
 </main>
 
 <footer class="prose">
-  <p>Static page: no analytics, no cookies. Two third-party fetches &mdash; the Hanken Grotesk webfont from Google Fonts, and three.js from unpkg for the viewer.</p>
+  <p>Static page: no analytics, no cookies. One third-party fetch &mdash; the Hanken Grotesk webfont from Google Fonts. three.js is served from this site, not a CDN.</p>
   <p>Figures and numbers come from the manuscript under review.</p>
 </footer>
 
 <script type="importmap">
-{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-               "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+{ "imports": { "three": "./vendor/three-0.160.0/three.module.js",
+               "three/addons/": "./vendor/three-0.160.0/addons/" } }
 </script>
 <script src="scripts/main.js"></script>
 <script type="module" src="scripts/viewer3d.js"></script>

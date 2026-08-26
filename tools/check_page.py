@@ -253,9 +253,21 @@ def inspect_slowload(browser, url, fault=None):
     if fault:
         fault(page)
     held = []
-    page.route("**/three@0.160.0/build/three.module.js", lambda r: held.append(r))
+    # Match the bare filename, not a CDN path shape. This was
+    # "**/three@0.160.0/build/three.module.js" -- unpkg's URL -- and when three.js moved
+    # to vendor/three-0.160.0/ the route silently stopped matching: nothing was held, and
+    # the three assertions below kept passing against a page that had simply loaded.
+    page.route("**/three.module.js", lambda r: held.append(r))
     page.goto(url, wait_until="commit")
     page.wait_for_timeout(9500)
+    if not held:
+        # Infrastructure failure, not a page failure: the route never matched, so every
+        # assertion in this context would describe a normally-loaded page. Crash instead
+        # of reporting four green checks that prove nothing.
+        page.close()
+        raise RuntimeError(
+            "three.js was never intercepted -- the slow-load route pattern no longer "
+            "matches the page's three.js URL, so this context proves nothing")
     fired = page.eval_on_selector("#viewer3d-loading", "e => getComputedStyle(e).display !== 'none'")
     if held:
         held[0].continue_()

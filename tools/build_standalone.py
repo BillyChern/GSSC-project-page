@@ -167,8 +167,8 @@ def build(artifact: bool = False) -> str:
     # is inlined -- measured: the only external requests a built page makes are the two
     # Google Fonts URLs. A page that documents its own network behaviour has to be right
     # about it, so the sentence is rewritten rather than left to rot.
-    served_claim = ("Two third-party fetches &mdash; the Hanken Grotesk webfont from "
-                    "Google Fonts, and three.js from unpkg for the viewer.")
+    served_claim = ("One third-party fetch &mdash; the Hanken Grotesk webfont from Google "
+                    "Fonts. three.js is served from this site, not a CDN.")
     if served_claim not in html:
         sys.exit("footer third-party disclosure not found -- it was reworded without "
                  "updating tools/build_standalone.py, and the built page would now lie")
