@@ -54,7 +54,7 @@ What remains before going public is a judgement call, not a hold:
 - ~~`github.com/BillyChern/GSSC-S2D2` (code) and the model/data releases are still 404.~~
   **Spent, 2026-08-25.** Code, checkpoints, the PS³ corpus (Hugging Face *and* the IEEE
   DataPort deposit) and the baseline-prediction release are all public and all return 200
-  unauthenticated, and all six are linked from the page — see *Release links* for the
+  unauthenticated, and all of them are linked from the page — see *Release links* for the
   table and the checks. Nothing on the page says any artefact arrives "on publication"
   any more; that wording is recorded here only so nobody restores it from an old checkout.
 - This repository's **history has been rewritten and re-pushed**: the `.audit/` screenshots
@@ -96,7 +96,7 @@ The rows below are in the order the page reads them, which is also the order
 
 | Section | What it shows |
 |---|---|
-| Header | Title, venue, authors, and the resource row: **seven slots in two tiers**, six live links and one inert label. Tier 1 is the paper and what runs it (Paper — inert, no preprint URL exists yet; SemanticKITTI leaderboard; Code; Checkpoints), tier 2 the three data releases (PS³ corpus; PS³ on IEEE DataPort; baseline predictions & object bank). See *Release links* for why it is two tiers and not one row |
+| Header | Title, venue, authors, and the resource row: **seven slots in two tiers**, all seven live links. Tier 1 is the paper and what runs it (Paper — the arXiv preprint; SemanticKITTI leaderboard; Code; Checkpoints), tier 2 the three data releases (PS³ corpus; PS³ on IEEE DataPort; baseline predictions & object bank). See *Release links* for why it is two tiers and not one row |
 | **The semantic scene completion challenge** (`#task`) | Paper Fig. 1(a): a sparse sweep at ~1% occupancy and the dense scene to be predicted. A reader new to the subfield learns the problem from a figure before any prose |
 | Abstract (`#abstract`) | The paper's abstract **verbatim**, below the media — measured convention: of 12 top project pages diffed against their arXiv text, 10 reproduce it verbatim or near-verbatim, **0 rewrite it**, and all sit below the first figure |
 | **Results** (`#results`) | Paper Fig. 6 qualitative comparison, then a generated bar chart of hidden-test mIoU. The chart plots the **nine** test rows in `data/results.json`; the two outside the headline predicate — TALoS (test-time adaptation) and our own D₄ row — carry a leading `‡`, explained on the second line of the x-axis. **That is not all of paper Table I.** SCPNet at four sweeps (47.5, the one published test row above ours) was removed from `data/results.json` **by author decision, 2026-08-25**, taken with the counter-argument in hand; the paper still carries the row, this chart does not, and no caption, `alt` string or line here may say the chart plots every test row of Table I. The paper marks its excluded rows individually (`‖` test-time adaptation, `§` D₄ ensemble), so the single `‡` is this chart's simplification, not Table I's notation |
@@ -108,29 +108,29 @@ The rows below are in the order the page reads them, which is also the order
 
 Ordering and length follow measurement, not taste. Across 15 accepted project pages the
 median is **363–379 visible words**. This page was 1,561, was trimmed to ~760, drifted back
-to **1,132**, and is now **885** — measured the same way each time: `document.body.innerText`
+to **1,132**, and is now **903** — measured the same way each time: `document.body.innerText`
 of the served page, tokens containing a letter or a digit, Chromium at 1280×900.
 
-885 is above the band and stays there on purpose. Four blocks account for 429 of it and none
+903 is above the band and stays there on purpose. Four blocks account for 439 of it and none
 of them is running text a corpus page has to carry:
 
 | Block | Words | Why it cannot be cut |
 |---|---:|---|
 | Abstract, verbatim | 200 | 0 of 12 corpus pages rewrite theirs; rewriting it is how claims drift |
-| Three BibTeX entries | 123 | Two of them — Behley et al. and Geiger et al. — are required by SemanticKITTI's own terms |
+| Three BibTeX entries | 133 | Two of them — Behley et al. and Geiger et al. — are required by SemanticKITTI's own terms |
 | CC BY-NC-SA attribution | 80 | The page redistributes modified SemanticKITTI material; see *Third-party data* |
 | Grant acknowledgement | 26 | Named grants, 624B1006 and 24511103900 |
 
-The **112** left over is chrome the counter cannot tell from prose: the title block
-(43 — title, venue, authors, affiliations and the seven button labels), the skip link, the
+The **113** left over is chrome the counter cannot tell from prose: the title block
+(44 — title, venue, authors, affiliations and the seven button labels), the skip link, the
 section headings outside the two fixed sections, the viewer's control labels, and the
 viewer's generated IoU readout (23). Which puts the actual **running
 text — the eight figcaptions (245), the viewer note (20), the render-provenance paragraph
-(47) and the footer (32) — at 344**, *below* the corpus median for an entire page. Measured
-2026-08-25, per element, by the same counter. The page is long because of what it is
-obliged to say, not because of how it says it.
+(47) and the footer (39) — at 351**, *below* the corpus median for an entire page. Measured
+2026-08-26 against the arXiv-linked page, per element, by the same counter. The page is long
+because of what it is obliged to say, not because of how it says it.
 
-`885 = 429 fixed + 344 running + 112 chrome`. If a future round needs it shorter, the only
+`903 = 439 fixed + 351 running + 113 chrome`. If a future round needs it shorter, the only
 places left are the four fixed blocks, and each one costs something real.
 
 **0 of 15 use an HTML number table**, and the five that show numbers use a chart or an image
@@ -306,13 +306,13 @@ cannot do what it says is worse than no control.
 
 **Seven slots sit under the author block: every released artefact of this project is
 linked from the page** (author, 2026-08-25 — "everything related to our project should be
-well linked and well shown on the webpage"). Six are live `<a>` elements. One is still an
-inert `<span class="btn" role="link" aria-disabled="true">`: **Paper**, because no
-preprint URL exists yet.
+well linked and well shown on the webpage"). All seven are live `<a>` elements. The last
+inert one, **Paper**, went live when the arXiv preprint was posted; nothing on this page
+is an `aria-disabled` label any more.
 
 | Slot | Target | Live |
 |---|---|:--:|
-| Paper — under review | *(none; no preprint URL exists)* | inert |
+| Paper — arXiv | `arxiv.org/abs/2608.26737` | ✓ |
 | SemanticKITTI leaderboard | `codabench.org/competitions/13814` | ✓ |
 | Code | `github.com/BillyChern/GSSC-S2D2` | ✓ |
 | Checkpoints | `huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints` | ✓ |
@@ -325,6 +325,7 @@ cannot do what it says is worse than no control, so nothing here gets an `href` 
 returns 200 to a logged-out request:
 
 ```
+arxiv.org/abs/2608.26737                                   200
 github.com/BillyChern/GSSC-S2D2                            200
 huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints           200
 huggingface.co/datasets/Stone-Chern/PS3-SemanticKITTI      200
@@ -359,9 +360,23 @@ keeps its full reach. **Do not put the DOI back into a label or a `title`** with
 a gated exemption for it, and prefer not adding one — a filter in front of a gate is where
 the next defect hides.
 
-**Still to do:** when the preprint is posted, replace the Paper `<span>` with
-`<a class="btn" href="https://arxiv.org/abs/..." target="_blank" rel="noopener">Paper</a>`.
-That is the last inert control on the page.
+**The same rule binds the arXiv id.** `2608.26737` and its DataCite DOI
+`10.48550/arXiv.2608.26737` live in the Paper button's `href` and in the BibTeX `<pre>` —
+which the numeric sweep exempts — and nowhere else. Measured against the built paper by
+injection: put either in the button's label and `all N numeric claims appear in the paper`
+goes red on `2608.26737`; put the id in the button's `title` and it goes red the same way;
+put the DOI in the label and it goes red on `10.48550`. That is why the button reads
+**Paper — arXiv** with no identifier in it, and why the id is in an HTML comment nowhere
+near an attribute. **Do not** widen `SWEPT_ATTRS` or add an exemption to make a prettier
+label possible.
+
+**Done — the preprint is posted.** The Paper `<span>` is now
+`<a class="btn" href="https://arxiv.org/abs/2608.26737" target="_blank" rel="noopener" title="The preprint on arXiv; the paper is under review.">Paper &mdash; arXiv</a>`,
+and there is no inert control left on the page. Consequence: `.btn[aria-disabled="true"]`
+in `styles/site.css` and the `--faint` token it is the only user of are now dead rules.
+They are kept for the next control that needs them, not because anything uses them — if
+you delete them, delete both, and the CSS comment above `.links` that counts the tiers
+stays correct either way.
 
 ## Editing numbers
 
@@ -543,10 +558,15 @@ checks above expect; stop later with `pkill -f "http.server 8099"`.
 ## Citation
 
 ```bibtex
-@unpublished{chen2026gssc,
-  title   = {Generative Semantic Scene Completion},
-  author  = {Chen, Shi and Ge, Weifeng},
-  note    = {Under review},
-  year    = {2026}
+@misc{chen2026gssc,
+  title         = {Generative Semantic Scene Completion},
+  author        = {Chen, Shi and Ge, Weifeng},
+  year          = {2026},
+  eprint        = {2608.26737},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  doi           = {10.48550/arXiv.2608.26737},
+  url           = {https://arxiv.org/abs/2608.26737},
+  note          = {Under review}
 }
 ```

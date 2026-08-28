@@ -39,7 +39,7 @@
 
 <header class="head prose">
   <h1>Generative Semantic Scene Completion</h1>
-  <p class="venue">Under review</p>
+  <p class="venue">arXiv preprint &middot; under review</p>
   <div class="identity">
     <p class="authors">Shi Chen<sup>1,2</sup> &nbsp;&middot;&nbsp; Weifeng Ge<sup>1,*</sup></p>
     <p class="affil"><sup>1</sup>College of Computer Science and Artificial Intelligence, Fudan University &nbsp;&middot;&nbsp; <sup>2</sup>Robotics Institute, Carnegie Mellon University</p>
@@ -51,10 +51,14 @@
        grouping cue and the gap ratio carries it (24px between tiers, 12px within), so
        the second line reads as a group and not as an overflow. Every href here was
        checked unauthenticated for a 200 before it was written; nothing gets an href
-       until it does. Paper is the one inert control -- no preprint URL exists yet. -->
+       until it does. Paper was the one inert control here until the arXiv preprint was
+       posted; every slot is live now. The arXiv id and its DataCite DOI stay in the
+       href and out of every label, alt and title attribute -- tools/check_content.py
+       sweeps that text against the paper, and an identifier is not a claim the paper
+       can contain. Same reason as the DataPort DOI below. -->
   <nav class="links" aria-label="Resources">
     <div class="link-tier">
-      <span class="btn" role="link" aria-disabled="true" title="Under peer review; preprint not yet public.">Paper &mdash; under review</span>
+      <a class="btn" href="https://arxiv.org/abs/2608.26737" target="_blank" rel="noopener" title="The preprint on arXiv; the paper is under review.">Paper &mdash; arXiv</a>
       <a class="btn" href="https://www.codabench.org/competitions/13814/#/results-tab" target="_blank" rel="noopener">SemanticKITTI leaderboard</a>
       <a class="btn" href="https://github.com/BillyChern/GSSC-S2D2" target="_blank" rel="noopener">Code</a>
       <a class="btn" href="https://huggingface.co/Stone-Chern/GSSC-S2D2-checkpoints" target="_blank" rel="noopener">Checkpoints</a>
@@ -216,11 +220,16 @@
 
 <section id="bibtex" class="prose">
   <h2>BibTeX</h2>
-  <pre><code id="bibtex-code">@unpublished{chen2026gssc,
-  title   = {Generative Semantic Scene Completion},
-  author  = {Chen, Shi and Ge, Weifeng},
-  note    = {Under review},
-  year    = {2026}
+  <pre><code id="bibtex-code">@misc{chen2026gssc,
+  title         = {Generative Semantic Scene Completion},
+  author        = {Chen, Shi and Ge, Weifeng},
+  year          = {2026},
+  eprint        = {2608.26737},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  doi           = {10.48550/arXiv.2608.26737},
+  url           = {https://arxiv.org/abs/2608.26737},
+  note          = {Under review}
 }</code></pre>
   <p class="links-note" style="text-align:left"><button class="btn" id="bibtex-copy" type="button" hidden><span id="bibtex-copy-label">Copy</span></button></p>
   <p class="note">The SemanticKITTI material shown on this page carries its own citation requirement. Both of these must accompany any reuse of it:</p>
@@ -250,7 +259,7 @@
 
 <footer class="prose">
   <p>Static page: no analytics, no cookies. One third-party fetch &mdash; the Hanken Grotesk webfont from Google Fonts. three.js is served from this site, not a CDN.</p>
-  <p>Figures and numbers come from the manuscript under review.</p>
+  <p>Figures and numbers come from the manuscript under review, posted as an arXiv preprint.</p>
 </footer>
 
 <script type="importmap">
