@@ -69,6 +69,10 @@ a:hover, a:focus-visible { color: var(--accent-hover); text-decoration-color: va
 .head .affil, .head .corr {
   margin: 0; font-size: var(--fs-affil); color: var(--muted); line-height: 1.5;
 }
+/* The corresponding-author note gets a hair of space so it reads as a footnote to
+   the affiliations rather than a third one. Size is deliberately NOT reduced: this
+   system sets notes at full size (see --fs-small in tokens.css). */
+.head .corr { margin-top: var(--s-1); }
 .head sup { font-size: 0.72em; }
 
 /* The author-visibility toggle and everything it drove (body[data-anon], .anon-note,
